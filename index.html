@@ -62,6 +62,10 @@
   #menu .intro { margin-top:26px; max-width:340px; font-size:14px; color:#cbd5e1; line-height:1.9; text-align:center; }
   #menu .intro span { color:#67e8f9; }
   #menu .controls { margin-top:14px; font-size:13px; color:#64748b; line-height:1.9; text-align:center; }
+  #menu .menu-coins { margin-top:16px; font-size:15px; color:#fde68a; letter-spacing:2px; }
+  #menu .menu-coins b { font-size:18px; color:#fbbf24; }
+  #menu .menu-btns { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  #menu .menu-btns .btn { margin-top:0; }
   .btn {
     margin-top:26px; min-width:190px; min-height:52px; padding:0 28px; border:none; border-radius:12px;
     font-size:17px; font-weight:700; letter-spacing:4px; color:#04121a;
@@ -71,6 +75,32 @@
   .btn:active { transform:scale(.96); }
   .btn:hover { box-shadow:0 8px 30px rgba(34,211,238,.5); }
   .btn.ghost { background:transparent; color:#cbd5e1; border:1px solid rgba(148,163,184,.4); box-shadow:none; letter-spacing:2px; font-size:15px; }
+
+  /* ===== 宝可梦图鉴 ===== */
+  #collection .col-title { font-size:24px; font-weight:800; letter-spacing:6px; color:#f8fafc; margin-bottom:6px; text-shadow:0 0 16px rgba(74,222,128,.5); }
+  #collection .col-sub { font-size:13px; color:#94a3b8; letter-spacing:1px; margin-bottom:18px; }
+  #collection .col-sub b { color:#fbbf24; }
+  #col-grid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; width:100%; max-width:660px; max-height:52vh; overflow-y:auto; padding:4px; }
+  .col-card {
+    flex:1 1 150px; min-width:150px; max-width:200px; background:rgba(15,23,42,.9);
+    border:1px solid rgba(148,163,184,.3); border-radius:14px; padding:14px 12px 12px;
+    text-align:center; cursor:pointer; pointer-events:auto; transition:transform .1s ease, border-color .15s;
+  }
+  .col-card:hover { transform:translateY(-3px); }
+  .col-card .col-dot { width:52px; height:52px; border-radius:50%; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#0f172a; }
+  .col-card .col-name { font-size:15px; font-weight:700; color:#f8fafc; letter-spacing:1px; }
+  .col-card .col-attr { font-size:11px; color:#94a3b8; margin-top:4px; letter-spacing:1px; }
+  .col-card .col-skill { font-size:12px; color:#67e8f9; margin-top:6px; min-height:30px; line-height:1.5; }
+  .col-card .col-lvl { font-size:11px; color:#64748b; margin-top:4px; }
+  .col-card .col-actions { display:flex; gap:6px; justify-content:center; margin-top:10px; }
+  .col-card button { flex:1; min-width:0; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; pointer-events:auto; }
+  .col-card .btn-evolve { background:linear-gradient(120deg,#fbbf24,#f59e0b); color:#1e293b; }
+  .col-card .btn-evolve:disabled { background:rgba(148,163,184,.2); color:#64748b; cursor:not-allowed; }
+  .col-card .btn-pick { background:linear-gradient(120deg,#22d3ee,#67e8f9); color:#04121a; }
+  .col-card .btn-pick.used { background:rgba(148,163,184,.18); color:#94a3b8; }
+  .col-card.locked { opacity:.5; }
+  .col-card.locked .col-dot { background:rgba(148,163,184,.15) !important; color:#64748b; }
+  #collection .btn { margin-top:20px; }
 
   /* ===== 升级三选一 ===== */
   #levelup .up-title { font-size:24px; font-weight:800; letter-spacing:6px; color:#f8fafc; margin-bottom:6px; text-shadow:0 0 16px rgba(167,139,250,.6); }
@@ -194,8 +224,20 @@
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
       你只管走位闪避、拾取能量、升级强化，在无尽虫潮中活下来。
     </div>
-    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动</div>
-    <button class="btn" id="btn-start">开始游戏</button>
+    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战</div>
+    <div class="menu-coins">金币 <b id="menu-coins">0</b></div>
+    <div class="menu-btns">
+      <button class="btn" id="btn-start">开始游戏</button>
+      <button class="btn ghost" id="btn-collection">我的宝可梦</button>
+    </div>
+  </div>
+
+  <!-- ===== 宝可梦图鉴 / 捕捉 / 进化 ===== -->
+  <div class="overlay" id="collection" hidden>
+    <div class="col-title">我的宝可梦</div>
+    <div class="col-sub">金币 <b id="col-coins">0</b> · 每关通关获得金币，可进化伙伴</div>
+    <div id="col-grid"></div>
+    <button class="btn" id="btn-col-back">返回</button>
   </div>
 
   <!-- ===== 升级三选一 ===== -->
@@ -262,6 +304,24 @@ const CONFIG = {
   stars: { layers:[ {count:90, depth:0.25}, {count:40, depth:0.6} ] }
 };
 
+/* ===== 宝可梦图鉴（程序化同人 · 私用非盈利） ===== */
+const ROSTER = {
+  fire:{ name:"小火龙", mid:"火恐龙", top:"喷火龙", attr:"火", color:"#fb923c",
+    skills:["灼烧","烈焰灼烧","炼狱点燃"], desc:"点燃敌人持续掉血" },
+  elec:{ name:"皮丘", mid:"皮卡丘", top:"雷丘", attr:"电", color:"#facc15",
+    skills:["静电连锁","麻痹传导","雷霆溅射"], desc:"电弧连锁波及附近敌人" },
+  ice:{ name:"小山猪", mid:"长毛猪", top:"象牙猪", attr:"冰", color:"#7dd3fc",
+    skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人大幅减速" },
+  water:{ name:"杰尼龟", mid:"卡咪龟", top:"水箭龟", attr:"水", color:"#38bdf8",
+    skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围敌人" },
+  grass:{ name:"妙蛙种子", mid:"妙蛙草", top:"妙蛙花", attr:"草", color:"#4ade80",
+    skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" }
+};
+const BOSS_POOL = ["fire","elec","ice","water","grass"];   // 关卡 Boss 循环：火→电→冰→水→草
+const ATTR_KEYS = ["fire","elec","ice","water","grass"];
+const ROLE_EVOLVE_COST = [0, 60, 120];                     // 进化 1→2 需 60 金币，2→3 需 120 金币
+const ROLE_ORDER = ["elec","fire","ice","water","grass"];  // 图鉴展示顺序
+
 /* ===== 状态 ===== */
 const S = {
   mode:"menu",            // menu | playing | paused | levelup | gameover
@@ -273,6 +333,9 @@ const S = {
   kills:0, stage:1, stageTimer:CONFIG.level.duration, bossActive:false,
   level:1, exp:0, expNeed:CONFIG.exp.base,
   loveShown:false, loveTimer:null,
+  roster:{ elec:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
+  coins:0, runCoins:0, activeRole:"elec",  // 金币 / 本局金币 / 当前出战角色
+  bossId:null, playerSlowT:0, playerBurn:null,
   stats:{ kills:0 },
   best: null,
   mute:false,
@@ -280,6 +343,28 @@ const S = {
   joy:{ active:false, baseX:0, baseY:0, dx:0, dy:0 },
   input:{ x:0, y:0 }
 };
+// 加载进度（捕捉/金币持久化）
+(function loadProgress(){
+  try{
+    const rr = JSON.parse(localStorage.getItem("starburst_roster")||"null");
+    if(rr && typeof rr==="object") S.roster = rr;
+  }catch(e){}
+  if(!S.roster.elec) S.roster.elec = 2;
+  try{ S.coins = parseInt(localStorage.getItem("starburst_coins")||"0",10)||0; }catch(e){}
+})();
+function saveProgress(){
+  try{
+    localStorage.setItem("starburst_roster", JSON.stringify(S.roster));
+    localStorage.setItem("starburst_coins", String(S.coins));
+  }catch(e){}
+}
+function roleForm(id){ return S.roster[id]||1; }
+function roleAtk(id){ const f=roleForm(id); return f>=3?1.22:(f>=2?1.1:1); }
+function roleMul(id){ const f=roleForm(id); return f>=3?2.2:(f>=2?1.5:1); }
+function roleName(id,form){
+  const R=ROSTER[id]; form=form||roleForm(id);
+  return form>=3?R.top:(form===2?R.mid:R.name);
+}
 let CANVAS, CTX, W, H, DPR;
 
 /* ===== 工具 ===== */
@@ -344,14 +429,25 @@ function spawnElite(){
 function spawnBoss(){
   S.bossActive = true;
   S.enemies.length = 0;                                              // 清场，专注 Boss
+  const bid = BOSS_POOL[(S.stage-1)%BOSS_POOL.length];               // 每关 Boss 不同（循环）
+  S.bossId = bid;
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.5 + 60;
   const base = CONFIG.level.bossBase + (S.stage-1)*CONFIG.level.bossPerStage;
-  S.enemies.push({ type:"boss", x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
+  S.enemies.push({ type:"boss", attr:bid, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
     r:40, hp:base, maxHp:base, speed:32, dmg:35, exp:0,
     angle:a, wob:0, elite:false, dead:false });
-  showBanner("BOSS 来袭");
+  showBanner("BOSS 来袭 · "+ROSTER[bid].top);
   sndExplode(true);
+}
+function captureBoss(){
+  const bid = S.bossId || "fire";
+  if(!S.roster[bid]){
+    S.roster[bid] = 1;
+    saveProgress();
+    showBanner("捕捉到 "+ROSTER[bid].name+"！");
+    sndLevel();
+  }
 }
 function stageClear(){
   S.bossActive = false;
@@ -361,7 +457,11 @@ function stageClear(){
   const p = S.player;
   p.hp = p.maxHp; p.shieldLvl = Math.max(p.shieldLvl,1);
   refreshHpUI(); syncShieldUI();
-  showBanner("第 "+S.stage+" 关");
+  const reward = 10 + S.stage*5;                                     // 每关通关金币
+  S.coins += reward;
+  S.runCoins += reward;
+  saveProgress();
+  showBanner("第 "+S.stage+" 关 · 金币 +"+reward);
   sndLevel();
 }
 function spawnPickup(x,y,exp){
@@ -391,7 +491,15 @@ function update(dt){
   let mx=S.input.x, my=S.input.y;
   const len=Math.hypot(mx,my);
   if(len>1){ mx/=len; my/=len; }
-  const spd = CONFIG.player.speed*(1+0.12*p.speedLvl);
+  let spd = CONFIG.player.speed*(1+0.12*p.speedLvl);
+  if(S.playerSlowT>0){ S.playerSlowT-=dt; spd*=0.55; }             // 冰 Boss 减速
+  if(S.playerBurn){                                                  // 火 Boss 点燃
+    S.playerBurn.t-=dt; p.hp-=S.playerBurn.dps*dt;
+    refreshHpUI();
+    if(Math.random()<dt*22) burst(p.x+rand(-10,10),p.y+rand(-10,10),"#fb923c",2,60);
+    if(p.hp<=0){ gameOver(); return; }
+    if(S.playerBurn.t<=0) S.playerBurn=null;
+  }
   p.x = clamp(p.x+mx*spd*dt, p.r, W-p.r);
   p.y = clamp(p.y+my*spd*dt, p.r, H-p.r);
   if(len>0.01) p.angle = Math.atan2(my,mx);
@@ -402,7 +510,7 @@ function update(dt){
   }
 
   // 炮塔开火
-  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl);
+  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl)/roleAtk(S.activeRole);
   const dmg = CONFIG.drone.damage*(1+0.3*p.dmgLvl);
   const shots = 1+p.multiLvl;
   for(const d of S.drones){
@@ -418,7 +526,8 @@ function update(dt){
         const off = (i-(shots-1)/2)*0.16;
         S.bullets.push({ x:ox, y:oy, vx:Math.cos(base+off)*CONFIG.drone.bulletSpeed,
           vy:Math.sin(base+off)*CONFIG.drone.bulletSpeed, r:3.5, dmg,
-          life:CONFIG.drone.bulletLife, pierce:p.pierceLvl, hit:new Set() });
+          life:CONFIG.drone.bulletLife, pierce:p.pierceLvl, hit:new Set(),
+          attr:S.activeRole });
       }
       d.flash=0.08;
       sndShot();
@@ -452,6 +561,7 @@ function update(dt){
       if(dist(b,e) < b.r+e.r){
         b.hit.add(e);
         e.hp -= b.dmg;
+        applyAttr(e, b.attr||S.activeRole, S.activeRole);
         burst(b.x,b.y,"#fbbf24",4,120);
         if(e.hp<=0){ killEnemy(e); }
         if(b.pierce>0){ b.pierce--; } else { dead=true; break; }
@@ -464,12 +574,21 @@ function update(dt){
   for(let i=S.enemies.length-1;i>=0;i--){
     const e=S.enemies[i];
     if(e.dead){ S.enemies.splice(i,1); continue; }
+    // 属性状态：点燃 DOT / 冰冻减速
+    let spdMul=1;
+    if(e.slowT>0){ e.slowT-=dt; spdMul=0.5; }
+    if(e.burn){
+      e.burn.t-=dt; e.hp-=e.burn.dps*dt;
+      if(Math.random()<dt*18) burst(e.x+rand(-8,8),e.y+rand(-8,8),"#fb923c",2,60);
+      if(e.hp<=0){ killEnemy(e); continue; }
+      if(e.burn.t<=0) e.burn=null;
+    }
     const d=dist(e,p);
     const a=Math.atan2(p.y-e.y,p.x-e.x);
     e.wob+=dt*4;
     const wobble = e.type==="chaser" ? Math.sin(e.wob)*10 : 0;
-    e.x+=Math.cos(a)*e.speed*dt + (e.type==="chaser"?wobble*dt:0);
-    e.y+=Math.sin(a)*e.speed*dt;
+    e.x+=Math.cos(a)*e.speed*spdMul*dt + (e.type==="chaser"?wobble*dt:0);
+    e.y+=Math.sin(a)*e.speed*spdMul*dt;
     if(d < e.r+p.r){
       if(p.inv<=0){
         let dmg = e.dmg;
@@ -480,6 +599,13 @@ function update(dt){
           if(p.hp<=0){ gameOver(); return; }
         }
       }
+      // Boss 撞击附加 debuff
+      if(e.type==="boss"){
+        if(e.attr==="ice") S.playerSlowT=1.5;
+        else if(e.attr==="fire") S.playerBurn={ t:2, dps:6 };
+      }
+      // 冲撞附带出战角色属性
+      applyAttr(e, S.activeRole, S.activeRole);
       if(e.type!=="brute" && e.type!=="elite"){ killEnemy(e); }
     }
   }
@@ -540,6 +666,7 @@ function killEnemy(e){
   if(e.type==="boss"){
     burst(e.x,e.y,"#f97316",46,420); burst(e.x,e.y,"#fde68a",30,300);
     sndExplode(true);
+    captureBoss();      // 打赢即可捕捉（基础形态）
     stageClear();
     return;
   }
@@ -549,6 +676,33 @@ function killEnemy(e){
   const drops = e.type==="brute"?3:(e.elite?5:1);
   for(let i=0;i<drops;i++) spawnPickup(e.x+rand(-14,14),e.y+rand(-14,14), e.exp/drops);
   sndExplode(e.elite);
+}
+
+/* ===== 属性技能（出战角色自动附加，进化增强） ===== */
+function applyAttr(e, attr, id){
+  const mul = roleMul(id);
+  if(attr==="fire"){ e.burn={ t:2.5, dps:4*mul }; }
+  else if(attr==="ice"){ e.slowT = 1.8*(roleForm(id)>=2?1.4:1); }
+  else if(attr==="elec"){ chainStrike(e, 92, 0.45*mul); }
+  else if(attr==="water"){ splashStrike(e, 84, 0.38*mul); }
+  else if(attr==="grass"){ const p=S.player; p.hp=Math.min(p.maxHp,p.hp+0.015*p.maxHp); refreshHpUI(); }
+}
+function strikeEnemy(e,dmg,color){
+  if(e.dead) return;
+  e.hp-=dmg; burst(e.x,e.y,color,5,150);
+  if(e.hp<=0) killEnemy(e);
+}
+function chainStrike(e,range,mult){
+  for(const o of S.enemies){
+    if(o!==e && !o.dead && dist(e,o)<range) strikeEnemy(o, CONFIG.drone.damage*mult, "#facc15");
+  }
+  burst(e.x,e.y,"#facc15",10,190);
+}
+function splashStrike(e,range,mult){
+  for(const o of S.enemies){
+    if(o!==e && !o.dead && dist(e,o)<range) strikeEnemy(o, CONFIG.drone.damage*mult, "#38bdf8");
+  }
+  burst(e.x,e.y,"#38bdf8",10,190);
 }
 
 /* ===== 经验 / 升级 ===== */
@@ -710,47 +864,164 @@ function drawBackground(px,py){
 function glow(color){
   CTX.shadowColor=color; CTX.shadowBlur=12;
 }
-/* ===== 宝可梦风格角色（程序化简笔同人重绘，非官方素材） ===== */
-function drawPika(){ // 玩家 → 皮卡丘
-  const p=S.player;
-  if(p.flash>0 && Math.floor(p.flash*20)%2===0) return; // 受击闪烁
-  CTX.save();
-  CTX.translate(p.x,p.y); CTX.rotate(p.angle);
+/* ===== 出战角色绘制（程序化同人 · 5 系 × 3 形态） ===== */
+function drawElec(x,y,r,rot,form){ // 电系：皮丘 → 皮卡丘 → 雷丘
+  const R = r*(form>=3?1.35:(form>=2?1:0.8));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
   glow("#ffd94a");
-  // 闪电尾巴（朝后）
-  CTX.fillStyle="#fbbf24";
-  CTX.beginPath();
-  CTX.moveTo(-8,5); CTX.lineTo(-16,3); CTX.lineTo(-12,8); CTX.lineTo(-20,11);
-  CTX.lineTo(-11,12); CTX.lineTo(-14,17); CTX.lineTo(-6,10);
-  CTX.closePath(); CTX.fill();
-  // 身体
+  if(form>=2){ // 闪电尾巴（雷丘更长更粗）
+    CTX.fillStyle="#fbbf24";
+    CTX.beginPath();
+    if(form>=3){
+      CTX.moveTo(-9,6); CTX.lineTo(-21,4); CTX.lineTo(-14,11); CTX.lineTo(-27,15);
+      CTX.lineTo(-12,17); CTX.lineTo(-17,23); CTX.lineTo(-6,12);
+    } else {
+      CTX.moveTo(-8,5); CTX.lineTo(-16,3); CTX.lineTo(-12,8); CTX.lineTo(-20,11);
+      CTX.lineTo(-11,12); CTX.lineTo(-14,17); CTX.lineTo(-6,10);
+    }
+    CTX.closePath(); CTX.fill();
+  }
   CTX.fillStyle="#ffd94a";
-  CTX.beginPath(); CTX.ellipse(0,0,13,11,0,0,6.28); CTX.fill();
-  // 耳朵（黑尖）
-  for(const s of [-1,1]){
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  for(const s of [-1,1]){ // 耳朵（皮丘圆短，皮/雷黑尖，雷丘橙尖）
     CTX.fillStyle="#ffd94a";
     CTX.beginPath();
-    CTX.moveTo(s*6,-8); CTX.lineTo(s*11,-19); CTX.lineTo(s*2,-13);
+    if(form===1){
+      CTX.moveTo(s*R*0.45,-R*0.55); CTX.lineTo(s*R*0.7,-R*1.05); CTX.lineTo(s*R*0.15,-R*0.9);
+    } else {
+      CTX.moveTo(s*R*0.45,-R*0.6); CTX.lineTo(s*R*0.85,-R*1.5); CTX.lineTo(s*R*0.15,-R);
+    }
     CTX.closePath(); CTX.fill();
-    CTX.fillStyle="#1e293b";
-    CTX.beginPath();
-    CTX.moveTo(s*9,-15); CTX.lineTo(s*11,-19); CTX.lineTo(s*6,-16);
-    CTX.closePath(); CTX.fill();
+    if(form>1){
+      CTX.fillStyle=form>=3?"#fb923c":"#1e293b";
+      CTX.beginPath();
+      CTX.moveTo(s*R*0.65,-R*1.15); CTX.lineTo(s*R*0.85,-R*1.5); CTX.lineTo(s*R*0.4,-R*1.25);
+      CTX.closePath(); CTX.fill();
+    }
   }
-  // 红脸颊
-  CTX.fillStyle="#f87171";
-  CTX.beginPath(); CTX.arc(-8,4,3.2,0,6.28); CTX.fill();
-  CTX.beginPath(); CTX.arc(8,4,3.2,0,6.28); CTX.fill();
-  // 眼睛
-  CTX.fillStyle="#0f172a";
-  CTX.beginPath(); CTX.arc(-5,-2,2,0,6.28); CTX.fill();
-  CTX.beginPath(); CTX.arc(5,-2,2,0,6.28); CTX.fill();
+  CTX.fillStyle="#f87171"; // 红脸颊
+  CTX.beginPath(); CTX.arc(-R*0.6,R*0.32,R*0.26,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.6,R*0.32,R*0.26,0,6.28); CTX.fill();
+  CTX.fillStyle="#0f172a"; // 眼睛
+  CTX.beginPath(); CTX.arc(-R*0.38,-R*0.15,R*0.16,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.38,-R*0.15,R*0.16,0,6.28); CTX.fill();
   CTX.restore();
-  // 护盾光圈
-  if(p.shieldLvl>0){
-    CTX.strokeStyle="rgba(56,189,248,0.55)"; CTX.lineWidth=2;
-    CTX.beginPath(); CTX.arc(p.x,p.y,p.r+8,0,6.28); CTX.stroke();
+}
+function drawFire(x,y,r,rot,form){ // 火系：小火龙 → 火恐龙 → 喷火龙
+  const R = r*(form>=3?1.3:(form>=2?1.05:0.8));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
+  glow("#fb923c");
+  CTX.fillStyle="#fbbf24"; // 火焰尾巴（随形态变旺）
+  CTX.beginPath();
+  if(form>=3){
+    CTX.moveTo(-8,4); CTX.lineTo(-14,0); CTX.lineTo(-12,7); CTX.lineTo(-22,6);
+    CTX.lineTo(-13,12); CTX.lineTo(-18,19); CTX.lineTo(-8,13); CTX.lineTo(-10,8);
+  } else if(form===2){
+    CTX.moveTo(-7,4); CTX.lineTo(-13,2); CTX.lineTo(-10,8); CTX.lineTo(-16,12); CTX.lineTo(-7,11);
+  } else {
+    CTX.moveTo(-6,3); CTX.lineTo(-11,2); CTX.lineTo(-9,8); CTX.lineTo(-5,8);
   }
+  CTX.closePath(); CTX.fill();
+  CTX.fillStyle = form>=3?"#fb923c":(form===2?"#f97316":"#fdba74"); // 身体
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#fde68a"; // 肚皮
+  CTX.beginPath(); CTX.ellipse(0,R*0.28,R*0.55,R*0.42,0,0,6.28); CTX.fill();
+  if(form>=2){ // 翅膀（火恐龙小翅，喷火龙大翅）
+    CTX.fillStyle=form>=3?"#f97316":"#fb923c";
+    for(const s of [-1,1]){
+      CTX.beginPath();
+      if(form>=3){
+        CTX.moveTo(s*4,0); CTX.lineTo(s*R*1.9,-R*0.55); CTX.lineTo(s*R*1.2,R*0.5);
+      } else {
+        CTX.moveTo(s*4,0); CTX.lineTo(s*R*1.1,-R*0.3); CTX.lineTo(s*R*0.7,R*0.35);
+      }
+      CTX.closePath(); CTX.fill();
+    }
+  }
+  CTX.fillStyle="#0f172a"; // 眼睛
+  CTX.beginPath(); CTX.arc(-R*0.35,-R*0.15,R*0.15,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.35,-R*0.15,R*0.15,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawIce(x,y,r,rot,form){ // 冰系：小山猪 → 长毛猪 → 象牙猪
+  const R = r*(form>=3?1.4:(form>=2?1.15:0.8));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
+  glow("#7dd3fc");
+  CTX.fillStyle = form>=3?"#7dd3fc":(form===2?"#a5d8f3":"#cfe8f7"); // 身体
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  if(form>=2){ // 毛刺
+    CTX.strokeStyle="#7dd3fc"; CTX.lineWidth=R*0.13; CTX.lineCap="round";
+    for(let i=0;i<6;i++){
+      const a=i/6*6.28+0.5;
+      CTX.beginPath(); CTX.moveTo(Math.cos(a)*R*0.8,Math.sin(a)*R*0.7);
+      CTX.lineTo(Math.cos(a)*R*1.35,Math.sin(a)*R*1.15); CTX.stroke();
+    }
+  }
+  CTX.fillStyle="#f8fafc"; // 獠牙（象牙猪长獠牙）
+  for(const s of [-1,1]){
+    CTX.beginPath();
+    if(form>=3){ CTX.moveTo(s*R*0.35,-R*0.15); CTX.lineTo(s*R*0.9,R*0.55); CTX.lineTo(s*R*0.3,R*0.3); }
+    else { CTX.moveTo(s*R*0.3,-R*0.1); CTX.lineTo(s*R*0.55,R*0.25); CTX.lineTo(s*R*0.2,R*0.2); }
+    CTX.closePath(); CTX.fill();
+  }
+  CTX.fillStyle="#0f172a"; // 眼睛
+  CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.12,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.3,-R*0.2,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawWater(x,y,r,rot,form){ // 水系：杰尼龟 → 卡咪龟 → 水箭龟
+  const R = r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
+  glow("#38bdf8");
+  CTX.fillStyle = form>=3?"#0ea5e9":"#38bdf8"; // 龟壳
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.95,0,0,6.28); CTX.fill();
+  CTX.strokeStyle="rgba(15,23,42,.5)"; CTX.lineWidth=1.4;
+  CTX.beginPath(); CTX.ellipse(0,0,R*0.7,R*0.65,0,0,6.28); CTX.stroke();
+  CTX.fillStyle="#f8fafc"; // 肚皮
+  CTX.beginPath(); CTX.ellipse(0,R*0.3,R*0.62,R*0.45,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#38bdf8"; // 头
+  CTX.beginPath(); CTX.ellipse(0,-R*1.05,R*0.42,R*0.36,0,0,6.28); CTX.fill();
+  if(form>=3){ // 水箭龟双水炮管
+    CTX.strokeStyle="#0ea5e9"; CTX.lineWidth=R*0.22; CTX.lineCap="round";
+    for(const s of [-1,1]){
+      CTX.beginPath(); CTX.moveTo(s*R*0.5,-R*0.4); CTX.lineTo(s*R*1.35,-R*0.75); CTX.stroke();
+    }
+  }
+  CTX.fillStyle="#0f172a"; // 眼睛
+  CTX.beginPath(); CTX.arc(-R*0.15,-R*1.1,R*0.12,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.15,-R*1.1,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawGrass(x,y,r,rot,form){ // 草系：妙蛙种子 → 妙蛙草 → 妙蛙花
+  const R = r*(form>=3?1.4:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
+  glow("#4ade80");
+  CTX.fillStyle = form>=3?"#22c55e":"#4ade80"; // 身体
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  CTX.fillStyle="rgba(15,23,42,.35)"; // 斑点
+  CTX.beginPath(); CTX.arc(-R*0.4,-R*0.15,R*0.14,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.3,R*0.25,R*0.12,0,6.28); CTX.fill();
+  if(form>=3){ // 妙蛙花大红花
+    CTX.fillStyle="#4ade80";
+    CTX.beginPath(); CTX.ellipse(0,-R*1.05,R*0.55,R*0.4,0,0,6.28); CTX.fill();
+    CTX.fillStyle="#f472b6";
+    for(let i=0;i<5;i++){
+      const a=i/5*6.28;
+      CTX.beginPath(); CTX.ellipse(0,-R*1.4+R*0.28*Math.cos(a),R*0.16,R*0.16,0,0,6.28); CTX.fill();
+    }
+    CTX.fillStyle="#fde68a"; CTX.beginPath(); CTX.arc(0,-R*1.4,R*0.18,0,6.28); CTX.fill();
+  } else if(form===2){ // 妙蛙草花苞
+    CTX.fillStyle="#4ade80";
+    CTX.beginPath(); CTX.ellipse(0,-R*1.0,R*0.45,R*0.32,0,0,6.28); CTX.fill();
+    CTX.fillStyle="#f472b6"; CTX.beginPath(); CTX.ellipse(0,-R*1.15,R*0.3,R*0.22,0,0,6.28); CTX.fill();
+  } else { // 妙蛙种子小芽
+    CTX.fillStyle="#4ade80";
+    CTX.beginPath(); CTX.ellipse(0,-R*0.95,R*0.3,R*0.22,0,0,6.28); CTX.fill();
+  }
+  CTX.fillStyle="#0f172a"; // 眼睛
+  CTX.beginPath(); CTX.arc(-R*0.3,-R*0.1,R*0.13,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.arc(R*0.3,-R*0.1,R*0.13,0,6.28); CTX.fill();
+  CTX.restore();
 }
 function drawBall(x,y,flash){ // 浮游炮塔 → 精灵球
   CTX.save(); CTX.translate(x,y);
@@ -837,7 +1108,24 @@ function drawCharizard(x,y,r,rot){ // 精英敌人 → 喷火龙
   CTX.beginPath(); CTX.arc(-r*0.85,r*0.3,r*0.16,0,6.28); CTX.fill();
   CTX.restore();
 }
-function drawPlayer(){ drawPika(); }
+function drawPlayer(){
+  const p=S.player;
+  const id = S.activeRole || "elec";
+  const form = roleForm(id);
+  if(p.flash>0 && Math.floor(p.flash*20)%2===0){ /* 受击闪烁帧 */ }
+  else{
+    if(id==="fire") drawFire(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(id==="ice") drawIce(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(id==="water") drawWater(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(id==="grass") drawGrass(p.x,p.y,p.r*1.05,p.angle,form);
+    else drawElec(p.x,p.y,p.r*1.05,p.angle,form);
+  }
+  // 护盾光圈
+  if(p.shieldLvl>0){
+    CTX.strokeStyle="rgba(56,189,248,0.55)"; CTX.lineWidth=2;
+    CTX.beginPath(); CTX.arc(p.x,p.y,p.r+8,0,6.28); CTX.stroke();
+  }
+}
 function drawDrones(){
   const p=S.player;
   for(const d of S.drones){
@@ -858,7 +1146,13 @@ function drawBullets(){
 function drawEnemies(){
   for(const e of S.enemies){
     const rot=e.angle+Math.sin(e.wob)*0.3;
-    if(e.type==="boss") drawCharizard(e.x,e.y,e.r,rot);
+    if(e.type==="boss"){
+      if(e.attr==="fire") drawCharizard(e.x,e.y,e.r,rot);
+      else if(e.attr==="elec") drawElec(e.x,e.y,e.r,rot,3);
+      else if(e.attr==="ice") drawIce(e.x,e.y,e.r,rot,3);
+      else if(e.attr==="water") drawWater(e.x,e.y,e.r,rot,3);
+      else drawGrass(e.x,e.y,e.r,rot,3);
+    }
     else if(e.type==="elite") drawCharizard(e.x,e.y,e.r,rot);
     else if(e.type==="brute") drawSnorlax(e.x,e.y,e.r,rot);
     else if(e.type==="swarmer") drawZubat(e.x,e.y,e.r,rot);
@@ -874,7 +1168,7 @@ function drawEnemies(){
       CTX.strokeStyle="rgba(249,115,22,.6)"; CTX.lineWidth=1;
       CTX.strokeRect(bx-0.5,by-0.5,bw+1,10);
       CTX.fillStyle="#fde68a"; CTX.font="bold 12px system-ui, sans-serif";
-      CTX.textAlign="center"; CTX.fillText("BOSS · 第 "+S.stage+" 关", W/2, by-6);
+      CTX.textAlign="center"; CTX.fillText("BOSS · "+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关", W/2, by-6);
     }
     // 血条（受伤时显示）
     if(e.hp<e.maxHp && e.type!=="boss"){
@@ -982,6 +1276,55 @@ function showBanner(txt){
   if(bannerTO) clearTimeout(bannerTO);
   bannerTO=setTimeout(()=>{ $("banner").hidden=true; },2200);
 }
+/* ===== 宝可梦图鉴面板 ===== */
+function refreshMenuCoins(){ $("menu-coins").textContent=S.coins; }
+function renderCollection(){
+  $("col-coins").textContent=S.coins;
+  const grid=$("col-grid"); grid.innerHTML="";
+  for(const id of ROLE_ORDER){
+    const R=ROSTER[id];
+    const form=roleForm(id);
+    const owned=!!S.roster[id];
+    const card=document.createElement("div");
+    card.className="col-card"+(owned?"":" locked");
+    card.innerHTML=
+      '<div class="col-dot" style="background:'+(owned?R.color:"rgba(148,163,184,.15)")+'">'+(owned?"":"?")+'</div>'+
+      '<div class="col-name">'+(owned?roleName(id):"？？？")+'</div>'+
+      '<div class="col-attr">'+R.attr+' 属性 · '+(owned?("形态 "+form+"/3"):"未捕捉")+'</div>'+
+      '<div class="col-skill">'+(owned?(R.skills[form-1]+" · "+R.desc):"击败对应 Boss 即可捕捉")+'</div>';
+    if(owned){
+      const actions=document.createElement("div"); actions.className="col-actions";
+      const ev=document.createElement("button"); ev.className="btn-evolve";
+      if(form>=3){ ev.textContent="已进化满"; ev.disabled=true; }
+      else{
+        const cost=ROLE_EVOLVE_COST[form];
+        ev.textContent="进化 "+cost+" 金币";
+        ev.disabled = S.coins<cost;
+        ev.addEventListener("click",()=>{
+          if(S.coins<cost) return;
+          S.coins-=cost; S.roster[id]=form+1;
+          saveProgress();
+          renderCollection();
+        });
+      }
+      const pk=document.createElement("button"); pk.className="btn-pick"+(S.activeRole===id?" used":"");
+      pk.textContent = S.activeRole===id?"使用中":"使用";
+      pk.addEventListener("click",()=>{ S.activeRole=id; renderCollection(); });
+      actions.appendChild(ev); actions.appendChild(pk);
+      card.appendChild(actions);
+    }
+    grid.appendChild(card);
+  }
+}
+function openCollection(){
+  refreshMenuCoins();
+  renderCollection();
+  hide("menu"); show("collection");
+}
+function closeCollection(){
+  hide("collection"); show("menu");
+  refreshMenuCoins();
+}
 function show(id){ $(id).hidden=false; }
 function hide(id){ $(id).hidden=true; }
 function isTouchDevice(){ return ("ontouchstart" in window) || navigator.maxTouchPoints>0; }
@@ -991,6 +1334,7 @@ function startGame(){
   const p = newPlayer();
   S.mode="playing"; S.timeScale=1;
   S.t=0; S.kills=0; S.stage=1; S.stageTimer=CONFIG.level.duration; S.bossActive=false;
+  S.runCoins=0; S.playerSlowT=0; S.playerBurn=null;
   S.level=1; S.exp=0;
   S.expNeed=CONFIG.exp.base;
   S.loveShown=false; if(S.loveTimer){ clearInterval(S.loveTimer); S.loveTimer=null; }
@@ -998,7 +1342,7 @@ function startGame(){
   S.player=p; S.drones=[]; S.bullets=[]; S.enemies=[]; S.pickups=[]; S.particles=[];
   S.input.x=0; S.input.y=0;
   syncDrones();
-  hide("menu"); hide("gameover"); hide("levelup"); hide("pause"); hide("banner");
+  hide("menu"); hide("gameover"); hide("levelup"); hide("pause"); hide("banner"); hide("collection");
   show("hud"); show("topbtns");
   refreshHpUI(); syncShieldUI(); refreshExpUI(); refreshLevelUI(); refreshTopUI();
   if(isTouchDevice()) $("joy-area").classList.add("on");
@@ -1029,7 +1373,7 @@ function gameOver(){
   if(isBest){ el.classList.remove("hidden"); el.textContent="新纪录 · "+fmtTime(rec.time); }
   else if(best){ el.classList.remove("hidden"); el.textContent="最佳记录 "+fmtTime(best.time); }
   else el.classList.add("hidden");
-  $("go-stage").textContent="到达第 "+S.stage+" 关 · 最终等级 Lv."+S.level;
+  $("go-stage").textContent="到达第 "+S.stage+" 关 · 金币 +"+S.runCoins+"（累计 "+S.coins+"）";
   show("gameover");
 }
 
@@ -1111,6 +1455,8 @@ CANVAS=$("game"); CTX=CANVAS.getContext("2d");
 window.addEventListener("resize",resize);
 resize();
 $("btn-start").addEventListener("click",startGame);
+$("btn-collection").addEventListener("click",openCollection);
+$("btn-col-back").addEventListener("click",closeCollection);
 $("btn-resume").addEventListener("click",resumeGame);
 $("btn-retry").addEventListener("click",startGame);
 $("btn-love-skip").addEventListener("click",closeLove);
@@ -1123,6 +1469,7 @@ $("btn-mute").addEventListener("click",()=>{
   $("btn-mute").style.opacity=S.mute?0.45:1;
 });
 try{ S.mute = localStorage.getItem("starburst_mute")==="1"; $("btn-mute").style.opacity=S.mute?0.45:1; }catch(e){}
+refreshMenuCoins();
 requestAnimationFrame(loop);
 </script>
 </body>
