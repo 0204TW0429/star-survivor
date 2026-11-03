@@ -124,6 +124,10 @@
   /* ===== 暂停 / 结束 ===== */
   #pause .p-title { font-size:30px; font-weight:800; letter-spacing:8px; color:#f8fafc; }
   #pause .p-tip { font-size:13px; color:#94a3b8; margin-top:12px; letter-spacing:2px; }
+  #pause .p-skills { margin:18px auto 0; max-width:520px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  #pause .p-skills .psk { font-size:12px; color:#c4b5fd; background:rgba(124,58,237,.14); border:1px solid rgba(124,58,237,.35); padding:5px 10px; border-radius:99px; letter-spacing:1px; }
+  #pause .p-skills .psk.fused { color:#f0abfc; background:rgba(217,70,239,.14); border-color:rgba(217,70,239,.4); }
+  #pause .p-skills .psk-empty { font-size:12px; color:#64748b; letter-spacing:2px; }
   #gameover .go-title { font-size:34px; font-weight:900; letter-spacing:8px; color:#fca5a5; text-shadow:0 0 18px rgba(248,113,113,.5); }
   #gameover .stats { margin-top:22px; display:flex; gap:26px; justify-content:center; flex-wrap:wrap; }
   #gameover .stats .s { text-align:center; }
@@ -132,23 +136,6 @@
   #gameover .best { margin-top:14px; font-size:14px; color:#67e8f9; letter-spacing:2px; }
   #gameover .best.hidden { visibility:hidden; }
   #gameover .go-stage { margin-top:10px; font-size:13px; color:#94a3b8; letter-spacing:2px; }
-
-  /* ===== 1 分钟表白页 ===== */
-  #love { background:#04060f; padding:0; }
-  #love .love-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:brightness(0.82) saturate(1.1); }
-  #love .love-mask { position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,6,15,.25) 0%, rgba(4,6,15,.55) 55%, rgba(4,6,15,.88) 100%); }
-  #love .love-inner { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; text-align:center; padding:24px 20px; width:100%; box-sizing:border-box; }
-  #love .love-heart { font-size:0; color:#fb7185; text-shadow:0 0 18px rgba(251,113,133,.8); margin-bottom:10px; }
-  #love .love-heart svg { width:36px; height:36px; display:block; }
-  #love .love-title { font-size:46px; font-weight:900; letter-spacing:10px; background:linear-gradient(120deg,#fda4af,#fb7185 45%,#f9a8d4 90%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 22px rgba(251,113,133,.55)); line-height:1.25; }
-  #love .love-sub { font-size:15px; color:#fecdd3; letter-spacing:3px; margin-top:14px; }
-  #love .love-count-wrap { margin-top:26px; font-size:13px; color:#fda4af; letter-spacing:2px; }
-  #love .love-count { font-size:40px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; margin-top:4px; text-shadow:0 0 14px rgba(255,255,255,.5); }
-  #love .love-skip { margin-top:18px; min-width:150px; min-height:48px; font-size:15px; letter-spacing:3px; background:rgba(251,113,133,.18); border:1px solid rgba(251,113,133,.5); color:#fecdd3; box-shadow:none; }
-  @media (min-width:768px){
-    #love .love-title { font-size:72px; letter-spacing:18px; }
-    #love .love-sub { font-size:17px; }
-  }
 
   /* ===== 右上角控制钮（暂停 / 静音） ===== */
   #topbtns { position:absolute; right:14px; top:64px; display:flex; gap:10px; z-index:30; }
@@ -224,7 +211,7 @@
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
       你只管走位闪避、拾取能量、升级强化，在无尽虫潮中活下来。
     </div>
-    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战</div>
+    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
     <div class="menu-coins">金币 <b id="menu-coins">0</b></div>
     <div class="menu-btns">
       <button class="btn" id="btn-start">开始游戏</button>
@@ -251,6 +238,7 @@
   <div class="overlay" id="pause" hidden>
     <div class="p-title">已暂停</div>
     <div class="p-tip">按 P 或点击按钮继续</div>
+    <div class="p-skills" id="p-skills"></div>
     <button class="btn" id="btn-resume">继续</button>
   </div>
 
@@ -265,19 +253,6 @@
     <div class="best" id="go-best">新纪录</div>
     <div class="go-stage" id="go-stage"></div>
     <button class="btn" id="btn-retry">再来一次</button>
-  </div>
-
-  <!-- ===== 1 分钟表白页 ===== -->
-  <div class="overlay" id="love" hidden>
-    <img class="love-bg" src="https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/K3libPR3YoRmA9x4axicE9bNn5d" alt="">
-    <div class="love-mask"></div>
-    <div class="love-inner">
-      <div class="love-heart"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21C7 17 3 13.5 3 9.5 3 6.5 5.5 4 8.5 4c1.4 0 2.7.6 3.5 1.6A4.6 4.6 0 0 1 15.5 4C18.5 4 21 6.5 21 9.5c0 4-4 7.5-9 11.5z"/></svg></div>
-      <div class="love-title">我爱吴嘉颖</div>
-      <div class="love-sub">你坚持了 1 分钟 · 这是给你的专属时刻</div>
-      <div class="love-count-wrap">即将继续游戏 · <span class="love-count" id="love-count">10</span> 秒</div>
-      <button class="btn love-skip" id="btn-love-skip">继续冒险</button>
-    </div>
   </div>
 </div>
 
@@ -298,8 +273,8 @@ const CONFIG = {
     brute:  { r:24, hp:95, speed:45,  dmg:30, exp:40, color:"#6ea8fe" }
   },
   exp: { base:30, perLevel:16, magnet:170 },
-  spawn: { interval:0.7, intervalMin:0.28, intervalDecay:0.05, batchMin:1, batchMax:2, eliteEvery:35 },
-  level: { duration:45, bossBase:320, bossPerStage:120 },
+  spawn: { interval:0.62, intervalMin:0.26, intervalDecay:0.05, batchMin:1, batchMax:2, eliteEvery:32 },
+  level: { duration:90, bossBase:360, bossPerStage:140, megaEvery:10, megaMult:3 },
   levelup: { choices:3 },
   stars: { layers:[ {count:90, depth:0.25}, {count:40, depth:0.6} ] }
 };
@@ -332,10 +307,11 @@ const S = {
   spawnTimer:0, eliteTimer:0, dmgFlash:0,
   kills:0, stage:1, stageTimer:CONFIG.level.duration, bossActive:false,
   level:1, exp:0, expNeed:CONFIG.exp.base,
-  loveShown:false, loveTimer:null,
   roster:{ elec:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
   coins:0, runCoins:0, activeRole:"elec",  // 金币 / 本局金币 / 当前出战角色
-  bossId:null, playerSlowT:0, playerBurn:null,
+  bossId:null, playerSlowT:0, playerBurn:null, lastMega:false,
+  skills:{}, skillCd:{},      // 技能等级 / 技能冷却
+  buff:{ oc:0, rage:0 }, holes:[],   // 超频/狂暴 计时 · 黑洞
   stats:{ kills:0 },
   best: null,
   mute:false,
@@ -407,11 +383,11 @@ function spawnEnemy(type){
   const c = CONFIG.enemies[type];
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.55 + rand(30,90);
-  const stageHp = 1 + (S.stage-1)*0.30;                              // 每关 +30% 血量
-  const stageSpd = 1 + (S.stage-1)*0.08;                             // 每关 +8% 速度
+  const stageHp = 1 + (S.stage-1)*0.38;                              // 每关 +38% 血量
+  const stageSpd = 1 + (S.stage-1)*0.10;                             // 每关 +10% 速度
   const scale = (1 + Math.min(S.t/60, 8) * 0.22) * stageHp;
   const spdMul = (1 + Math.min(S.t/120, 3) * 0.10) * stageSpd;
-  const hpMul = (1 + Math.min(S.t/60, 8) * 0.28) * stageHp;
+  const hpMul = (1 + Math.min(S.t/60, 8) * 0.30) * stageHp;
   S.enemies.push({ type, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
     r:c.r, hp:c.hp*hpMul, maxHp:c.hp*hpMul, speed:c.speed*spdMul, dmg:c.dmg,
     exp:c.exp, angle:a, wob:rand(0,6.28), elite:false, dead:false });
@@ -429,15 +405,17 @@ function spawnElite(){
 function spawnBoss(){
   S.bossActive = true;
   S.enemies.length = 0;                                              // 清场，专注 Boss
+  const mega = (S.stage % CONFIG.level.megaEvery) === 0;             // 每 10 关大 Boss
   const bid = BOSS_POOL[(S.stage-1)%BOSS_POOL.length];               // 每关 Boss 不同（循环）
   S.bossId = bid;
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.5 + 60;
   const base = CONFIG.level.bossBase + (S.stage-1)*CONFIG.level.bossPerStage;
-  S.enemies.push({ type:"boss", attr:bid, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
-    r:40, hp:base, maxHp:base, speed:32, dmg:35, exp:0,
+  const m = mega ? CONFIG.level.megaMult : 1;
+  S.enemies.push({ type:"boss", attr:bid, mega, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
+    r: mega?58:40, hp:base*m, maxHp:base*m, speed: mega?40:32, dmg: mega?50:35, exp:0,
     angle:a, wob:0, elite:false, dead:false });
-  showBanner("BOSS 来袭 · "+ROSTER[bid].top);
+  showBanner((mega?"最终 BOSS · ":"BOSS 来袭 · ")+ROSTER[bid].top);
   sndExplode(true);
 }
 function captureBoss(){
@@ -457,7 +435,7 @@ function stageClear(){
   const p = S.player;
   p.hp = p.maxHp; p.shieldLvl = Math.max(p.shieldLvl,1);
   refreshHpUI(); syncShieldUI();
-  const reward = 10 + S.stage*5;                                     // 每关通关金币
+  const reward = (10 + S.stage*5) * (S.lastMega?3:1);               // 大 Boss 金币 ×3
   S.coins += reward;
   S.runCoins += reward;
   saveProgress();
@@ -478,7 +456,6 @@ function burst(x,y,color,n,speed){
 /* ===== 更新 ===== */
 function update(dt){
   S.t += dt;
-  if(!S.loveShown && S.t>=60 && S.mode==="playing"){ startLove(); }
   // 关卡计时：倒计时结束且无 Boss → 刷 Boss
   S.stageTimer -= dt;
   if(S.stageTimer<=0 && !S.bossActive && S.mode==="playing"){ spawnBoss(); }
@@ -488,10 +465,12 @@ function update(dt){
   S.dmgFlash = Math.max(0, S.dmgFlash-dt);
 
   // 玩家移动
+  tickSkills(dt);
   let mx=S.input.x, my=S.input.y;
   const len=Math.hypot(mx,my);
   if(len>1){ mx/=len; my/=len; }
   let spd = CONFIG.player.speed*(1+0.12*p.speedLvl);
+  if(S.buff.rage>0) spd*=1.3;                                            // 嗜血狂暴
   if(S.playerSlowT>0){ S.playerSlowT-=dt; spd*=0.55; }             // 冰 Boss 减速
   if(S.playerBurn){                                                  // 火 Boss 点燃
     S.playerBurn.t-=dt; p.hp-=S.playerBurn.dps*dt;
@@ -510,9 +489,9 @@ function update(dt){
   }
 
   // 炮塔开火
-  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl)/roleAtk(S.activeRole);
+  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl)/roleAtk(S.activeRole) * (S.buff.oc>0?0.56:1);
   const dmg = CONFIG.drone.damage*(1+0.3*p.dmgLvl);
-  const shots = 1+p.multiLvl;
+  const shots = 1+p.multiLvl + (S.skills.gambler && Math.random()<0.10*S.skills.gambler ? 4 : 0);
   for(const d of S.drones){
     d.angle += dt*1.4; d.flash=Math.max(0,d.flash-dt);
     const ox = p.x+Math.cos(d.angle)*CONFIG.drone.orbit;
@@ -560,8 +539,28 @@ function update(dt){
       if(e.dead || b.hit.has(e)) continue;
       if(dist(b,e) < b.r+e.r){
         b.hit.add(e);
-        e.hp -= b.dmg;
+        let dmg = b.dmg;
+        if(S.skills.crit && Math.random()<0.14*S.skills.crit) dmg*=3;   // 致命一击
+        if(S.skills.doom) dmg*=2;                                        // 毁灭连击：必暴击×2
+        if(b.type==="fb"){                                               // 火球：爆炸灼烧 AOE
+          for(const o of S.enemies){ if(o.dead) continue;
+            if(dist(b,o)<88){ o.hp-=dmg; applyAttr(o,"fire","fire"); if(o.hp<=0) killEnemy(o); } }
+          burst(b.x,b.y,"#fb923c",26,230); S.bullets.splice(i,1); break;
+        }
+        if(b.type==="iceball"){                                           // 冰球：爆炸冰冻减速 AOE
+          for(const o of S.enemies){ if(o.dead) continue;
+            if(dist(b,o)<82){ o.hp-=dmg; o.slowT=Math.max(o.slowT,1.4); if(o.hp<=0) killEnemy(o); } }
+          burst(b.x,b.y,"#7dd3fc",26,230); S.bullets.splice(i,1); break;
+        }
+        e.hp -= dmg;
         applyAttr(e, b.attr||S.activeRole, S.activeRole);
+        if(S.skills.split && !e.dead && Math.random()<0.30*S.skills.split){  // 分裂弹
+          castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
+          castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
+        }
+        if(S.skills.siphon && !e.dead){                                    // 奥术虹吸
+          S.player.hp=Math.min(S.player.maxHp,S.player.hp+0.5*S.skills.siphon); refreshHpUI();
+        }
         burst(b.x,b.y,"#fbbf24",4,120);
         if(e.hp<=0){ killEnemy(e); }
         if(b.pierce>0){ b.pierce--; } else { dead=true; break; }
@@ -589,6 +588,18 @@ function update(dt){
     const wobble = e.type==="chaser" ? Math.sin(e.wob)*10 : 0;
     e.x+=Math.cos(a)*e.speed*spdMul*dt + (e.type==="chaser"?wobble*dt:0);
     e.y+=Math.sin(a)*e.speed*spdMul*dt;
+    // 黑洞牵引
+    for(let i=S.holes.length-1;i>=0;i--){
+      const h=S.holes[i];
+      h.t-=dt;
+      if(h.t<=0){ S.holes.splice(i,1); continue; }
+      const hd=dist(e,h);
+      if(hd<h.r+e.r && hd>1){
+        const ha=Math.atan2(h.y-e.y,h.x-e.x);
+        const pull=300*(1-hd/(h.r+e.r));
+        e.x+=Math.cos(ha)*pull*dt; e.y+=Math.sin(ha)*pull*dt;
+      }
+    }
     if(d < e.r+p.r){
       if(p.inv<=0){
         let dmg = e.dmg;
@@ -603,6 +614,12 @@ function update(dt){
       if(e.type==="boss"){
         if(e.attr==="ice") S.playerSlowT=1.5;
         else if(e.attr==="fire") S.playerBurn={ t:2, dps:6 };
+      }
+      // 荆棘装甲 / 反伤壁垒：冲撞反弹
+      if(!e.dead && (S.skills.thorns||S.skills.bastion)){
+        const dmg= (S.skills.thorns?7*S.skills.thorns:0) + (S.skills.bastion?10:0);
+        e.hp-=dmg; burst(e.x,e.y,"#f472b6",8,150);
+        if(e.hp<=0){ killEnemy(e); }
       }
       // 冲撞附带出战角色属性
       applyAttr(e, S.activeRole, S.activeRole);
@@ -664,8 +681,10 @@ function nearestEnemy(x,y){
 function killEnemy(e){
   e.dead=true; S.kills++;
   if(e.type==="boss"){
-    burst(e.x,e.y,"#f97316",46,420); burst(e.x,e.y,"#fde68a",30,300);
+    burst(e.x,e.y,"#f97316",e.mega?70:46,e.mega?520:420);
+    burst(e.x,e.y,e.mega?"#fde047":"#fde68a",e.mega?46:30,e.mega?380:300);
     sndExplode(true);
+    S.lastMega = !!e.mega;
     captureBoss();      // 打赢即可捕捉（基础形态）
     stageClear();
     return;
@@ -676,6 +695,12 @@ function killEnemy(e){
   const drops = e.type==="brute"?3:(e.elite?5:1);
   for(let i=0;i<drops;i++) spawnPickup(e.x+rand(-14,14),e.y+rand(-14,14), e.exp/drops);
   sndExplode(e.elite);
+  // 击杀技能联动
+  const sk=S.skills, pl=S.player;
+  if(sk.vampiric){ pl.hp=Math.min(pl.maxHp,pl.hp+2*sk.vampiric); refreshHpUI(); }
+  if(sk.sacred){ pl.hp=Math.min(pl.maxHp,pl.hp+4); refreshHpUI(); }
+  if(sk.rage){ S.buff.rage=1.2; }
+  if(sk.timebubble){ for(const o of S.enemies){ if(!o.dead) o.slowT=Math.max(o.slowT,0.6); } }
 }
 
 /* ===== 属性技能（出战角色自动附加，进化增强） ===== */
@@ -722,6 +747,7 @@ function enterLevelup(){
   show("levelup");
   renderChoices();
 }
+/* ===== 技能 / 融合（独立于角色属性的通用技能库） ===== */
 function availableUpgrades(){
   const p=S.player;
   const UP=[
@@ -755,10 +781,49 @@ function availableUpgrades(){
   ];
   return UP.filter(u=>!u.maxed());
 }
+const SKILLS=[
+  { id:"fireball",   name:"烈焰冲击", max:3, rarity:1, cd:5.2, desc:"每 5 秒发射火球，命中爆炸灼烧敌人" },
+  { id:"frostnova",  name:"冰冻新星", max:3, rarity:1, cd:6.4, desc:"每 6.5 秒释放冰环，减速周围敌人" },
+  { id:"lightning",  name:"闪电链",   max:3, rarity:2, cd:5.6, desc:"每 6 秒放一道闪电，连锁多个敌人" },
+  { id:"vampiric",   name:"生命汲取", max:3, rarity:1, cd:0,   desc:"击杀敌人回复 2 点装甲" },
+  { id:"regen",      name:"纳米再生", max:3, rarity:0, cd:0,   desc:"每秒回复 0.7 点装甲" },
+  { id:"thorns",     name:"荆棘装甲", max:3, rarity:1, cd:0,   desc:"冲撞你的敌人反受 7 点伤害" },
+  { id:"blackhole",  name:"引力坍缩", max:3, rarity:2, cd:8.4, desc:"每 8.5 秒生成黑洞，吸附周围敌人" },
+  { id:"barrage",    name:"弹幕风暴", max:3, rarity:2, cd:7.6, desc:"每 8 秒向四周散射 12 发弹" },
+  { id:"crit",       name:"致命一击", max:3, rarity:2, cd:0,   desc:"子弹 14% 概率造成 3 倍伤害" },
+  { id:"split",      name:"分裂弹",   max:3, rarity:2, cd:0,   desc:"子弹命中时 30% 概率分裂 2 颗小弹" },
+  { id:"overclock",  name:"超频模式", max:3, rarity:2, cd:11,  desc:"每 11 秒进入 3 秒射速 ×1.8" },
+  { id:"rage",       name:"嗜血狂暴", max:3, rarity:1, cd:0,   desc:"击杀后 1.2 秒移速射速 +30%" },
+  { id:"nova_shield",name:"充能护盾", max:2, rarity:2, cd:22,  desc:"每 22 秒自动补充 1 层护盾" },
+  { id:"timebubble", name:"时间气泡", max:3, rarity:2, cd:0,   desc:"击杀使全场敌人减速 0.6 秒" },
+  { id:"orbital",    name:"轨道激光", max:3, rarity:2, cd:9.4, desc:"每 9.5 秒发射一道贯穿激光" },
+  { id:"siphon",     name:"奥术虹吸", max:3, rarity:2, cd:0,   desc:"子弹命中回复 0.5 点装甲" },
+  { id:"gambler",    name:"幸运骰子", max:2, rarity:2, cd:0,   desc:"每次开火 10% 概率射出 5 连发" },
+];
+const FUSIONS=[
+  { a:"fireball",  b:"frostnova",  id:"icystorm",   name:"冰火风暴", rarity:3, max:1, desc:"融合 · 同发冰火双球，命中引爆冰冻+灼烧" },
+  { a:"lightning", b:"split",      id:"chainstorm", name:"连锁风暴", rarity:3, max:1, desc:"融合 · 闪电链命中后分裂传导" },
+  { a:"vampiric",  b:"regen",      id:"sacred",     name:"圣愈之光", rarity:3, max:1, desc:"融合 · 每秒回 2 点，击杀再回 4 点" },
+  { a:"blackhole", b:"barrage",    id:"nebula",     name:"星云坍缩", rarity:3, max:1, desc:"融合 · 黑洞吸附同时喷涌中心弹幕" },
+  { a:"crit",      b:"gambler",    id:"doom",       name:"毁灭连击", rarity:3, max:1, desc:"融合 · 每发必暴击 ×2 且 5 连发" },
+  { a:"thorns",    b:"nova_shield",id:"bastion",    name:"反伤壁垒", rarity:3, max:1, desc:"融合 · 反伤 10 点，每 15 秒补 1 层盾" },
+];
+function skillLvl(id){ return S.skills[id]||0; }
+function availableChoices(){
+  const base = availableUpgrades();
+  const skills = SKILLS.filter(s=>!S.skills[s.id] || S.skills[s.id]<s.max).map(s=>({
+    id:s.id, name:s.name, desc:s.desc+(S.skills[s.id]?("（Lv."+S.skills[s.id]+"）"):""),
+    max:s.max, rarity:s.rarity, lvl:S.skills[s.id]||0,
+    apply(){ S.skills[s.id]=(S.skills[s.id]||0)+1; } }));
+  const fusions = FUSIONS.filter(f=>skillLvl(f.a)>=1 && skillLvl(f.b)>=1 && !S.skills[f.id]).map(f=>({
+    id:f.id, name:f.name, desc:f.desc, max:f.max, rarity:f.rarity, lvl:0,
+    apply(){ delete S.skills[f.a]; delete S.skills[f.b]; S.skills[f.id]=1;
+             sndLevel(); } }));
+  return base.concat(skills, fusions);
+}
 function pickChoices(){
-  const pool=availableUpgrades();
-  // 权重：rarity 0->5, 1->3, 2->2
-  const weight=r=>[5,3,2][r]||2;
+  const pool=availableChoices();
+  const weight=r=>[5,3,2,4][r]||2;   // 稀有度 0..3
   const picked=[];
   const tmp=pool.slice();
   while(picked.length<CONFIG.levelup.choices && tmp.length){
@@ -769,6 +834,110 @@ function pickChoices(){
     picked.push(tmp[idx]); tmp.splice(idx,1);
   }
   return picked;
+}
+
+/* ===== 技能运行时 ===== */
+function castSkillBullet(x,y,ang,spd,dmg,r,pierce,attr,type,life){
+  S.bullets.push({ x,y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, r, dmg,
+    life:life||1.6, pierce:pierce||0, hit:new Set(), attr:attr||null, type:type||null });
+}
+function castFireball(lvl){
+  const t=nearestEnemy(S.player.x,S.player.y);
+  const ang = t? Math.atan2(t.y-S.player.y,t.x-S.player.x) : rand(0,Math.PI*2);
+  castSkillBullet(S.player.x,S.player.y,ang,340,16*lvl,9,0,null,"fb",2.2);
+  S.skillCd.fireball = Math.max(1.6, SKILLS[0].cd - lvl*0.7);
+}
+function castFrost(lvl){
+  burst(S.player.x,S.player.y,"#7dd3fc",26,240);
+  const r = 120+22*lvl;
+  for(const e of S.enemies){
+    if(e.dead) continue;
+    if(dist(e,S.player)<r+e.r){ e.slowT=Math.max(e.slowT,1.2); e.hp-=8*lvl; if(e.hp<=0) killEnemy(e); }
+  }
+  S.skillCd.frostnova = Math.max(1.6, SKILLS[1].cd - lvl*0.8);
+}
+function castLightning(lvl){
+  const t=nearestEnemy(S.player.x,S.player.y); if(!t) { S.skillCd.lightning=1; return; }
+  const chain=2+lvl; let cur=t, prev=null;
+  for(let k=0;k<chain && cur;k++){
+    burst(cur.x,cur.y,"#fde047",8,150);
+    cur.hp-=14*lvl; applyAttr(cur,"elec","elec");
+    if(cur.hp<=0) killEnemy(cur);
+    if(k<chain-1){
+      let nxt=null,bd=1e9;
+      for(const e of S.enemies){ if(e.dead||e===cur||e===prev) continue;
+        const dd=dist(cur,e); if(dd<bd){bd=dd;nxt=e;} }
+      prev=cur; cur=nxt;
+    }
+  }
+  S.skillCd.lightning = Math.max(1.4, SKILLS[2].cd - lvl*0.7);
+}
+function castBlackhole(lvl){
+  S.holes.push({ x:S.player.x, y:S.player.y, r:150+24*lvl, t:1.1 });
+  burst(S.player.x,S.player.y,"#a78bfa",20,200);
+  S.skillCd.blackhole = Math.max(1.8, SKILLS[6].cd - lvl*0.8);
+}
+function castBarrage(lvl){
+  const n=12;
+  for(let i=0;i<n;i++) castSkillBullet(S.player.x,S.player.y,i/n*Math.PI*2,300,10*lvl,4,0,null,null,1.4);
+  burst(S.player.x,S.player.y,"#f472b6",14,200);
+  S.skillCd.barrage = Math.max(1.6, SKILLS[7].cd - lvl*0.8);
+}
+function castOrbital(lvl){
+  const t=nearestEnemy(S.player.x,S.player.y);
+  const ang = t? Math.atan2(t.y-S.player.y,t.x-S.player.x) : rand(0,Math.PI*2);
+  castSkillBullet(S.player.x,S.player.y,ang,760,26*lvl,6,99,null,"orb",2.5);
+  S.skillCd.orbital = Math.max(1.6, SKILLS[14].cd - lvl*0.9);
+}
+function tickSkills(dt){
+  const sk=S.skills, cd=S.skillCd, p=S.player;
+  if(!sk) return;
+  for(const id in sk){
+    const lvl=sk[id];
+    if(cd[id]===undefined) cd[id]=0;
+    if(cd[id]>0) cd[id]-=dt;
+    if(lvl<=0) continue;
+    if(id==="regen"){ if(p.hp<p.maxHp){ p.hp=Math.min(p.maxHp,p.hp+0.7*lvl*dt); refreshHpUI(); } }
+    if(id==="sacred"){ if(p.hp<p.maxHp){ p.hp=Math.min(p.maxHp,p.hp+2*dt); refreshHpUI(); } }
+    if(id==="fireball" && cd.fireball<=0) castFireball(lvl);
+    if(id==="frostnova" && cd.frostnova<=0) castFrost(lvl);
+    if(id==="lightning" && cd.lightning<=0) castLightning(lvl);
+    if(id==="blackhole" && cd.blackhole<=0) castBlackhole(lvl);
+    if(id==="barrage" && cd.barrage<=0) castBarrage(lvl);
+    if(id==="orbital" && cd.orbital<=0) castOrbital(lvl);
+    if(id==="overclock" && cd.overclock<=0){ cd.overclock = Math.max(2, 11-lvl); S.buff.oc=3; }
+    if(id==="nova_shield" && cd.nova_shield<=0){ cd.nova_shield = Math.max(6, 22-lvl*4); if(p.shieldLvl<3){ p.shieldLvl++; syncShieldUI(); burst(p.x,p.y,"#38bdf8",12,160); } }
+    if(id==="bastion" && cd.bastion<=0){ cd.bastion=15; if(p.shieldLvl<3){ p.shieldLvl++; syncShieldUI(); } }
+    if(id==="icystorm" && cd.icystorm<=0){
+      cd.icystorm = Math.max(1.6, 5.4);
+      const t=nearestEnemy(p.x,p.y); const ang=t?Math.atan2(t.y-p.y,t.x-p.x):rand(0,Math.PI*2);
+      castSkillBullet(p.x,p.y,ang,340,30,10,0,null,"fb",2.2);
+      castSkillBullet(p.x,p.y,ang+0.5,330,30,10,0,null,"iceball",2.2);
+    }
+    if(id==="chainstorm" && cd.chainstorm<=0){
+      cd.chainstorm = Math.max(1.6, 5.6);
+      let t=nearestEnemy(p.x,p.y), prev=null;
+      for(let k=0;k<5 && t;k++){
+        burst(t.x,t.y,"#fde047",8,150); t.hp-=30; applyAttr(t,"elec","elec");
+        if(t.hp<=0) killEnemy(t);
+        if(Math.random()<0.35){
+          castSkillBullet(t.x,t.y,rand(0,Math.PI*2),260,12,4,0,null,null,1.2);
+        }
+        let nxt=null,bd=1e9;
+        for(const e of S.enemies){ if(e.dead||e===t||e===prev) continue;
+          const dd=dist(t,e); if(dd<bd){bd=dd;nxt=e;} }
+        prev=t; t=nxt;
+      }
+    }
+    if(id==="nebula" && cd.nebula<=0){
+      cd.nebula = Math.max(1.8, 7.4);
+      S.holes.push({ x:p.x, y:p.y, r:200, t:1.2 });
+      burst(p.x,p.y,"#a78bfa",22,220);
+      for(let i=0;i<10;i++) castSkillBullet(p.x,p.y,i/10*Math.PI*2,340,14,4,0,null,null,1.3);
+    }
+  }
+  if(S.buff.oc>0) S.buff.oc-=dt;
+  if(S.buff.rage>0) S.buff.rage-=dt;
 }
 const ICONS={
   drone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="6" height="6" rx="1"/><circle cx="7" cy="11" r="1.4" fill="currentColor" stroke="none"/><path d="M10 11h4m4 0h-2m-2 0V7m0 8v-4"/></svg>',
@@ -781,12 +950,14 @@ const ICONS={
   magnet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h4v8a2 2 0 0 0 4 0V3h4"/><path d="M6 3v3a6 6 0 0 0 12 0V3"/></svg>',
   heal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21C7 17 3 13.5 3 9.5 3 6.5 5.5 4 8.5 4c1.4 0 2.7.6 3.5 1.6A4.6 4.6 0 0 1 15.5 4C18.5 4 21 6.5 21 9.5c0 4-4 7.5-9 11.5z"/></svg>'
 };
+const SKILL_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M5.6 5.6l2.8 2.8m7.2 7.2l2.8 2.8M18.4 5.6l-2.8 2.8m-7.2 7.2l-2.8 2.8"/><circle cx="12" cy="12" r="2.6"/></svg>';
+const FUSION_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/><path d="M12 3v18M12 3l-2.5 2M12 3l2.5 2M12 21l-2.5-2M12 21l2.5-2"/></svg>';
 function renderChoices(){
   const cards=$("cards"); cards.innerHTML="";
   for(const u of pickChoices()){
     const el=document.createElement("div");
     el.className="card rarity-"+u.rarity;
-    el.innerHTML='<div class="ico">'+(ICONS[u.id]||'')+'</div><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div><div class="lvl">'+(u.max===99?"":("已强化 Lv."+u.lvl+" / "+u.max))+'</div>';
+    el.innerHTML='<div class="ico">'+(ICONS[u.id]||(u.rarity===3?FUSION_ICON:SKILL_ICON))+'</div><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div><div class="lvl">'+(u.max===99?"":(u.max===1&&u.lvl===0?"可融合":"已强化 Lv."+u.lvl+" / "+u.max))+'</div>';
     el.addEventListener("click",()=>{
       u.apply(); sndLevel();
       S.mode="playing"; S.timeScale=1;
@@ -1158,17 +1329,19 @@ function drawEnemies(){
     else if(e.type==="swarmer") drawZubat(e.x,e.y,e.r,rot);
     else drawGastly(e.x,e.y,e.r,rot);
     if(e.type==="boss"){
-      // 顶部大血条
+      // 顶部大血条（大 Boss 金色加高）
       const bw=Math.min(W*0.62,430), bx=(W-bw)/2, by=16;
+      const bh = e.mega?13:9;
       CTX.setTransform(DPR,0,0,DPR,0,0);
       CTX.fillStyle="rgba(2,6,23,0.72)";
-      CTX.fillRect(bx,by,bw,9);
-      CTX.fillStyle="#fb923c";
-      CTX.fillRect(bx,by,bw*clamp(e.hp/e.maxHp,0,1),9);
-      CTX.strokeStyle="rgba(249,115,22,.6)"; CTX.lineWidth=1;
-      CTX.strokeRect(bx-0.5,by-0.5,bw+1,10);
+      CTX.fillRect(bx,by,bw,bh);
+      CTX.fillStyle = e.mega?"#f59e0b":"#fb923c";
+      CTX.fillRect(bx,by,bw*clamp(e.hp/e.maxHp,0,1),bh);
+      CTX.strokeStyle = e.mega?"rgba(245,158,11,.7)":"rgba(249,115,22,.6)"; CTX.lineWidth=1;
+      CTX.strokeRect(bx-0.5,by-0.5,bw+1,bh+1);
       CTX.fillStyle="#fde68a"; CTX.font="bold 12px system-ui, sans-serif";
-      CTX.textAlign="center"; CTX.fillText("BOSS · "+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关", W/2, by-6);
+      CTX.textAlign="center";
+      CTX.fillText((e.mega?"最终 BOSS · ":"BOSS · ")+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关", W/2, by-6);
     }
     // 血条（受伤时显示）
     if(e.hp<e.maxHp && e.type!=="boss"){
@@ -1178,6 +1351,20 @@ function drawEnemies(){
       CTX.fillStyle=e.elite?"#f97316":"#f87171";
       CTX.fillRect(e.x-e.r, e.y-e.r-9, e.r*2*clamp(e.hp/e.maxHp,0,1), 3.5);
     }
+  }
+}
+function drawHoles(){
+  for(const h of S.holes){
+    const t=h.t/1.2;
+    CTX.save(); CTX.translate(h.x,h.y);
+    CTX.globalAlpha=0.85*t+0.1;
+    glow("#a78bfa");
+    CTX.fillStyle="#7c3aed";
+    CTX.beginPath(); CTX.arc(0,0,h.r*t*0.85,0,6.28); CTX.fill();
+    CTX.globalAlpha=1;
+    CTX.strokeStyle="rgba(221,214,254,"+(0.5*t)+")"; CTX.lineWidth=2;
+    CTX.beginPath(); CTX.arc(0,0,h.r*0.6,0,6.28); CTX.stroke();
+    CTX.restore();
   }
 }
 function drawPickups(){
@@ -1242,30 +1429,6 @@ function sndHit(shield){
 function sndLevel(){
   tone(523,0.12,"sine",0.16); setTimeout(()=>tone(659,0.12,"sine",0.16),90);
   setTimeout(()=>tone(784,0.18,"sine",0.16),180);
-}
-
-/* ===== 1 分钟表白页 ===== */
-function startLove(){
-  S.loveShown=true;
-  S.mode="love"; S.timeScale=0;
-  show("love");
-  let left=10;
-  $("love-count").textContent=left;
-  if(S.loveTimer) clearInterval(S.loveTimer);
-  S.loveTimer=setInterval(()=>{
-    left--;
-    if(left<=0){ closeLove(); return; }
-    $("love-count").textContent=left;
-  },1000);
-}
-function closeLove(){
-  if(S.loveTimer){ clearInterval(S.loveTimer); S.loveTimer=null; }
-  hide("love");
-  if(S.mode!=="gameover"){
-    S.mode="playing"; S.timeScale=1;
-    const p=S.player;
-    if(p){ p.hp=p.maxHp; p.shieldLvl=Math.max(p.shieldLvl,1); refreshHpUI(); syncShieldUI(); }
-  }
 }
 
 /* ===== 视图控制 ===== */
@@ -1334,10 +1497,10 @@ function startGame(){
   const p = newPlayer();
   S.mode="playing"; S.timeScale=1;
   S.t=0; S.kills=0; S.stage=1; S.stageTimer=CONFIG.level.duration; S.bossActive=false;
-  S.runCoins=0; S.playerSlowT=0; S.playerBurn=null;
+  S.runCoins=0; S.playerSlowT=0; S.playerBurn=null; S.lastMega=false;
+  S.skills={}; S.skillCd={}; S.buff={ oc:0, rage:0 }; S.holes=[];
   S.level=1; S.exp=0;
   S.expNeed=CONFIG.exp.base;
-  S.loveShown=false; if(S.loveTimer){ clearInterval(S.loveTimer); S.loveTimer=null; }
   S.spawnTimer=0.8; S.eliteTimer=CONFIG.spawn.eliteEvery; S.dmgFlash=0;
   S.player=p; S.drones=[]; S.bullets=[]; S.enemies=[]; S.pickups=[]; S.particles=[];
   S.input.x=0; S.input.y=0;
@@ -1347,9 +1510,21 @@ function startGame(){
   refreshHpUI(); syncShieldUI(); refreshExpUI(); refreshLevelUI(); refreshTopUI();
   if(isTouchDevice()) $("joy-area").classList.add("on");
 }
+function renderPauseSkills(){
+  const box=$("p-skills"); if(!box) return;
+  const names=[];
+  for(const id in S.skills){
+    const lvl=S.skills[id];
+    const s=SKILLS.find(x=>x.id===id); const f=FUSIONS.find(x=>x.id===id);
+    if(f) names.push('<span class="psk fused">'+f.name+'</span>');
+    else if(s) names.push('<span class="psk">'+s.name+' Lv.'+lvl+'</span>');
+  }
+  box.innerHTML = names.length? names.join("") : '<span class="psk-empty">尚未学习技能 · 升级时选择</span>';
+}
 function pauseGame(){
   if(S.mode!=="playing") return;
   S.mode="paused"; S.timeScale=0; show("pause");
+  renderPauseSkills();
 }
 function resumeGame(){
   if(S.mode!=="paused") return;
@@ -1439,13 +1614,13 @@ function loop(ts){
   // 渲染（levelup/pause 时场景静止，背景仍刷新）
   drawBackground(S.player?S.player.x:0,S.player?S.player.y:0);
   if(S.player){
-    drawPickups(); drawEnemies(); drawBullets(); drawDrones(); drawPlayer(); drawParticles();
+    drawPickups(); drawHoles(); drawEnemies(); drawBullets(); drawDrones(); drawPlayer(); drawParticles();
   }
   if(S.mode==="playing"){
     refreshTopUI();
   }
   drawDamageFlash();
-  if(S.mode==="paused"||S.mode==="levelup"||S.mode==="love"){
+  if(S.mode==="paused"||S.mode==="levelup"){
     CTX.fillStyle="rgba(3,6,15,0.4)"; CTX.fillRect(0,0,W,H);
   }
 }
@@ -1459,7 +1634,6 @@ $("btn-collection").addEventListener("click",openCollection);
 $("btn-col-back").addEventListener("click",closeCollection);
 $("btn-resume").addEventListener("click",resumeGame);
 $("btn-retry").addEventListener("click",startGame);
-$("btn-love-skip").addEventListener("click",closeLove);
 $("btn-pause").addEventListener("click",()=>{
   if(S.mode==="playing") pauseGame(); else if(S.mode==="paused") resumeGame();
 });
