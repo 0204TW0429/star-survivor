@@ -173,6 +173,19 @@
   @media (min-width:768px) {
     #menu .game-title { font-size:64px; letter-spacing:14px; }
   }
+
+  #power-wrap { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
+  .power-btn { background:linear-gradient(135deg,#7c3aed,#db2777); color:#fff; border:none; border-radius:10px;
+    padding:6px 12px; font-size:12px; font-weight:700; line-height:1.25; cursor:pointer; box-shadow:0 0 12px rgba(168,85,247,.5); }
+  .power-btn:disabled { opacity:.45; cursor:default; box-shadow:none; }
+  .z-bar { flex:1 1 140px; max-width:230px; }
+  .z-label { font-size:10px; color:#f0abfc; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .z-bar .bar i { background:linear-gradient(90deg,#c084fc,#f472b6); }
+  .shop-row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+  .shop-btn { border:1px solid #334155; background:#0f172a; color:#cbd5e1; border-radius:10px; padding:8px 12px;
+    font-size:12px; cursor:pointer; }
+  .shop-btn.owned { border-color:#f59e0b; color:#fbbf24; background:rgba(245,158,11,.08); }
+  .shop-btn:disabled { opacity:.45; cursor:default; }
 </style>
 </head>
 <body>
@@ -198,6 +211,13 @@
       <div class="bar-wrap stage" id="stage-bar-wrap">
         <div class="bar-label"><span>第 <b id="stage">1</b> 关</span><span id="stage-left">45s</span></div>
         <div class="bar" id="stage-bar"><i style="transform:scaleX(1)"></i></div>
+      </div>
+    </div>
+    <div id="power-wrap">
+      <button class="power-btn" id="btn-dyna" hidden>极巨化<br><small id="dyna-rem">G</small></button>
+      <div class="z-bar" id="z-bar" hidden>
+        <div class="z-label">Z 招式 · <span id="z-name">—</span></div>
+        <div class="bar"><i id="z-fill" style="transform:scaleX(0)"></i></div>
       </div>
     </div>
     <div id="exp-wrap">
@@ -229,7 +249,7 @@
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
       你只管走位闪避、拾取能量、升级强化，在无尽虫潮中活下来。
     </div>
-    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>每 5 关出现二级神 · 每 10 关出现一级神（随机）<br>捕捉有 1/8192 概率出闪光 · 最多 3 名角色组队出战（血量独立）<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
+    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>每 5 关出现二级神 · 每 10 关出现一级神（随机）<br>捕捉有 1/8192 概率出闪光 · 最多 3 名角色组队出战（血量独立）<br>金币可购 Mega 石 / 极巨手环 / Z 手环（原著契合）<br>升级可选 100+ 技能 · 每技能 3 级 · 满级可 2 合 1 融合（最多 10 个）</div>
     <div class="menu-coins">金币 <b id="menu-coins">0</b></div>
     <div class="menu-btns">
       <button class="btn" id="btn-start">开始游戏</button>
@@ -243,6 +263,7 @@
     <div class="col-sub">金币 <b id="col-coins">0</b> · <span id="col-own"></span> · 全世代 1025 只</div>
     <div id="party-bar"></div>
     <div id="col-tabs"></div>
+    <div class="shop-row" id="shop-row"></div>
     <div id="col-grid"></div>
     <button class="btn" id="btn-col-back">返回</button>
   </div>
@@ -250,7 +271,7 @@
   <!-- ===== 升级三选一 ===== -->
   <div class="overlay" id="levelup" hidden>
     <div class="up-title">升级完成</div>
-    <div class="up-sub">选择一项强化</div>
+    <div class="up-sub">选择一项强化 · 技能携带 <b id="up-count">0</b>/25 · 融合 <b id="up-fus">0</b>/10</div>
     <div id="cards"></div>
   </div>
 
@@ -300,14 +321,26 @@ const CONFIG = {
 };
 
 /* ===== 宝可梦图鉴（程序化同人 · 私用非盈利） ===== */
-/* ===== 全世代宝可梦图鉴（1-9 世代 · 每属性 18 只 · 战斗按 5 大属性） ===== */
+/* ===== 全世代宝可梦图鉴（1-9 世代 1025 只 · 18 属性 18 特性） ===== */
 const ATTR_TEXT={
-  fire:{ attr:"火", color:"#fb923c", skills:["灼烧","烈焰灼烧","炼狱点燃"], desc:"点燃敌人持续掉血" },
-  elec:{ attr:"电", color:"#facc15", skills:["静电连锁","麻痹传导","雷霆溅射"], desc:"电弧连锁波及附近敌人" },
-  ice:{ attr:"冰", color:"#7dd3fc", skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人大幅减速" },
-  water:{ attr:"水", color:"#38bdf8", skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围敌人" },
-  grass:{ attr:"草", color:"#4ade80", skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" },
-  neutral:{ attr:"普", color:"#94a3b8", skills:["—","—","—"], desc:"中性属性 · 无克制特效" }
+  normal:{ attr:"普", color:"#94a3b8", skills:["撞击","猛撞","舍身冲撞"], desc:"普攻伤害 +15%", eff:"power" },
+  fire:{   attr:"火", color:"#fb923c", skills:["灼烧","烈焰灼烧","炼狱点燃"], desc:"点燃敌人持续掉血", eff:"burn" },
+  water:{  attr:"水", color:"#38bdf8", skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围", eff:"splash" },
+  grass:{  attr:"草", color:"#4ade80", skills:["汲取","光合回复","生命绽放"], desc:"命中汲取回复自身", eff:"leech" },
+  elec:{   attr:"电", color:"#facc15", skills:["静电","电弧连锁","雷霆溅射"], desc:"电弧连锁波及附近", eff:"chain" },
+  ice:{    attr:"冰", color:"#7dd3fc", skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人减速", eff:"freeze" },
+  fight:{  attr:"斗", color:"#f87171", skills:["连打","碎甲拳","爆裂破"], desc:"命中标记敌人受伤加深", eff:"break" },
+  poison:{ attr:"毒", color:"#a78bfa", skills:["毒素","剧毒侵蚀","致命毒雾"], desc:"使敌人中毒持续掉血", eff:"poison" },
+  ground:{ attr:"地", color:"#d6a15c", skills:["震击","地裂波","天崩地裂"], desc:"命中震击周围敌人", eff:"quake" },
+  flying:{ attr:"飞", color:"#93c5fd", skills:["疾风","气流切割","风暴之翼"], desc:"子弹多穿透 1 个敌人", eff:"pierce" },
+  psychic:{attr:"超", color:"#f0abfc", skills:["念力","预知未来","精神强念"], desc:"额外 10% 暴击几率", eff:"crit" },
+  bug:{    attr:"虫", color:"#a3e635", skills:["虫咬","吐丝","虫鸣"], desc:"命中敌人减速", eff:"slow" },
+  rock:{   attr:"岩", color:"#a8a29e", skills:["落石","岩石封锁","巨石陨落"], desc:"命中眩晕敌人", eff:"stun" },
+  ghost:{  attr:"鬼", color:"#818cf8", skills:["夜影","暗影爪","诅咒之触"], desc:"使敌人短暂恐惧逃窜", eff:"fear" },
+  dragon:{ attr:"龙", color:"#6366f1", skills:["龙息","龙之怒","龙星群"], desc:"命中龙威震击范围敌人", eff:"dragon" },
+  dark:{   attr:"恶", color:"#57534e", skills:["偷袭","暗袭要害","欺诈"], desc:"击杀额外获得 1 金币", eff:"steal" },
+  steel:{  attr:"钢", color:"#cbd5e1", skills:["铁壁","金属爪","加农光炮"], desc:"受到伤害 -20%", eff:"steel" },
+  fairy:{  attr:"妖", color:"#f9a8d4", skills:["妖精之风","魅惑","月亮之力"], desc:"命中魅惑使敌人互相攻击", eff:"charm" }
 };
 const POKEDEX = {
   "bulbasaur":{name:"妙蛙种子",attr:"grass",gen:1,mid:"妙蛙草",top:"妙蛙花"},
@@ -319,148 +352,148 @@ const POKEDEX = {
   "squirtle":{name:"杰尼龟",attr:"water",gen:1,mid:"卡咪龟",top:"水箭龟"},
   "wartortle":{name:"卡咪龟",attr:"water",gen:1,mid:"水箭龟"},
   "blastoise":{name:"水箭龟",attr:"water",gen:1},
-  "caterpie":{name:"绿毛虫",attr:"neutral",gen:1,mid:"铁甲蛹",top:"巴大蝶"},
-  "metapod":{name:"铁甲蛹",attr:"neutral",gen:1,mid:"巴大蝶"},
-  "butterfree":{name:"巴大蝶",attr:"neutral",gen:1},
-  "weedle":{name:"独角虫",attr:"neutral",gen:1,mid:"铁壳蛹",top:"大针蜂"},
-  "kakuna":{name:"铁壳蛹",attr:"neutral",gen:1,mid:"大针蜂"},
-  "beedrill":{name:"大针蜂",attr:"neutral",gen:1},
-  "pidgey":{name:"波波",attr:"neutral",gen:1,mid:"比比鸟",top:"大比鸟"},
-  "pidgeotto":{name:"比比鸟",attr:"neutral",gen:1,mid:"大比鸟"},
-  "pidgeot":{name:"大比鸟",attr:"neutral",gen:1},
-  "rattata":{name:"小拉达",attr:"neutral",gen:1,mid:"拉达"},
-  "raticate":{name:"拉达",attr:"neutral",gen:1},
-  "spearow":{name:"烈雀",attr:"neutral",gen:1,mid:"大嘴雀"},
-  "fearow":{name:"大嘴雀",attr:"neutral",gen:1},
-  "ekans":{name:"阿柏蛇",attr:"neutral",gen:1,mid:"阿柏怪"},
-  "arbok":{name:"阿柏怪",attr:"neutral",gen:1},
+  "caterpie":{name:"绿毛虫",attr:"bug",gen:1,mid:"铁甲蛹",top:"巴大蝶"},
+  "metapod":{name:"铁甲蛹",attr:"bug",gen:1,mid:"巴大蝶"},
+  "butterfree":{name:"巴大蝶",attr:"bug",gen:1},
+  "weedle":{name:"独角虫",attr:"bug",gen:1,mid:"铁壳蛹",top:"大针蜂"},
+  "kakuna":{name:"铁壳蛹",attr:"bug",gen:1,mid:"大针蜂"},
+  "beedrill":{name:"大针蜂",attr:"bug",gen:1},
+  "pidgey":{name:"波波",attr:"normal",gen:1,mid:"比比鸟",top:"大比鸟"},
+  "pidgeotto":{name:"比比鸟",attr:"normal",gen:1,mid:"大比鸟"},
+  "pidgeot":{name:"大比鸟",attr:"normal",gen:1},
+  "rattata":{name:"小拉达",attr:"normal",gen:1,mid:"拉达"},
+  "raticate":{name:"拉达",attr:"normal",gen:1},
+  "spearow":{name:"烈雀",attr:"normal",gen:1,mid:"大嘴雀"},
+  "fearow":{name:"大嘴雀",attr:"normal",gen:1},
+  "ekans":{name:"阿柏蛇",attr:"poison",gen:1,mid:"阿柏怪"},
+  "arbok":{name:"阿柏怪",attr:"poison",gen:1},
   "pikachu":{name:"皮卡丘",attr:"elec",gen:1,mid:"雷丘"},
   "raichu":{name:"雷丘",attr:"elec",gen:1},
-  "sandshrew":{name:"穿山鼠",attr:"neutral",gen:1,mid:"穿山王"},
-  "sandslash":{name:"穿山王",attr:"neutral",gen:1},
-  "nidoran-f":{name:"尼多兰",attr:"neutral",gen:1,mid:"尼多娜",top:"尼多后"},
-  "nidorina":{name:"尼多娜",attr:"neutral",gen:1,mid:"尼多后"},
-  "nidoqueen":{name:"尼多后",attr:"neutral",gen:1},
-  "nidoran-m":{name:"尼多朗",attr:"neutral",gen:1,mid:"尼多力诺",top:"尼多王"},
-  "nidorino":{name:"尼多力诺",attr:"neutral",gen:1,mid:"尼多王"},
-  "nidoking":{name:"尼多王",attr:"neutral",gen:1},
-  "clefairy":{name:"皮皮",attr:"neutral",gen:1,mid:"皮可西"},
-  "clefable":{name:"皮可西",attr:"neutral",gen:1},
+  "sandshrew":{name:"穿山鼠",attr:"ground",gen:1,mid:"穿山王"},
+  "sandslash":{name:"穿山王",attr:"ground",gen:1},
+  "nidoran-f":{name:"尼多兰",attr:"poison",gen:1,mid:"尼多娜",top:"尼多后"},
+  "nidorina":{name:"尼多娜",attr:"poison",gen:1,mid:"尼多后"},
+  "nidoqueen":{name:"尼多后",attr:"poison",gen:1},
+  "nidoran-m":{name:"尼多朗",attr:"poison",gen:1,mid:"尼多力诺",top:"尼多王"},
+  "nidorino":{name:"尼多力诺",attr:"poison",gen:1,mid:"尼多王"},
+  "nidoking":{name:"尼多王",attr:"poison",gen:1},
+  "clefairy":{name:"皮皮",attr:"fairy",gen:1,mid:"皮可西"},
+  "clefable":{name:"皮可西",attr:"fairy",gen:1},
   "vulpix":{name:"六尾",attr:"fire",gen:1,mid:"九尾"},
   "ninetales":{name:"九尾",attr:"fire",gen:1},
-  "jigglypuff":{name:"胖丁",attr:"neutral",gen:1,mid:"胖可丁"},
-  "wigglytuff":{name:"胖可丁",attr:"neutral",gen:1},
-  "zubat":{name:"超音蝠",attr:"neutral",gen:1,mid:"大嘴蝠",top:"叉字蝠"},
-  "golbat":{name:"大嘴蝠",attr:"neutral",gen:1,mid:"叉字蝠"},
+  "jigglypuff":{name:"胖丁",attr:"normal",gen:1,mid:"胖可丁"},
+  "wigglytuff":{name:"胖可丁",attr:"normal",gen:1},
+  "zubat":{name:"超音蝠",attr:"poison",gen:1,mid:"大嘴蝠",top:"叉字蝠"},
+  "golbat":{name:"大嘴蝠",attr:"poison",gen:1,mid:"叉字蝠"},
   "oddish":{name:"走路草",attr:"grass",gen:1,mid:"臭臭花",top:"霸王花"},
   "gloom":{name:"臭臭花",attr:"grass",gen:1,mid:"霸王花"},
   "vileplume":{name:"霸王花",attr:"grass",gen:1},
-  "paras":{name:"派拉斯",attr:"neutral",gen:1,mid:"派拉斯特"},
-  "parasect":{name:"派拉斯特",attr:"neutral",gen:1},
-  "venonat":{name:"毛球",attr:"neutral",gen:1,mid:"摩鲁蛾"},
-  "venomoth":{name:"摩鲁蛾",attr:"neutral",gen:1},
-  "diglett":{name:"地鼠",attr:"neutral",gen:1,mid:"三地鼠"},
-  "dugtrio":{name:"三地鼠",attr:"neutral",gen:1},
-  "meowth":{name:"喵喵",attr:"neutral",gen:1,mid:"猫老大"},
-  "persian":{name:"猫老大",attr:"neutral",gen:1},
+  "paras":{name:"派拉斯",attr:"bug",gen:1,mid:"派拉斯特"},
+  "parasect":{name:"派拉斯特",attr:"bug",gen:1},
+  "venonat":{name:"毛球",attr:"bug",gen:1,mid:"摩鲁蛾"},
+  "venomoth":{name:"摩鲁蛾",attr:"bug",gen:1},
+  "diglett":{name:"地鼠",attr:"ground",gen:1,mid:"三地鼠"},
+  "dugtrio":{name:"三地鼠",attr:"ground",gen:1},
+  "meowth":{name:"喵喵",attr:"normal",gen:1,mid:"猫老大"},
+  "persian":{name:"猫老大",attr:"normal",gen:1},
   "psyduck":{name:"可达鸭",attr:"water",gen:1,mid:"哥达鸭"},
   "golduck":{name:"哥达鸭",attr:"water",gen:1},
-  "mankey":{name:"猴怪",attr:"neutral",gen:1,mid:"火暴猴",top:"弃世猴"},
-  "primeape":{name:"火暴猴",attr:"neutral",gen:1,mid:"弃世猴"},
+  "mankey":{name:"猴怪",attr:"fight",gen:1,mid:"火暴猴",top:"弃世猴"},
+  "primeape":{name:"火暴猴",attr:"fight",gen:1,mid:"弃世猴"},
   "growlithe":{name:"卡蒂狗",attr:"fire",gen:1,mid:"风速狗"},
   "arcanine":{name:"风速狗",attr:"fire",gen:1},
   "poliwag":{name:"蚊香蝌蚪",attr:"water",gen:1,mid:"蚊香君",top:"蚊香泳士"},
   "poliwhirl":{name:"蚊香君",attr:"water",gen:1,mid:"蚊香泳士"},
   "poliwrath":{name:"蚊香泳士",attr:"water",gen:1},
-  "abra":{name:"凯西",attr:"neutral",gen:1,mid:"勇基拉",top:"胡地"},
-  "kadabra":{name:"勇基拉",attr:"neutral",gen:1,mid:"胡地"},
-  "alakazam":{name:"胡地",attr:"neutral",gen:1},
-  "machop":{name:"腕力",attr:"neutral",gen:1,mid:"豪力",top:"怪力"},
-  "machoke":{name:"豪力",attr:"neutral",gen:1,mid:"怪力"},
-  "machamp":{name:"怪力",attr:"neutral",gen:1},
+  "abra":{name:"凯西",attr:"psychic",gen:1,mid:"勇基拉",top:"胡地"},
+  "kadabra":{name:"勇基拉",attr:"psychic",gen:1,mid:"胡地"},
+  "alakazam":{name:"胡地",attr:"psychic",gen:1},
+  "machop":{name:"腕力",attr:"fight",gen:1,mid:"豪力",top:"怪力"},
+  "machoke":{name:"豪力",attr:"fight",gen:1,mid:"怪力"},
+  "machamp":{name:"怪力",attr:"fight",gen:1},
   "bellsprout":{name:"喇叭芽",attr:"grass",gen:1,mid:"口呆花",top:"大食花"},
   "weepinbell":{name:"口呆花",attr:"grass",gen:1,mid:"大食花"},
   "victreebel":{name:"大食花",attr:"grass",gen:1},
   "tentacool":{name:"玛瑙水母",attr:"water",gen:1,mid:"毒刺水母"},
   "tentacruel":{name:"毒刺水母",attr:"water",gen:1},
-  "geodude":{name:"小拳石",attr:"neutral",gen:1,mid:"隆隆石",top:"隆隆岩"},
-  "graveler":{name:"隆隆石",attr:"neutral",gen:1,mid:"隆隆岩"},
-  "golem":{name:"隆隆岩",attr:"neutral",gen:1},
+  "geodude":{name:"小拳石",attr:"rock",gen:1,mid:"隆隆石",top:"隆隆岩"},
+  "graveler":{name:"隆隆石",attr:"rock",gen:1,mid:"隆隆岩"},
+  "golem":{name:"隆隆岩",attr:"rock",gen:1},
   "ponyta":{name:"小火马",attr:"fire",gen:1,mid:"烈焰马"},
   "rapidash":{name:"烈焰马",attr:"fire",gen:1},
   "slowpoke":{name:"呆呆兽",attr:"water",gen:1,mid:"呆壳兽"},
   "slowbro":{name:"呆壳兽",attr:"water",gen:1},
   "magnemite":{name:"小磁怪",attr:"elec",gen:1,mid:"三合一磁怪",top:"自爆磁怪"},
   "magneton":{name:"三合一磁怪",attr:"elec",gen:1,mid:"自爆磁怪"},
-  "farfetchd":{name:"大葱鸭",attr:"neutral",gen:1,mid:"葱游兵"},
-  "doduo":{name:"嘟嘟",attr:"neutral",gen:1,mid:"嘟嘟利"},
-  "dodrio":{name:"嘟嘟利",attr:"neutral",gen:1},
+  "farfetchd":{name:"大葱鸭",attr:"normal",gen:1,mid:"葱游兵"},
+  "doduo":{name:"嘟嘟",attr:"normal",gen:1,mid:"嘟嘟利"},
+  "dodrio":{name:"嘟嘟利",attr:"normal",gen:1},
   "seel":{name:"小海狮",attr:"water",gen:1,mid:"白海狮"},
   "dewgong":{name:"白海狮",attr:"water",gen:1},
-  "grimer":{name:"臭泥",attr:"neutral",gen:1,mid:"臭臭泥"},
-  "muk":{name:"臭臭泥",attr:"neutral",gen:1},
+  "grimer":{name:"臭泥",attr:"poison",gen:1,mid:"臭臭泥"},
+  "muk":{name:"臭臭泥",attr:"poison",gen:1},
   "shellder":{name:"大舌贝",attr:"water",gen:1,mid:"刺甲贝"},
   "cloyster":{name:"刺甲贝",attr:"water",gen:1},
-  "gastly":{name:"鬼斯",attr:"neutral",gen:1,mid:"鬼斯通",top:"耿鬼"},
-  "haunter":{name:"鬼斯通",attr:"neutral",gen:1,mid:"耿鬼"},
-  "gengar":{name:"耿鬼",attr:"neutral",gen:1},
-  "onix":{name:"大岩蛇",attr:"neutral",gen:1,mid:"大钢蛇"},
-  "drowzee":{name:"催眠貘",attr:"neutral",gen:1,mid:"引梦貘人"},
-  "hypno":{name:"引梦貘人",attr:"neutral",gen:1},
+  "gastly":{name:"鬼斯",attr:"ghost",gen:1,mid:"鬼斯通",top:"耿鬼"},
+  "haunter":{name:"鬼斯通",attr:"ghost",gen:1,mid:"耿鬼"},
+  "gengar":{name:"耿鬼",attr:"ghost",gen:1},
+  "onix":{name:"大岩蛇",attr:"rock",gen:1,mid:"大钢蛇"},
+  "drowzee":{name:"催眠貘",attr:"psychic",gen:1,mid:"引梦貘人"},
+  "hypno":{name:"引梦貘人",attr:"psychic",gen:1},
   "krabby":{name:"大钳蟹",attr:"water",gen:1,mid:"巨钳蟹"},
   "kingler":{name:"巨钳蟹",attr:"water",gen:1},
   "voltorb":{name:"霹雳电球",attr:"elec",gen:1,mid:"顽皮雷弹"},
   "electrode":{name:"顽皮雷弹",attr:"elec",gen:1},
   "exeggcute":{name:"蛋蛋",attr:"grass",gen:1,mid:"椰蛋树"},
   "exeggutor":{name:"椰蛋树",attr:"grass",gen:1},
-  "cubone":{name:"卡拉卡拉",attr:"neutral",gen:1,mid:"嘎啦嘎啦"},
-  "marowak":{name:"嘎啦嘎啦",attr:"neutral",gen:1},
-  "hitmonlee":{name:"飞腿郎",attr:"neutral",gen:1},
-  "hitmonchan":{name:"快拳郎",attr:"neutral",gen:1},
-  "lickitung":{name:"大舌头",attr:"neutral",gen:1,mid:"大舌舔"},
-  "koffing":{name:"瓦斯弹",attr:"neutral",gen:1,mid:"双弹瓦斯"},
-  "weezing":{name:"双弹瓦斯",attr:"neutral",gen:1},
-  "rhyhorn":{name:"独角犀牛",attr:"neutral",gen:1,mid:"钻角犀兽",top:"超甲狂犀"},
-  "rhydon":{name:"钻角犀兽",attr:"neutral",gen:1,mid:"超甲狂犀"},
-  "chansey":{name:"吉利蛋",attr:"neutral",gen:1,mid:"幸福蛋"},
+  "cubone":{name:"卡拉卡拉",attr:"ground",gen:1,mid:"嘎啦嘎啦"},
+  "marowak":{name:"嘎啦嘎啦",attr:"ground",gen:1},
+  "hitmonlee":{name:"飞腿郎",attr:"fight",gen:1},
+  "hitmonchan":{name:"快拳郎",attr:"fight",gen:1},
+  "lickitung":{name:"大舌头",attr:"normal",gen:1,mid:"大舌舔"},
+  "koffing":{name:"瓦斯弹",attr:"poison",gen:1,mid:"双弹瓦斯"},
+  "weezing":{name:"双弹瓦斯",attr:"poison",gen:1},
+  "rhyhorn":{name:"独角犀牛",attr:"ground",gen:1,mid:"钻角犀兽",top:"超甲狂犀"},
+  "rhydon":{name:"钻角犀兽",attr:"ground",gen:1,mid:"超甲狂犀"},
+  "chansey":{name:"吉利蛋",attr:"normal",gen:1,mid:"幸福蛋"},
   "tangela":{name:"蔓藤怪",attr:"grass",gen:1,mid:"巨蔓藤"},
-  "kangaskhan":{name:"袋兽",attr:"neutral",gen:1},
+  "kangaskhan":{name:"袋兽",attr:"normal",gen:1},
   "horsea":{name:"墨海马",attr:"water",gen:1,mid:"海刺龙",top:"刺龙王"},
   "seadra":{name:"海刺龙",attr:"water",gen:1,mid:"刺龙王"},
   "goldeen":{name:"角金鱼",attr:"water",gen:1,mid:"金鱼王"},
   "seaking":{name:"金鱼王",attr:"water",gen:1},
   "staryu":{name:"海星星",attr:"water",gen:1,mid:"宝石海星"},
   "starmie":{name:"宝石海星",attr:"water",gen:1},
-  "mr-mime":{name:"魔墙人偶",attr:"neutral",gen:1,mid:"踏冰人偶"},
-  "scyther":{name:"飞天螳螂",attr:"neutral",gen:1,mid:"巨钳螳螂"},
+  "mr-mime":{name:"魔墙人偶",attr:"psychic",gen:1,mid:"踏冰人偶"},
+  "scyther":{name:"飞天螳螂",attr:"bug",gen:1,mid:"巨钳螳螂"},
   "jynx":{name:"迷唇姐",attr:"ice",gen:1},
   "electabuzz":{name:"电击兽",attr:"elec",gen:1,mid:"电击魔兽"},
   "magmar":{name:"鸭嘴火兽",attr:"fire",gen:1,mid:"鸭嘴炎兽"},
-  "pinsir":{name:"凯罗斯",attr:"neutral",gen:1},
-  "tauros":{name:"肯泰罗",attr:"neutral",gen:1},
+  "pinsir":{name:"凯罗斯",attr:"bug",gen:1},
+  "tauros":{name:"肯泰罗",attr:"normal",gen:1},
   "magikarp":{name:"鲤鱼王",attr:"water",gen:1,mid:"暴鲤龙"},
   "gyarados":{name:"暴鲤龙",attr:"water",gen:1},
   "lapras":{name:"拉普拉斯",attr:"water",gen:1},
-  "ditto":{name:"百变怪",attr:"neutral",gen:1},
-  "eevee":{name:"伊布",attr:"neutral",gen:1,mid:"水伊布"},
+  "ditto":{name:"百变怪",attr:"normal",gen:1},
+  "eevee":{name:"伊布",attr:"normal",gen:1,mid:"水伊布"},
   "vaporeon":{name:"水伊布",attr:"water",gen:1},
   "jolteon":{name:"雷伊布",attr:"elec",gen:1},
   "flareon":{name:"火伊布",attr:"fire",gen:1},
-  "porygon":{name:"多边兽",attr:"neutral",gen:1,mid:"多边兽２型",top:"多边兽乙型"},
-  "omanyte":{name:"菊石兽",attr:"neutral",gen:1,mid:"多刺菊石兽"},
-  "omastar":{name:"多刺菊石兽",attr:"neutral",gen:1},
-  "kabuto":{name:"化石盔",attr:"neutral",gen:1,mid:"镰刀盔"},
-  "kabutops":{name:"镰刀盔",attr:"neutral",gen:1},
-  "aerodactyl":{name:"化石翼龙",attr:"neutral",gen:1},
-  "snorlax":{name:"卡比兽",attr:"neutral",gen:1},
+  "porygon":{name:"多边兽",attr:"normal",gen:1,mid:"多边兽２型",top:"多边兽乙型"},
+  "omanyte":{name:"菊石兽",attr:"rock",gen:1,mid:"多刺菊石兽"},
+  "omastar":{name:"多刺菊石兽",attr:"rock",gen:1},
+  "kabuto":{name:"化石盔",attr:"rock",gen:1,mid:"镰刀盔"},
+  "kabutops":{name:"镰刀盔",attr:"rock",gen:1},
+  "aerodactyl":{name:"化石翼龙",attr:"rock",gen:1},
+  "snorlax":{name:"卡比兽",attr:"normal",gen:1},
   "articuno":{name:"急冻鸟",attr:"ice",gen:1},
   "zapdos":{name:"闪电鸟",attr:"elec",gen:1},
   "moltres":{name:"火焰鸟",attr:"fire",gen:1},
-  "dratini":{name:"迷你龙",attr:"neutral",gen:1,mid:"哈克龙",top:"快龙"},
-  "dragonair":{name:"哈克龙",attr:"neutral",gen:1,mid:"快龙"},
-  "dragonite":{name:"快龙",attr:"neutral",gen:1},
-  "mewtwo":{name:"超梦",attr:"neutral",gen:1},
-  "mew":{name:"梦幻",attr:"neutral",gen:1},
+  "dratini":{name:"迷你龙",attr:"dragon",gen:1,mid:"哈克龙",top:"快龙"},
+  "dragonair":{name:"哈克龙",attr:"dragon",gen:1,mid:"快龙"},
+  "dragonite":{name:"快龙",attr:"dragon",gen:1},
+  "mewtwo":{name:"超梦",attr:"psychic",gen:1},
+  "mew":{name:"梦幻",attr:"psychic",gen:1},
   "chikorita":{name:"菊草叶",attr:"grass",gen:2,mid:"月桂叶",top:"大竺葵"},
   "bayleef":{name:"月桂叶",attr:"grass",gen:2,mid:"大竺葵"},
   "meganium":{name:"大竺葵",attr:"grass",gen:2},
@@ -470,63 +503,63 @@ const POKEDEX = {
   "totodile":{name:"小锯鳄",attr:"water",gen:2,mid:"蓝鳄",top:"大力鳄"},
   "croconaw":{name:"蓝鳄",attr:"water",gen:2,mid:"大力鳄"},
   "feraligatr":{name:"大力鳄",attr:"water",gen:2},
-  "sentret":{name:"尾立",attr:"neutral",gen:2,mid:"大尾立"},
-  "furret":{name:"大尾立",attr:"neutral",gen:2},
-  "hoothoot":{name:"咕咕",attr:"neutral",gen:2,mid:"猫头夜鹰"},
-  "noctowl":{name:"猫头夜鹰",attr:"neutral",gen:2},
-  "ledyba":{name:"芭瓢虫",attr:"neutral",gen:2,mid:"安瓢虫"},
-  "ledian":{name:"安瓢虫",attr:"neutral",gen:2},
-  "spinarak":{name:"圆丝蛛",attr:"neutral",gen:2,mid:"阿利多斯"},
-  "ariados":{name:"阿利多斯",attr:"neutral",gen:2},
-  "crobat":{name:"叉字蝠",attr:"neutral",gen:2},
+  "sentret":{name:"尾立",attr:"normal",gen:2,mid:"大尾立"},
+  "furret":{name:"大尾立",attr:"normal",gen:2},
+  "hoothoot":{name:"咕咕",attr:"normal",gen:2,mid:"猫头夜鹰"},
+  "noctowl":{name:"猫头夜鹰",attr:"normal",gen:2},
+  "ledyba":{name:"芭瓢虫",attr:"bug",gen:2,mid:"安瓢虫"},
+  "ledian":{name:"安瓢虫",attr:"bug",gen:2},
+  "spinarak":{name:"圆丝蛛",attr:"bug",gen:2,mid:"阿利多斯"},
+  "ariados":{name:"阿利多斯",attr:"bug",gen:2},
+  "crobat":{name:"叉字蝠",attr:"poison",gen:2},
   "chinchou":{name:"灯笼鱼",attr:"water",gen:2,mid:"电灯怪"},
   "lanturn":{name:"电灯怪",attr:"water",gen:2},
   "pichu":{name:"皮丘",attr:"elec",gen:2,mid:"皮卡丘",top:"雷丘"},
-  "cleffa":{name:"皮宝宝",attr:"neutral",gen:2,mid:"皮皮",top:"皮可西"},
-  "igglybuff":{name:"宝宝丁",attr:"neutral",gen:2,mid:"胖丁",top:"胖可丁"},
-  "togepi":{name:"波克比",attr:"neutral",gen:2,mid:"波克基古",top:"波克基斯"},
-  "togetic":{name:"波克基古",attr:"neutral",gen:2,mid:"波克基斯"},
-  "natu":{name:"天然雀",attr:"neutral",gen:2,mid:"天然鸟"},
-  "xatu":{name:"天然鸟",attr:"neutral",gen:2},
+  "cleffa":{name:"皮宝宝",attr:"fairy",gen:2,mid:"皮皮",top:"皮可西"},
+  "igglybuff":{name:"宝宝丁",attr:"normal",gen:2,mid:"胖丁",top:"胖可丁"},
+  "togepi":{name:"波克比",attr:"fairy",gen:2,mid:"波克基古",top:"波克基斯"},
+  "togetic":{name:"波克基古",attr:"fairy",gen:2,mid:"波克基斯"},
+  "natu":{name:"天然雀",attr:"psychic",gen:2,mid:"天然鸟"},
+  "xatu":{name:"天然鸟",attr:"psychic",gen:2},
   "mareep":{name:"咩利羊",attr:"elec",gen:2,mid:"茸茸羊",top:"电龙"},
   "flaaffy":{name:"茸茸羊",attr:"elec",gen:2,mid:"电龙"},
   "ampharos":{name:"电龙",attr:"elec",gen:2},
   "bellossom":{name:"美丽花",attr:"grass",gen:2},
   "marill":{name:"玛力露",attr:"water",gen:2,mid:"玛力露丽"},
   "azumarill":{name:"玛力露丽",attr:"water",gen:2},
-  "sudowoodo":{name:"树才怪",attr:"neutral",gen:2},
+  "sudowoodo":{name:"树才怪",attr:"rock",gen:2},
   "politoed":{name:"蚊香蛙皇",attr:"water",gen:2},
   "hoppip":{name:"毽子草",attr:"grass",gen:2,mid:"毽子花",top:"毽子棉"},
   "skiploom":{name:"毽子花",attr:"grass",gen:2,mid:"毽子棉"},
   "jumpluff":{name:"毽子棉",attr:"grass",gen:2},
-  "aipom":{name:"长尾怪手",attr:"neutral",gen:2,mid:"双尾怪手"},
+  "aipom":{name:"长尾怪手",attr:"normal",gen:2,mid:"双尾怪手"},
   "sunkern":{name:"向日种子",attr:"grass",gen:2,mid:"向日花怪"},
   "sunflora":{name:"向日花怪",attr:"grass",gen:2},
-  "yanma":{name:"蜻蜻蜓",attr:"neutral",gen:2,mid:"远古巨蜓"},
+  "yanma":{name:"蜻蜻蜓",attr:"bug",gen:2,mid:"远古巨蜓"},
   "wooper":{name:"乌波",attr:"water",gen:2,mid:"沼王"},
   "quagsire":{name:"沼王",attr:"water",gen:2},
-  "espeon":{name:"太阳伊布",attr:"neutral",gen:2},
-  "umbreon":{name:"月亮伊布",attr:"neutral",gen:2},
-  "murkrow":{name:"黑暗鸦",attr:"neutral",gen:2,mid:"乌鸦头头"},
+  "espeon":{name:"太阳伊布",attr:"psychic",gen:2},
+  "umbreon":{name:"月亮伊布",attr:"dark",gen:2},
+  "murkrow":{name:"黑暗鸦",attr:"dark",gen:2,mid:"乌鸦头头"},
   "slowking":{name:"呆呆王",attr:"water",gen:2},
-  "misdreavus":{name:"梦妖",attr:"neutral",gen:2,mid:"梦妖魔"},
-  "unown":{name:"未知图腾",attr:"neutral",gen:2},
-  "wobbuffet":{name:"果然翁",attr:"neutral",gen:2},
-  "girafarig":{name:"麒麟奇",attr:"neutral",gen:2,mid:"奇麒麟"},
-  "pineco":{name:"榛果球",attr:"neutral",gen:2,mid:"佛烈托斯"},
-  "forretress":{name:"佛烈托斯",attr:"neutral",gen:2},
-  "dunsparce":{name:"土龙弟弟",attr:"neutral",gen:2,mid:"土龙节节"},
-  "gligar":{name:"天蝎",attr:"neutral",gen:2,mid:"天蝎王"},
-  "steelix":{name:"大钢蛇",attr:"neutral",gen:2},
-  "snubbull":{name:"布鲁",attr:"neutral",gen:2,mid:"布鲁皇"},
-  "granbull":{name:"布鲁皇",attr:"neutral",gen:2},
+  "misdreavus":{name:"梦妖",attr:"ghost",gen:2,mid:"梦妖魔"},
+  "unown":{name:"未知图腾",attr:"psychic",gen:2},
+  "wobbuffet":{name:"果然翁",attr:"psychic",gen:2},
+  "girafarig":{name:"麒麟奇",attr:"normal",gen:2,mid:"奇麒麟"},
+  "pineco":{name:"榛果球",attr:"bug",gen:2,mid:"佛烈托斯"},
+  "forretress":{name:"佛烈托斯",attr:"bug",gen:2},
+  "dunsparce":{name:"土龙弟弟",attr:"normal",gen:2,mid:"土龙节节"},
+  "gligar":{name:"天蝎",attr:"ground",gen:2,mid:"天蝎王"},
+  "steelix":{name:"大钢蛇",attr:"steel",gen:2},
+  "snubbull":{name:"布鲁",attr:"fairy",gen:2,mid:"布鲁皇"},
+  "granbull":{name:"布鲁皇",attr:"fairy",gen:2},
   "qwilfish":{name:"千针鱼",attr:"water",gen:2,mid:"万针鱼"},
-  "scizor":{name:"巨钳螳螂",attr:"neutral",gen:2},
-  "shuckle":{name:"壶壶",attr:"neutral",gen:2},
-  "heracross":{name:"赫拉克罗斯",attr:"neutral",gen:2},
-  "sneasel":{name:"狃拉",attr:"neutral",gen:2,mid:"玛狃拉"},
-  "teddiursa":{name:"熊宝宝",attr:"neutral",gen:2,mid:"圈圈熊",top:"月月熊"},
-  "ursaring":{name:"圈圈熊",attr:"neutral",gen:2,mid:"月月熊"},
+  "scizor":{name:"巨钳螳螂",attr:"bug",gen:2},
+  "shuckle":{name:"壶壶",attr:"bug",gen:2},
+  "heracross":{name:"赫拉克罗斯",attr:"bug",gen:2},
+  "sneasel":{name:"狃拉",attr:"dark",gen:2,mid:"玛狃拉"},
+  "teddiursa":{name:"熊宝宝",attr:"normal",gen:2,mid:"圈圈熊",top:"月月熊"},
+  "ursaring":{name:"圈圈熊",attr:"normal",gen:2,mid:"月月熊"},
   "slugma":{name:"熔岩虫",attr:"fire",gen:2,mid:"熔岩蜗牛"},
   "magcargo":{name:"熔岩蜗牛",attr:"fire",gen:2},
   "swinub":{name:"小山猪",attr:"ice",gen:2,mid:"长毛猪",top:"象牙猪"},
@@ -536,31 +569,31 @@ const POKEDEX = {
   "octillery":{name:"章鱼桶",attr:"water",gen:2},
   "delibird":{name:"信使鸟",attr:"ice",gen:2},
   "mantine":{name:"巨翅飞鱼",attr:"water",gen:2},
-  "skarmory":{name:"盔甲鸟",attr:"neutral",gen:2},
-  "houndour":{name:"戴鲁比",attr:"neutral",gen:2,mid:"黑鲁加"},
-  "houndoom":{name:"黑鲁加",attr:"neutral",gen:2},
+  "skarmory":{name:"盔甲鸟",attr:"steel",gen:2},
+  "houndour":{name:"戴鲁比",attr:"dark",gen:2,mid:"黑鲁加"},
+  "houndoom":{name:"黑鲁加",attr:"dark",gen:2},
   "kingdra":{name:"刺龙王",attr:"water",gen:2},
-  "phanpy":{name:"小小象",attr:"neutral",gen:2,mid:"顿甲"},
-  "donphan":{name:"顿甲",attr:"neutral",gen:2},
-  "porygon2":{name:"多边兽２型",attr:"neutral",gen:2,mid:"多边兽乙型"},
-  "stantler":{name:"惊角鹿",attr:"neutral",gen:2,mid:"诡角鹿"},
-  "smeargle":{name:"图图犬",attr:"neutral",gen:2},
-  "tyrogue":{name:"无畏小子",attr:"neutral",gen:2,mid:"飞腿郎"},
-  "hitmontop":{name:"战舞郎",attr:"neutral",gen:2},
+  "phanpy":{name:"小小象",attr:"ground",gen:2,mid:"顿甲"},
+  "donphan":{name:"顿甲",attr:"ground",gen:2},
+  "porygon2":{name:"多边兽２型",attr:"normal",gen:2,mid:"多边兽乙型"},
+  "stantler":{name:"惊角鹿",attr:"normal",gen:2,mid:"诡角鹿"},
+  "smeargle":{name:"图图犬",attr:"normal",gen:2},
+  "tyrogue":{name:"无畏小子",attr:"fight",gen:2,mid:"飞腿郎"},
+  "hitmontop":{name:"战舞郎",attr:"fight",gen:2},
   "smoochum":{name:"迷唇娃",attr:"ice",gen:2,mid:"迷唇姐"},
   "elekid":{name:"电击怪",attr:"elec",gen:2,mid:"电击兽",top:"电击魔兽"},
   "magby":{name:"鸭嘴宝宝",attr:"fire",gen:2,mid:"鸭嘴火兽",top:"鸭嘴炎兽"},
-  "miltank":{name:"大奶罐",attr:"neutral",gen:2},
-  "blissey":{name:"幸福蛋",attr:"neutral",gen:2},
+  "miltank":{name:"大奶罐",attr:"normal",gen:2},
+  "blissey":{name:"幸福蛋",attr:"normal",gen:2},
   "raikou":{name:"雷公",attr:"elec",gen:2},
   "entei":{name:"炎帝",attr:"fire",gen:2},
   "suicune":{name:"水君",attr:"water",gen:2},
-  "larvitar":{name:"幼基拉斯",attr:"neutral",gen:2,mid:"沙基拉斯",top:"班基拉斯"},
-  "pupitar":{name:"沙基拉斯",attr:"neutral",gen:2,mid:"班基拉斯"},
-  "tyranitar":{name:"班基拉斯",attr:"neutral",gen:2},
-  "lugia":{name:"洛奇亚",attr:"neutral",gen:2},
+  "larvitar":{name:"幼基拉斯",attr:"rock",gen:2,mid:"沙基拉斯",top:"班基拉斯"},
+  "pupitar":{name:"沙基拉斯",attr:"rock",gen:2,mid:"班基拉斯"},
+  "tyranitar":{name:"班基拉斯",attr:"rock",gen:2},
+  "lugia":{name:"洛奇亚",attr:"psychic",gen:2},
   "ho-oh":{name:"凤王",attr:"fire",gen:2},
-  "celebi":{name:"时拉比",attr:"neutral",gen:2},
+  "celebi":{name:"时拉比",attr:"psychic",gen:2},
   "treecko":{name:"木守宫",attr:"grass",gen:3,mid:"森林蜥蜴",top:"蜥蜴王"},
   "grovyle":{name:"森林蜥蜴",attr:"grass",gen:3,mid:"蜥蜴王"},
   "sceptile":{name:"蜥蜴王",attr:"grass",gen:3},
@@ -570,63 +603,63 @@ const POKEDEX = {
   "mudkip":{name:"水跃鱼",attr:"water",gen:3,mid:"沼跃鱼",top:"巨沼怪"},
   "marshtomp":{name:"沼跃鱼",attr:"water",gen:3,mid:"巨沼怪"},
   "swampert":{name:"巨沼怪",attr:"water",gen:3},
-  "poochyena":{name:"土狼犬",attr:"neutral",gen:3,mid:"大狼犬"},
-  "mightyena":{name:"大狼犬",attr:"neutral",gen:3},
-  "zigzagoon":{name:"蛇纹熊",attr:"neutral",gen:3,mid:"直冲熊",top:"堵拦熊"},
-  "linoone":{name:"直冲熊",attr:"neutral",gen:3,mid:"堵拦熊"},
-  "wurmple":{name:"刺尾虫",attr:"neutral",gen:3,mid:"甲壳茧",top:"狩猎凤蝶"},
-  "silcoon":{name:"甲壳茧",attr:"neutral",gen:3,mid:"狩猎凤蝶"},
-  "beautifly":{name:"狩猎凤蝶",attr:"neutral",gen:3},
-  "cascoon":{name:"盾甲茧",attr:"neutral",gen:3},
-  "dustox":{name:"毒粉蛾",attr:"neutral",gen:3},
+  "poochyena":{name:"土狼犬",attr:"dark",gen:3,mid:"大狼犬"},
+  "mightyena":{name:"大狼犬",attr:"dark",gen:3},
+  "zigzagoon":{name:"蛇纹熊",attr:"normal",gen:3,mid:"直冲熊",top:"堵拦熊"},
+  "linoone":{name:"直冲熊",attr:"normal",gen:3,mid:"堵拦熊"},
+  "wurmple":{name:"刺尾虫",attr:"bug",gen:3,mid:"甲壳茧",top:"狩猎凤蝶"},
+  "silcoon":{name:"甲壳茧",attr:"bug",gen:3,mid:"狩猎凤蝶"},
+  "beautifly":{name:"狩猎凤蝶",attr:"bug",gen:3},
+  "cascoon":{name:"盾甲茧",attr:"bug",gen:3},
+  "dustox":{name:"毒粉蛾",attr:"bug",gen:3},
   "lotad":{name:"莲叶童子",attr:"water",gen:3,mid:"莲帽小童",top:"乐天河童"},
   "lombre":{name:"莲帽小童",attr:"water",gen:3,mid:"乐天河童"},
   "ludicolo":{name:"乐天河童",attr:"water",gen:3},
   "seedot":{name:"橡实果",attr:"grass",gen:3,mid:"长鼻叶",top:"狡猾天狗"},
   "nuzleaf":{name:"长鼻叶",attr:"grass",gen:3,mid:"狡猾天狗"},
   "shiftry":{name:"狡猾天狗",attr:"grass",gen:3},
-  "taillow":{name:"傲骨燕",attr:"neutral",gen:3,mid:"大王燕"},
-  "swellow":{name:"大王燕",attr:"neutral",gen:3},
+  "taillow":{name:"傲骨燕",attr:"normal",gen:3,mid:"大王燕"},
+  "swellow":{name:"大王燕",attr:"normal",gen:3},
   "wingull":{name:"长翅鸥",attr:"water",gen:3,mid:"大嘴鸥"},
   "pelipper":{name:"大嘴鸥",attr:"water",gen:3},
-  "ralts":{name:"拉鲁拉丝",attr:"neutral",gen:3,mid:"奇鲁莉安",top:"沙奈朵"},
-  "kirlia":{name:"奇鲁莉安",attr:"neutral",gen:3,mid:"沙奈朵"},
-  "gardevoir":{name:"沙奈朵",attr:"neutral",gen:3},
-  "surskit":{name:"溜溜糖球",attr:"neutral",gen:3,mid:"雨翅蛾"},
-  "masquerain":{name:"雨翅蛾",attr:"neutral",gen:3},
+  "ralts":{name:"拉鲁拉丝",attr:"psychic",gen:3,mid:"奇鲁莉安",top:"沙奈朵"},
+  "kirlia":{name:"奇鲁莉安",attr:"psychic",gen:3,mid:"沙奈朵"},
+  "gardevoir":{name:"沙奈朵",attr:"psychic",gen:3},
+  "surskit":{name:"溜溜糖球",attr:"bug",gen:3,mid:"雨翅蛾"},
+  "masquerain":{name:"雨翅蛾",attr:"bug",gen:3},
   "shroomish":{name:"蘑蘑菇",attr:"grass",gen:3,mid:"斗笠菇"},
   "breloom":{name:"斗笠菇",attr:"grass",gen:3},
-  "slakoth":{name:"懒人獭",attr:"neutral",gen:3,mid:"过动猿",top:"请假王"},
-  "vigoroth":{name:"过动猿",attr:"neutral",gen:3,mid:"请假王"},
-  "slaking":{name:"请假王",attr:"neutral",gen:3},
-  "nincada":{name:"土居忍士",attr:"neutral",gen:3,mid:"铁面忍者"},
-  "ninjask":{name:"铁面忍者",attr:"neutral",gen:3},
-  "shedinja":{name:"脱壳忍者",attr:"neutral",gen:3},
-  "whismur":{name:"咕妞妞",attr:"neutral",gen:3,mid:"吼爆弹",top:"爆音怪"},
-  "loudred":{name:"吼爆弹",attr:"neutral",gen:3,mid:"爆音怪"},
-  "exploud":{name:"爆音怪",attr:"neutral",gen:3},
-  "makuhita":{name:"幕下力士",attr:"neutral",gen:3,mid:"铁掌力士"},
-  "hariyama":{name:"铁掌力士",attr:"neutral",gen:3},
-  "azurill":{name:"露力丽",attr:"neutral",gen:3,mid:"玛力露",top:"玛力露丽"},
-  "nosepass":{name:"朝北鼻",attr:"neutral",gen:3,mid:"大朝北鼻"},
-  "skitty":{name:"向尾喵",attr:"neutral",gen:3,mid:"优雅猫"},
-  "delcatty":{name:"优雅猫",attr:"neutral",gen:3},
-  "sableye":{name:"勾魂眼",attr:"neutral",gen:3},
-  "mawile":{name:"大嘴娃",attr:"neutral",gen:3},
-  "aron":{name:"可可多拉",attr:"neutral",gen:3,mid:"可多拉",top:"波士可多拉"},
-  "lairon":{name:"可多拉",attr:"neutral",gen:3,mid:"波士可多拉"},
-  "aggron":{name:"波士可多拉",attr:"neutral",gen:3},
-  "meditite":{name:"玛沙那",attr:"neutral",gen:3,mid:"恰雷姆"},
-  "medicham":{name:"恰雷姆",attr:"neutral",gen:3},
+  "slakoth":{name:"懒人獭",attr:"normal",gen:3,mid:"过动猿",top:"请假王"},
+  "vigoroth":{name:"过动猿",attr:"normal",gen:3,mid:"请假王"},
+  "slaking":{name:"请假王",attr:"normal",gen:3},
+  "nincada":{name:"土居忍士",attr:"bug",gen:3,mid:"铁面忍者"},
+  "ninjask":{name:"铁面忍者",attr:"bug",gen:3},
+  "shedinja":{name:"脱壳忍者",attr:"bug",gen:3},
+  "whismur":{name:"咕妞妞",attr:"normal",gen:3,mid:"吼爆弹",top:"爆音怪"},
+  "loudred":{name:"吼爆弹",attr:"normal",gen:3,mid:"爆音怪"},
+  "exploud":{name:"爆音怪",attr:"normal",gen:3},
+  "makuhita":{name:"幕下力士",attr:"fight",gen:3,mid:"铁掌力士"},
+  "hariyama":{name:"铁掌力士",attr:"fight",gen:3},
+  "azurill":{name:"露力丽",attr:"normal",gen:3,mid:"玛力露",top:"玛力露丽"},
+  "nosepass":{name:"朝北鼻",attr:"rock",gen:3,mid:"大朝北鼻"},
+  "skitty":{name:"向尾喵",attr:"normal",gen:3,mid:"优雅猫"},
+  "delcatty":{name:"优雅猫",attr:"normal",gen:3},
+  "sableye":{name:"勾魂眼",attr:"dark",gen:3},
+  "mawile":{name:"大嘴娃",attr:"steel",gen:3},
+  "aron":{name:"可可多拉",attr:"steel",gen:3,mid:"可多拉",top:"波士可多拉"},
+  "lairon":{name:"可多拉",attr:"steel",gen:3,mid:"波士可多拉"},
+  "aggron":{name:"波士可多拉",attr:"steel",gen:3},
+  "meditite":{name:"玛沙那",attr:"fight",gen:3,mid:"恰雷姆"},
+  "medicham":{name:"恰雷姆",attr:"fight",gen:3},
   "electrike":{name:"落雷兽",attr:"elec",gen:3,mid:"雷电兽"},
   "manectric":{name:"雷电兽",attr:"elec",gen:3},
   "plusle":{name:"正电拍拍",attr:"elec",gen:3},
   "minun":{name:"負电拍拍",attr:"elec",gen:3},
-  "volbeat":{name:"电萤虫",attr:"neutral",gen:3},
-  "illumise":{name:"甜甜萤",attr:"neutral",gen:3},
+  "volbeat":{name:"电萤虫",attr:"bug",gen:3},
+  "illumise":{name:"甜甜萤",attr:"bug",gen:3},
   "roselia":{name:"毒蔷薇",attr:"grass",gen:3,mid:"罗丝雷朵"},
-  "gulpin":{name:"溶食兽",attr:"neutral",gen:3,mid:"吞食兽"},
-  "swalot":{name:"吞食兽",attr:"neutral",gen:3},
+  "gulpin":{name:"溶食兽",attr:"poison",gen:3,mid:"吞食兽"},
+  "swalot":{name:"吞食兽",attr:"poison",gen:3},
   "carvanha":{name:"利牙鱼",attr:"water",gen:3,mid:"巨牙鲨"},
   "sharpedo":{name:"巨牙鲨",attr:"water",gen:3},
   "wailmer":{name:"吼吼鲸",attr:"water",gen:3,mid:"吼鲸王"},
@@ -634,42 +667,42 @@ const POKEDEX = {
   "numel":{name:"呆火驼",attr:"fire",gen:3,mid:"喷火驼"},
   "camerupt":{name:"喷火驼",attr:"fire",gen:3},
   "torkoal":{name:"煤炭龟",attr:"fire",gen:3},
-  "spoink":{name:"跳跳猪",attr:"neutral",gen:3,mid:"噗噗猪"},
-  "grumpig":{name:"噗噗猪",attr:"neutral",gen:3},
-  "spinda":{name:"晃晃斑",attr:"neutral",gen:3},
-  "trapinch":{name:"大颚蚁",attr:"neutral",gen:3,mid:"超音波幼虫",top:"沙漠蜻蜓"},
-  "vibrava":{name:"超音波幼虫",attr:"neutral",gen:3,mid:"沙漠蜻蜓"},
-  "flygon":{name:"沙漠蜻蜓",attr:"neutral",gen:3},
+  "spoink":{name:"跳跳猪",attr:"psychic",gen:3,mid:"噗噗猪"},
+  "grumpig":{name:"噗噗猪",attr:"psychic",gen:3},
+  "spinda":{name:"晃晃斑",attr:"normal",gen:3},
+  "trapinch":{name:"大颚蚁",attr:"ground",gen:3,mid:"超音波幼虫",top:"沙漠蜻蜓"},
+  "vibrava":{name:"超音波幼虫",attr:"ground",gen:3,mid:"沙漠蜻蜓"},
+  "flygon":{name:"沙漠蜻蜓",attr:"ground",gen:3},
   "cacnea":{name:"刺球仙人掌",attr:"grass",gen:3,mid:"梦歌仙人掌"},
   "cacturne":{name:"梦歌仙人掌",attr:"grass",gen:3},
-  "swablu":{name:"青绵鸟",attr:"neutral",gen:3,mid:"七夕青鸟"},
-  "altaria":{name:"七夕青鸟",attr:"neutral",gen:3},
-  "zangoose":{name:"猫鼬斩",attr:"neutral",gen:3},
-  "seviper":{name:"饭匙蛇",attr:"neutral",gen:3},
-  "lunatone":{name:"月石",attr:"neutral",gen:3},
-  "solrock":{name:"太阳岩",attr:"neutral",gen:3},
+  "swablu":{name:"青绵鸟",attr:"normal",gen:3,mid:"七夕青鸟"},
+  "altaria":{name:"七夕青鸟",attr:"dragon",gen:3},
+  "zangoose":{name:"猫鼬斩",attr:"normal",gen:3},
+  "seviper":{name:"饭匙蛇",attr:"poison",gen:3},
+  "lunatone":{name:"月石",attr:"rock",gen:3},
+  "solrock":{name:"太阳岩",attr:"rock",gen:3},
   "barboach":{name:"泥泥鳅",attr:"water",gen:3,mid:"鲶鱼王"},
   "whiscash":{name:"鲶鱼王",attr:"water",gen:3},
   "corphish":{name:"龙虾小兵",attr:"water",gen:3,mid:"铁螯龙虾"},
   "crawdaunt":{name:"铁螯龙虾",attr:"water",gen:3},
-  "baltoy":{name:"天秤偶",attr:"neutral",gen:3,mid:"念力土偶"},
-  "claydol":{name:"念力土偶",attr:"neutral",gen:3},
-  "lileep":{name:"触手百合",attr:"neutral",gen:3,mid:"摇篮百合"},
-  "cradily":{name:"摇篮百合",attr:"neutral",gen:3},
-  "anorith":{name:"太古羽虫",attr:"neutral",gen:3,mid:"太古盔甲"},
-  "armaldo":{name:"太古盔甲",attr:"neutral",gen:3},
+  "baltoy":{name:"天秤偶",attr:"ground",gen:3,mid:"念力土偶"},
+  "claydol":{name:"念力土偶",attr:"ground",gen:3},
+  "lileep":{name:"触手百合",attr:"rock",gen:3,mid:"摇篮百合"},
+  "cradily":{name:"摇篮百合",attr:"rock",gen:3},
+  "anorith":{name:"太古羽虫",attr:"rock",gen:3,mid:"太古盔甲"},
+  "armaldo":{name:"太古盔甲",attr:"rock",gen:3},
   "feebas":{name:"丑丑鱼",attr:"water",gen:3,mid:"美纳斯"},
   "milotic":{name:"美纳斯",attr:"water",gen:3},
-  "castform":{name:"飘浮泡泡",attr:"neutral",gen:3},
-  "kecleon":{name:"变隐龙",attr:"neutral",gen:3},
-  "shuppet":{name:"怨影娃娃",attr:"neutral",gen:3,mid:"诅咒娃娃"},
-  "banette":{name:"诅咒娃娃",attr:"neutral",gen:3},
-  "duskull":{name:"夜巡灵",attr:"neutral",gen:3,mid:"彷徨夜灵",top:"黑夜魔灵"},
-  "dusclops":{name:"彷徨夜灵",attr:"neutral",gen:3,mid:"黑夜魔灵"},
+  "castform":{name:"飘浮泡泡",attr:"normal",gen:3},
+  "kecleon":{name:"变隐龙",attr:"normal",gen:3},
+  "shuppet":{name:"怨影娃娃",attr:"ghost",gen:3,mid:"诅咒娃娃"},
+  "banette":{name:"诅咒娃娃",attr:"ghost",gen:3},
+  "duskull":{name:"夜巡灵",attr:"ghost",gen:3,mid:"彷徨夜灵",top:"黑夜魔灵"},
+  "dusclops":{name:"彷徨夜灵",attr:"ghost",gen:3,mid:"黑夜魔灵"},
   "tropius":{name:"热带龙",attr:"grass",gen:3},
-  "chimecho":{name:"风铃铃",attr:"neutral",gen:3},
-  "absol":{name:"阿勃梭鲁",attr:"neutral",gen:3},
-  "wynaut":{name:"小果然",attr:"neutral",gen:3,mid:"果然翁"},
+  "chimecho":{name:"风铃铃",attr:"psychic",gen:3},
+  "absol":{name:"阿勃梭鲁",attr:"dark",gen:3},
+  "wynaut":{name:"小果然",attr:"psychic",gen:3,mid:"果然翁"},
   "snorunt":{name:"雪童子",attr:"ice",gen:3,mid:"冰鬼护"},
   "glalie":{name:"冰鬼护",attr:"ice",gen:3},
   "spheal":{name:"海豹球",attr:"ice",gen:3,mid:"海魔狮",top:"帝牙海狮"},
@@ -680,22 +713,22 @@ const POKEDEX = {
   "gorebyss":{name:"樱花鱼",attr:"water",gen:3},
   "relicanth":{name:"古空棘鱼",attr:"water",gen:3},
   "luvdisc":{name:"爱心鱼",attr:"water",gen:3},
-  "bagon":{name:"宝贝龙",attr:"neutral",gen:3,mid:"甲壳龙",top:"暴飞龙"},
-  "shelgon":{name:"甲壳龙",attr:"neutral",gen:3,mid:"暴飞龙"},
-  "salamence":{name:"暴飞龙",attr:"neutral",gen:3},
-  "beldum":{name:"铁哑铃",attr:"neutral",gen:3,mid:"金属怪",top:"巨金怪"},
-  "metang":{name:"金属怪",attr:"neutral",gen:3,mid:"巨金怪"},
-  "metagross":{name:"巨金怪",attr:"neutral",gen:3},
-  "regirock":{name:"雷吉洛克",attr:"neutral",gen:3},
+  "bagon":{name:"宝贝龙",attr:"dragon",gen:3,mid:"甲壳龙",top:"暴飞龙"},
+  "shelgon":{name:"甲壳龙",attr:"dragon",gen:3,mid:"暴飞龙"},
+  "salamence":{name:"暴飞龙",attr:"dragon",gen:3},
+  "beldum":{name:"铁哑铃",attr:"steel",gen:3,mid:"金属怪",top:"巨金怪"},
+  "metang":{name:"金属怪",attr:"steel",gen:3,mid:"巨金怪"},
+  "metagross":{name:"巨金怪",attr:"steel",gen:3},
+  "regirock":{name:"雷吉洛克",attr:"rock",gen:3},
   "regice":{name:"雷吉艾斯",attr:"ice",gen:3},
-  "registeel":{name:"雷吉斯奇鲁",attr:"neutral",gen:3},
-  "latias":{name:"拉帝亚斯",attr:"neutral",gen:3},
-  "latios":{name:"拉帝欧斯",attr:"neutral",gen:3},
+  "registeel":{name:"雷吉斯奇鲁",attr:"steel",gen:3},
+  "latias":{name:"拉帝亚斯",attr:"dragon",gen:3},
+  "latios":{name:"拉帝欧斯",attr:"dragon",gen:3},
   "kyogre":{name:"盖欧卡",attr:"water",gen:3},
-  "groudon":{name:"固拉多",attr:"neutral",gen:3},
-  "rayquaza":{name:"烈空坐",attr:"neutral",gen:3},
-  "jirachi":{name:"基拉祈",attr:"neutral",gen:3},
-  "deoxys-normal":{name:"代欧奇希斯",attr:"neutral",gen:3},
+  "groudon":{name:"固拉多",attr:"ground",gen:3},
+  "rayquaza":{name:"烈空坐",attr:"dragon",gen:3},
+  "jirachi":{name:"基拉祈",attr:"steel",gen:3},
+  "deoxys-normal":{name:"代欧奇希斯",attr:"psychic",gen:3},
   "turtwig":{name:"草苗龟",attr:"grass",gen:4,mid:"树林龟",top:"土台龟"},
   "grotle":{name:"树林龟",attr:"grass",gen:4,mid:"土台龟"},
   "torterra":{name:"土台龟",attr:"grass",gen:4},
@@ -705,27 +738,27 @@ const POKEDEX = {
   "piplup":{name:"波加曼",attr:"water",gen:4,mid:"波皇子",top:"帝王拿波"},
   "prinplup":{name:"波皇子",attr:"water",gen:4,mid:"帝王拿波"},
   "empoleon":{name:"帝王拿波",attr:"water",gen:4},
-  "starly":{name:"姆克儿",attr:"neutral",gen:4,mid:"姆克鸟",top:"姆克鹰"},
-  "staravia":{name:"姆克鸟",attr:"neutral",gen:4,mid:"姆克鹰"},
-  "staraptor":{name:"姆克鹰",attr:"neutral",gen:4},
-  "bidoof":{name:"大牙狸",attr:"neutral",gen:4,mid:"大尾狸"},
-  "bibarel":{name:"大尾狸",attr:"neutral",gen:4},
-  "kricketot":{name:"圆法师",attr:"neutral",gen:4,mid:"音箱蟀"},
-  "kricketune":{name:"音箱蟀",attr:"neutral",gen:4},
+  "starly":{name:"姆克儿",attr:"normal",gen:4,mid:"姆克鸟",top:"姆克鹰"},
+  "staravia":{name:"姆克鸟",attr:"normal",gen:4,mid:"姆克鹰"},
+  "staraptor":{name:"姆克鹰",attr:"normal",gen:4},
+  "bidoof":{name:"大牙狸",attr:"normal",gen:4,mid:"大尾狸"},
+  "bibarel":{name:"大尾狸",attr:"normal",gen:4},
+  "kricketot":{name:"圆法师",attr:"bug",gen:4,mid:"音箱蟀"},
+  "kricketune":{name:"音箱蟀",attr:"bug",gen:4},
   "shinx":{name:"小猫怪",attr:"elec",gen:4,mid:"勒克猫",top:"伦琴猫"},
   "luxio":{name:"勒克猫",attr:"elec",gen:4,mid:"伦琴猫"},
   "luxray":{name:"伦琴猫",attr:"elec",gen:4},
   "budew":{name:"含羞苞",attr:"grass",gen:4,mid:"毒蔷薇",top:"罗丝雷朵"},
   "roserade":{name:"罗丝雷朵",attr:"grass",gen:4},
-  "cranidos":{name:"头盖龙",attr:"neutral",gen:4,mid:"战槌龙"},
-  "rampardos":{name:"战槌龙",attr:"neutral",gen:4},
-  "shieldon":{name:"盾甲龙",attr:"neutral",gen:4,mid:"护城龙"},
-  "bastiodon":{name:"护城龙",attr:"neutral",gen:4},
-  "burmy":{name:"结草儿",attr:"neutral",gen:4,mid:"结草贵妇"},
-  "wormadam-plant":{name:"结草贵妇",attr:"neutral",gen:4},
-  "mothim":{name:"绅士蛾",attr:"neutral",gen:4},
-  "combee":{name:"三蜜蜂",attr:"neutral",gen:4,mid:"蜂女王"},
-  "vespiquen":{name:"蜂女王",attr:"neutral",gen:4},
+  "cranidos":{name:"头盖龙",attr:"rock",gen:4,mid:"战槌龙"},
+  "rampardos":{name:"战槌龙",attr:"rock",gen:4},
+  "shieldon":{name:"盾甲龙",attr:"rock",gen:4,mid:"护城龙"},
+  "bastiodon":{name:"护城龙",attr:"rock",gen:4},
+  "burmy":{name:"结草儿",attr:"bug",gen:4,mid:"结草贵妇"},
+  "wormadam-plant":{name:"结草贵妇",attr:"bug",gen:4},
+  "mothim":{name:"绅士蛾",attr:"bug",gen:4},
+  "combee":{name:"三蜜蜂",attr:"bug",gen:4,mid:"蜂女王"},
+  "vespiquen":{name:"蜂女王",attr:"bug",gen:4},
   "pachirisu":{name:"帕奇利兹",attr:"elec",gen:4},
   "buizel":{name:"泳圈鼬",attr:"water",gen:4,mid:"浮潜鼬"},
   "floatzel":{name:"浮潜鼬",attr:"water",gen:4},
@@ -733,77 +766,77 @@ const POKEDEX = {
   "cherrim":{name:"樱花儿",attr:"grass",gen:4},
   "shellos":{name:"无壳海兔",attr:"water",gen:4,mid:"海兔兽"},
   "gastrodon":{name:"海兔兽",attr:"water",gen:4},
-  "ambipom":{name:"双尾怪手",attr:"neutral",gen:4},
-  "drifloon":{name:"飘飘球",attr:"neutral",gen:4,mid:"随风球"},
-  "drifblim":{name:"随风球",attr:"neutral",gen:4},
-  "buneary":{name:"卷卷耳",attr:"neutral",gen:4,mid:"长耳兔"},
-  "lopunny":{name:"长耳兔",attr:"neutral",gen:4},
-  "mismagius":{name:"梦妖魔",attr:"neutral",gen:4},
-  "honchkrow":{name:"乌鸦头头",attr:"neutral",gen:4},
-  "glameow":{name:"魅力喵",attr:"neutral",gen:4,mid:"东施喵"},
-  "purugly":{name:"东施喵",attr:"neutral",gen:4},
-  "chingling":{name:"铃铛响",attr:"neutral",gen:4,mid:"风铃铃"},
-  "stunky":{name:"臭鼬噗",attr:"neutral",gen:4,mid:"坦克臭鼬"},
-  "skuntank":{name:"坦克臭鼬",attr:"neutral",gen:4},
-  "bronzor":{name:"铜镜怪",attr:"neutral",gen:4,mid:"青铜钟"},
-  "bronzong":{name:"青铜钟",attr:"neutral",gen:4},
-  "bonsly":{name:"盆才怪",attr:"neutral",gen:4,mid:"树才怪"},
-  "mime-jr":{name:"魔尼尼",attr:"neutral",gen:4,mid:"魔墙人偶",top:"踏冰人偶"},
-  "happiny":{name:"小福蛋",attr:"neutral",gen:4,mid:"吉利蛋",top:"幸福蛋"},
-  "chatot":{name:"聒噪鸟",attr:"neutral",gen:4},
-  "spiritomb":{name:"花岩怪",attr:"neutral",gen:4},
-  "gible":{name:"圆陆鲨",attr:"neutral",gen:4,mid:"尖牙陆鲨",top:"烈咬陆鲨"},
-  "gabite":{name:"尖牙陆鲨",attr:"neutral",gen:4,mid:"烈咬陆鲨"},
-  "garchomp":{name:"烈咬陆鲨",attr:"neutral",gen:4},
-  "munchlax":{name:"小卡比兽",attr:"neutral",gen:4,mid:"卡比兽"},
-  "riolu":{name:"利欧路",attr:"neutral",gen:4,mid:"路卡利欧"},
-  "lucario":{name:"路卡利欧",attr:"neutral",gen:4},
-  "hippopotas":{name:"沙河马",attr:"neutral",gen:4,mid:"河马兽"},
-  "hippowdon":{name:"河马兽",attr:"neutral",gen:4},
-  "skorupi":{name:"钳尾蝎",attr:"neutral",gen:4,mid:"龙王蝎"},
-  "drapion":{name:"龙王蝎",attr:"neutral",gen:4},
-  "croagunk":{name:"不良蛙",attr:"neutral",gen:4,mid:"毒骷蛙"},
-  "toxicroak":{name:"毒骷蛙",attr:"neutral",gen:4},
+  "ambipom":{name:"双尾怪手",attr:"normal",gen:4},
+  "drifloon":{name:"飘飘球",attr:"ghost",gen:4,mid:"随风球"},
+  "drifblim":{name:"随风球",attr:"ghost",gen:4},
+  "buneary":{name:"卷卷耳",attr:"normal",gen:4,mid:"长耳兔"},
+  "lopunny":{name:"长耳兔",attr:"normal",gen:4},
+  "mismagius":{name:"梦妖魔",attr:"ghost",gen:4},
+  "honchkrow":{name:"乌鸦头头",attr:"dark",gen:4},
+  "glameow":{name:"魅力喵",attr:"normal",gen:4,mid:"东施喵"},
+  "purugly":{name:"东施喵",attr:"normal",gen:4},
+  "chingling":{name:"铃铛响",attr:"psychic",gen:4,mid:"风铃铃"},
+  "stunky":{name:"臭鼬噗",attr:"poison",gen:4,mid:"坦克臭鼬"},
+  "skuntank":{name:"坦克臭鼬",attr:"poison",gen:4},
+  "bronzor":{name:"铜镜怪",attr:"steel",gen:4,mid:"青铜钟"},
+  "bronzong":{name:"青铜钟",attr:"steel",gen:4},
+  "bonsly":{name:"盆才怪",attr:"rock",gen:4,mid:"树才怪"},
+  "mime-jr":{name:"魔尼尼",attr:"psychic",gen:4,mid:"魔墙人偶",top:"踏冰人偶"},
+  "happiny":{name:"小福蛋",attr:"normal",gen:4,mid:"吉利蛋",top:"幸福蛋"},
+  "chatot":{name:"聒噪鸟",attr:"normal",gen:4},
+  "spiritomb":{name:"花岩怪",attr:"ghost",gen:4},
+  "gible":{name:"圆陆鲨",attr:"dragon",gen:4,mid:"尖牙陆鲨",top:"烈咬陆鲨"},
+  "gabite":{name:"尖牙陆鲨",attr:"dragon",gen:4,mid:"烈咬陆鲨"},
+  "garchomp":{name:"烈咬陆鲨",attr:"dragon",gen:4},
+  "munchlax":{name:"小卡比兽",attr:"normal",gen:4,mid:"卡比兽"},
+  "riolu":{name:"利欧路",attr:"fight",gen:4,mid:"路卡利欧"},
+  "lucario":{name:"路卡利欧",attr:"fight",gen:4},
+  "hippopotas":{name:"沙河马",attr:"ground",gen:4,mid:"河马兽"},
+  "hippowdon":{name:"河马兽",attr:"ground",gen:4},
+  "skorupi":{name:"钳尾蝎",attr:"poison",gen:4,mid:"龙王蝎"},
+  "drapion":{name:"龙王蝎",attr:"poison",gen:4},
+  "croagunk":{name:"不良蛙",attr:"poison",gen:4,mid:"毒骷蛙"},
+  "toxicroak":{name:"毒骷蛙",attr:"poison",gen:4},
   "carnivine":{name:"尖牙笼",attr:"grass",gen:4},
   "finneon":{name:"荧光鱼",attr:"water",gen:4,mid:"霓虹鱼"},
   "lumineon":{name:"霓虹鱼",attr:"water",gen:4},
   "mantyke":{name:"小球飞鱼",attr:"water",gen:4,mid:"巨翅飞鱼"},
   "snover":{name:"雪笠怪",attr:"grass",gen:4,mid:"暴雪王"},
   "abomasnow":{name:"暴雪王",attr:"grass",gen:4},
-  "weavile":{name:"玛狃拉",attr:"neutral",gen:4},
+  "weavile":{name:"玛狃拉",attr:"dark",gen:4},
   "magnezone":{name:"自爆磁怪",attr:"elec",gen:4},
-  "lickilicky":{name:"大舌舔",attr:"neutral",gen:4},
-  "rhyperior":{name:"超甲狂犀",attr:"neutral",gen:4},
+  "lickilicky":{name:"大舌舔",attr:"normal",gen:4},
+  "rhyperior":{name:"超甲狂犀",attr:"ground",gen:4},
   "tangrowth":{name:"巨蔓藤",attr:"grass",gen:4},
   "electivire":{name:"电击魔兽",attr:"elec",gen:4},
   "magmortar":{name:"鸭嘴炎兽",attr:"fire",gen:4},
-  "togekiss":{name:"波克基斯",attr:"neutral",gen:4},
-  "yanmega":{name:"远古巨蜓",attr:"neutral",gen:4},
+  "togekiss":{name:"波克基斯",attr:"fairy",gen:4},
+  "yanmega":{name:"远古巨蜓",attr:"bug",gen:4},
   "leafeon":{name:"叶伊布",attr:"grass",gen:4},
   "glaceon":{name:"冰伊布",attr:"ice",gen:4},
-  "gliscor":{name:"天蝎王",attr:"neutral",gen:4},
+  "gliscor":{name:"天蝎王",attr:"ground",gen:4},
   "mamoswine":{name:"象牙猪",attr:"ice",gen:4},
-  "porygon-z":{name:"多边兽乙型",attr:"neutral",gen:4},
-  "gallade":{name:"艾路雷朵",attr:"neutral",gen:4},
-  "probopass":{name:"大朝北鼻",attr:"neutral",gen:4},
-  "dusknoir":{name:"黑夜魔灵",attr:"neutral",gen:4},
+  "porygon-z":{name:"多边兽乙型",attr:"normal",gen:4},
+  "gallade":{name:"艾路雷朵",attr:"psychic",gen:4},
+  "probopass":{name:"大朝北鼻",attr:"rock",gen:4},
+  "dusknoir":{name:"黑夜魔灵",attr:"ghost",gen:4},
   "froslass":{name:"雪妖女",attr:"ice",gen:4},
   "rotom":{name:"洛托姆",attr:"elec",gen:4},
-  "uxie":{name:"由克希",attr:"neutral",gen:4},
-  "mesprit":{name:"艾姆利多",attr:"neutral",gen:4},
-  "azelf":{name:"亚克诺姆",attr:"neutral",gen:4},
-  "dialga":{name:"帝牙卢卡",attr:"neutral",gen:4},
+  "uxie":{name:"由克希",attr:"psychic",gen:4},
+  "mesprit":{name:"艾姆利多",attr:"psychic",gen:4},
+  "azelf":{name:"亚克诺姆",attr:"psychic",gen:4},
+  "dialga":{name:"帝牙卢卡",attr:"steel",gen:4},
   "palkia":{name:"帕路奇亚",attr:"water",gen:4},
   "heatran":{name:"席多蓝恩",attr:"fire",gen:4},
-  "regigigas":{name:"雷吉奇卡斯",attr:"neutral",gen:4},
-  "giratina-altered":{name:"骑拉帝纳",attr:"neutral",gen:4},
-  "cresselia":{name:"克雷色利亚",attr:"neutral",gen:4},
+  "regigigas":{name:"雷吉奇卡斯",attr:"normal",gen:4},
+  "giratina-altered":{name:"骑拉帝纳",attr:"ghost",gen:4},
+  "cresselia":{name:"克雷色利亚",attr:"psychic",gen:4},
   "phione":{name:"霏欧纳",attr:"water",gen:4},
   "manaphy":{name:"玛纳霏",attr:"water",gen:4},
-  "darkrai":{name:"达克莱伊",attr:"neutral",gen:4},
+  "darkrai":{name:"达克莱伊",attr:"dark",gen:4},
   "shaymin-land":{name:"谢米",attr:"grass",gen:4},
-  "arceus":{name:"阿尔宙斯",attr:"neutral",gen:4},
-  "victini":{name:"比克提尼",attr:"neutral",gen:5},
+  "arceus":{name:"阿尔宙斯",attr:"normal",gen:4},
+  "victini":{name:"比克提尼",attr:"psychic",gen:5},
   "snivy":{name:"藤藤蛇",attr:"grass",gen:5,mid:"青藤蛇",top:"君主蛇"},
   "servine":{name:"青藤蛇",attr:"grass",gen:5,mid:"君主蛇"},
   "serperior":{name:"君主蛇",attr:"grass",gen:5},
@@ -813,152 +846,152 @@ const POKEDEX = {
   "oshawott":{name:"水水獭",attr:"water",gen:5,mid:"双刃丸",top:"大剑鬼"},
   "dewott":{name:"双刃丸",attr:"water",gen:5,mid:"大剑鬼"},
   "samurott":{name:"大剑鬼",attr:"water",gen:5},
-  "patrat":{name:"探探鼠",attr:"neutral",gen:5,mid:"步哨鼠"},
-  "watchog":{name:"步哨鼠",attr:"neutral",gen:5},
-  "lillipup":{name:"小约克",attr:"neutral",gen:5,mid:"哈约克",top:"长毛狗"},
-  "herdier":{name:"哈约克",attr:"neutral",gen:5,mid:"长毛狗"},
-  "stoutland":{name:"长毛狗",attr:"neutral",gen:5},
-  "purrloin":{name:"扒手猫",attr:"neutral",gen:5,mid:"酷豹"},
-  "liepard":{name:"酷豹",attr:"neutral",gen:5},
+  "patrat":{name:"探探鼠",attr:"normal",gen:5,mid:"步哨鼠"},
+  "watchog":{name:"步哨鼠",attr:"normal",gen:5},
+  "lillipup":{name:"小约克",attr:"normal",gen:5,mid:"哈约克",top:"长毛狗"},
+  "herdier":{name:"哈约克",attr:"normal",gen:5,mid:"长毛狗"},
+  "stoutland":{name:"长毛狗",attr:"normal",gen:5},
+  "purrloin":{name:"扒手猫",attr:"dark",gen:5,mid:"酷豹"},
+  "liepard":{name:"酷豹",attr:"dark",gen:5},
   "pansage":{name:"花椰猴",attr:"grass",gen:5,mid:"花椰猿"},
   "simisage":{name:"花椰猿",attr:"grass",gen:5},
   "pansear":{name:"爆香猴",attr:"fire",gen:5,mid:"爆香猿"},
   "simisear":{name:"爆香猿",attr:"fire",gen:5},
   "panpour":{name:"冷水猴",attr:"water",gen:5,mid:"冷水猿"},
   "simipour":{name:"冷水猿",attr:"water",gen:5},
-  "munna":{name:"食梦梦",attr:"neutral",gen:5,mid:"梦梦蚀"},
-  "musharna":{name:"梦梦蚀",attr:"neutral",gen:5},
-  "pidove":{name:"豆豆鸽",attr:"neutral",gen:5,mid:"咕咕鸽",top:"高傲雉鸡"},
-  "tranquill":{name:"咕咕鸽",attr:"neutral",gen:5,mid:"高傲雉鸡"},
-  "unfezant":{name:"高傲雉鸡",attr:"neutral",gen:5},
+  "munna":{name:"食梦梦",attr:"psychic",gen:5,mid:"梦梦蚀"},
+  "musharna":{name:"梦梦蚀",attr:"psychic",gen:5},
+  "pidove":{name:"豆豆鸽",attr:"normal",gen:5,mid:"咕咕鸽",top:"高傲雉鸡"},
+  "tranquill":{name:"咕咕鸽",attr:"normal",gen:5,mid:"高傲雉鸡"},
+  "unfezant":{name:"高傲雉鸡",attr:"normal",gen:5},
   "blitzle":{name:"斑斑马",attr:"elec",gen:5,mid:"雷电斑马"},
   "zebstrika":{name:"雷电斑马",attr:"elec",gen:5},
-  "roggenrola":{name:"石丸子",attr:"neutral",gen:5,mid:"地幔岩",top:"庞岩怪"},
-  "boldore":{name:"地幔岩",attr:"neutral",gen:5,mid:"庞岩怪"},
-  "gigalith":{name:"庞岩怪",attr:"neutral",gen:5},
-  "woobat":{name:"滚滚蝙蝠",attr:"neutral",gen:5,mid:"心蝙蝠"},
-  "swoobat":{name:"心蝙蝠",attr:"neutral",gen:5},
-  "drilbur":{name:"螺钉地鼠",attr:"neutral",gen:5,mid:"龙头地鼠"},
-  "excadrill":{name:"龙头地鼠",attr:"neutral",gen:5},
-  "audino":{name:"差不多娃娃",attr:"neutral",gen:5},
-  "timburr":{name:"搬运小匠",attr:"neutral",gen:5,mid:"铁骨土人",top:"修建老匠"},
-  "gurdurr":{name:"铁骨土人",attr:"neutral",gen:5,mid:"修建老匠"},
-  "conkeldurr":{name:"修建老匠",attr:"neutral",gen:5},
+  "roggenrola":{name:"石丸子",attr:"rock",gen:5,mid:"地幔岩",top:"庞岩怪"},
+  "boldore":{name:"地幔岩",attr:"rock",gen:5,mid:"庞岩怪"},
+  "gigalith":{name:"庞岩怪",attr:"rock",gen:5},
+  "woobat":{name:"滚滚蝙蝠",attr:"psychic",gen:5,mid:"心蝙蝠"},
+  "swoobat":{name:"心蝙蝠",attr:"psychic",gen:5},
+  "drilbur":{name:"螺钉地鼠",attr:"ground",gen:5,mid:"龙头地鼠"},
+  "excadrill":{name:"龙头地鼠",attr:"ground",gen:5},
+  "audino":{name:"差不多娃娃",attr:"normal",gen:5},
+  "timburr":{name:"搬运小匠",attr:"fight",gen:5,mid:"铁骨土人",top:"修建老匠"},
+  "gurdurr":{name:"铁骨土人",attr:"fight",gen:5,mid:"修建老匠"},
+  "conkeldurr":{name:"修建老匠",attr:"fight",gen:5},
   "tympole":{name:"圆蝌蚪",attr:"water",gen:5,mid:"蓝蟾蜍",top:"蟾蜍王"},
   "palpitoad":{name:"蓝蟾蜍",attr:"water",gen:5,mid:"蟾蜍王"},
   "seismitoad":{name:"蟾蜍王",attr:"water",gen:5},
-  "throh":{name:"投摔鬼",attr:"neutral",gen:5},
-  "sawk":{name:"打击鬼",attr:"neutral",gen:5},
-  "sewaddle":{name:"虫宝包",attr:"neutral",gen:5,mid:"宝包茧",top:"保姆虫"},
-  "swadloon":{name:"宝包茧",attr:"neutral",gen:5,mid:"保姆虫"},
-  "leavanny":{name:"保姆虫",attr:"neutral",gen:5},
-  "venipede":{name:"百足蜈蚣",attr:"neutral",gen:5,mid:"车轮球",top:"蜈蚣王"},
-  "whirlipede":{name:"车轮球",attr:"neutral",gen:5,mid:"蜈蚣王"},
-  "scolipede":{name:"蜈蚣王",attr:"neutral",gen:5},
+  "throh":{name:"投摔鬼",attr:"fight",gen:5},
+  "sawk":{name:"打击鬼",attr:"fight",gen:5},
+  "sewaddle":{name:"虫宝包",attr:"bug",gen:5,mid:"宝包茧",top:"保姆虫"},
+  "swadloon":{name:"宝包茧",attr:"bug",gen:5,mid:"保姆虫"},
+  "leavanny":{name:"保姆虫",attr:"bug",gen:5},
+  "venipede":{name:"百足蜈蚣",attr:"bug",gen:5,mid:"车轮球",top:"蜈蚣王"},
+  "whirlipede":{name:"车轮球",attr:"bug",gen:5,mid:"蜈蚣王"},
+  "scolipede":{name:"蜈蚣王",attr:"bug",gen:5},
   "cottonee":{name:"木棉球",attr:"grass",gen:5,mid:"风妖精"},
   "whimsicott":{name:"风妖精",attr:"grass",gen:5},
   "petilil":{name:"百合根娃娃",attr:"grass",gen:5,mid:"裙儿小姐"},
   "lilligant":{name:"裙儿小姐",attr:"grass",gen:5},
   "basculin-red-striped":{name:"野蛮鲈鱼",attr:"water",gen:5,mid:"幽尾玄鱼"},
-  "sandile":{name:"黑眼鳄",attr:"neutral",gen:5,mid:"混混鳄",top:"流氓鳄"},
-  "krokorok":{name:"混混鳄",attr:"neutral",gen:5,mid:"流氓鳄"},
-  "krookodile":{name:"流氓鳄",attr:"neutral",gen:5},
+  "sandile":{name:"黑眼鳄",attr:"ground",gen:5,mid:"混混鳄",top:"流氓鳄"},
+  "krokorok":{name:"混混鳄",attr:"ground",gen:5,mid:"流氓鳄"},
+  "krookodile":{name:"流氓鳄",attr:"ground",gen:5},
   "darumaka":{name:"火红不倒翁",attr:"fire",gen:5,mid:"达摩狒狒"},
   "darmanitan-standard":{name:"达摩狒狒",attr:"fire",gen:5},
   "maractus":{name:"沙铃仙人掌",attr:"grass",gen:5},
-  "dwebble":{name:"石居蟹",attr:"neutral",gen:5,mid:"岩殿居蟹"},
-  "crustle":{name:"岩殿居蟹",attr:"neutral",gen:5},
-  "scraggy":{name:"滑滑小子",attr:"neutral",gen:5,mid:"头巾混混"},
-  "scrafty":{name:"头巾混混",attr:"neutral",gen:5},
-  "sigilyph":{name:"象征鸟",attr:"neutral",gen:5},
-  "yamask":{name:"哭哭面具",attr:"neutral",gen:5,mid:"迭失棺"},
-  "cofagrigus":{name:"迭失棺",attr:"neutral",gen:5},
+  "dwebble":{name:"石居蟹",attr:"bug",gen:5,mid:"岩殿居蟹"},
+  "crustle":{name:"岩殿居蟹",attr:"bug",gen:5},
+  "scraggy":{name:"滑滑小子",attr:"dark",gen:5,mid:"头巾混混"},
+  "scrafty":{name:"头巾混混",attr:"dark",gen:5},
+  "sigilyph":{name:"象征鸟",attr:"psychic",gen:5},
+  "yamask":{name:"哭哭面具",attr:"ghost",gen:5,mid:"迭失棺"},
+  "cofagrigus":{name:"迭失棺",attr:"ghost",gen:5},
   "tirtouga":{name:"原盖海龟",attr:"water",gen:5,mid:"肋骨海龟"},
   "carracosta":{name:"肋骨海龟",attr:"water",gen:5},
-  "archen":{name:"始祖小鸟",attr:"neutral",gen:5,mid:"始祖大鸟"},
-  "archeops":{name:"始祖大鸟",attr:"neutral",gen:5},
-  "trubbish":{name:"破破袋",attr:"neutral",gen:5,mid:"灰尘山"},
-  "garbodor":{name:"灰尘山",attr:"neutral",gen:5},
-  "zorua":{name:"索罗亚",attr:"neutral",gen:5,mid:"索罗亚克"},
-  "zoroark":{name:"索罗亚克",attr:"neutral",gen:5},
-  "minccino":{name:"泡沫栗鼠",attr:"neutral",gen:5,mid:"奇诺栗鼠"},
-  "cinccino":{name:"奇诺栗鼠",attr:"neutral",gen:5},
-  "gothita":{name:"哥德宝宝",attr:"neutral",gen:5,mid:"哥德小童",top:"哥德小姐"},
-  "gothorita":{name:"哥德小童",attr:"neutral",gen:5,mid:"哥德小姐"},
-  "gothitelle":{name:"哥德小姐",attr:"neutral",gen:5},
-  "solosis":{name:"单卵细胞球",attr:"neutral",gen:5,mid:"双卵细胞球",top:"人造细胞卵"},
-  "duosion":{name:"双卵细胞球",attr:"neutral",gen:5,mid:"人造细胞卵"},
-  "reuniclus":{name:"人造细胞卵",attr:"neutral",gen:5},
+  "archen":{name:"始祖小鸟",attr:"rock",gen:5,mid:"始祖大鸟"},
+  "archeops":{name:"始祖大鸟",attr:"rock",gen:5},
+  "trubbish":{name:"破破袋",attr:"poison",gen:5,mid:"灰尘山"},
+  "garbodor":{name:"灰尘山",attr:"poison",gen:5},
+  "zorua":{name:"索罗亚",attr:"dark",gen:5,mid:"索罗亚克"},
+  "zoroark":{name:"索罗亚克",attr:"dark",gen:5},
+  "minccino":{name:"泡沫栗鼠",attr:"normal",gen:5,mid:"奇诺栗鼠"},
+  "cinccino":{name:"奇诺栗鼠",attr:"normal",gen:5},
+  "gothita":{name:"哥德宝宝",attr:"psychic",gen:5,mid:"哥德小童",top:"哥德小姐"},
+  "gothorita":{name:"哥德小童",attr:"psychic",gen:5,mid:"哥德小姐"},
+  "gothitelle":{name:"哥德小姐",attr:"psychic",gen:5},
+  "solosis":{name:"单卵细胞球",attr:"psychic",gen:5,mid:"双卵细胞球",top:"人造细胞卵"},
+  "duosion":{name:"双卵细胞球",attr:"psychic",gen:5,mid:"人造细胞卵"},
+  "reuniclus":{name:"人造细胞卵",attr:"psychic",gen:5},
   "ducklett":{name:"鸭宝宝",attr:"water",gen:5,mid:"舞天鹅"},
   "swanna":{name:"舞天鹅",attr:"water",gen:5},
   "vanillite":{name:"迷你冰",attr:"ice",gen:5,mid:"多多冰",top:"双倍多多冰"},
   "vanillish":{name:"多多冰",attr:"ice",gen:5,mid:"双倍多多冰"},
   "vanilluxe":{name:"双倍多多冰",attr:"ice",gen:5},
-  "deerling":{name:"四季鹿",attr:"neutral",gen:5,mid:"萌芽鹿"},
-  "sawsbuck":{name:"萌芽鹿",attr:"neutral",gen:5},
+  "deerling":{name:"四季鹿",attr:"normal",gen:5,mid:"萌芽鹿"},
+  "sawsbuck":{name:"萌芽鹿",attr:"normal",gen:5},
   "emolga":{name:"电飞鼠",attr:"elec",gen:5},
-  "karrablast":{name:"盖盖虫",attr:"neutral",gen:5,mid:"骑士蜗牛"},
-  "escavalier":{name:"骑士蜗牛",attr:"neutral",gen:5},
+  "karrablast":{name:"盖盖虫",attr:"bug",gen:5,mid:"骑士蜗牛"},
+  "escavalier":{name:"骑士蜗牛",attr:"bug",gen:5},
   "foongus":{name:"哎呀球菇",attr:"grass",gen:5,mid:"败露球菇"},
   "amoonguss":{name:"败露球菇",attr:"grass",gen:5},
   "frillish-male":{name:"轻飘飘",attr:"water",gen:5,mid:"胖嘟嘟"},
   "jellicent-male":{name:"胖嘟嘟",attr:"water",gen:5},
   "alomomola":{name:"保姆曼波",attr:"water",gen:5},
-  "joltik":{name:"电电虫",attr:"neutral",gen:5,mid:"电蜘蛛"},
-  "galvantula":{name:"电蜘蛛",attr:"neutral",gen:5},
+  "joltik":{name:"电电虫",attr:"bug",gen:5,mid:"电蜘蛛"},
+  "galvantula":{name:"电蜘蛛",attr:"bug",gen:5},
   "ferroseed":{name:"种子铁球",attr:"grass",gen:5,mid:"坚果哑铃"},
   "ferrothorn":{name:"坚果哑铃",attr:"grass",gen:5},
-  "klink":{name:"齿轮儿",attr:"neutral",gen:5,mid:"齿轮组",top:"齿轮怪"},
-  "klang":{name:"齿轮组",attr:"neutral",gen:5,mid:"齿轮怪"},
-  "klinklang":{name:"齿轮怪",attr:"neutral",gen:5},
+  "klink":{name:"齿轮儿",attr:"steel",gen:5,mid:"齿轮组",top:"齿轮怪"},
+  "klang":{name:"齿轮组",attr:"steel",gen:5,mid:"齿轮怪"},
+  "klinklang":{name:"齿轮怪",attr:"steel",gen:5},
   "tynamo":{name:"麻麻小鱼",attr:"elec",gen:5,mid:"麻麻鳗",top:"麻麻鳗鱼王"},
   "eelektrik":{name:"麻麻鳗",attr:"elec",gen:5,mid:"麻麻鳗鱼王"},
   "eelektross":{name:"麻麻鳗鱼王",attr:"elec",gen:5},
-  "elgyem":{name:"小灰怪",attr:"neutral",gen:5,mid:"大宇怪"},
-  "beheeyem":{name:"大宇怪",attr:"neutral",gen:5},
-  "litwick":{name:"烛光灵",attr:"neutral",gen:5,mid:"灯火幽灵",top:"水晶灯火灵"},
-  "lampent":{name:"灯火幽灵",attr:"neutral",gen:5,mid:"水晶灯火灵"},
-  "chandelure":{name:"水晶灯火灵",attr:"neutral",gen:5},
-  "axew":{name:"牙牙",attr:"neutral",gen:5,mid:"斧牙龙",top:"双斧战龙"},
-  "fraxure":{name:"斧牙龙",attr:"neutral",gen:5,mid:"双斧战龙"},
-  "haxorus":{name:"双斧战龙",attr:"neutral",gen:5},
+  "elgyem":{name:"小灰怪",attr:"psychic",gen:5,mid:"大宇怪"},
+  "beheeyem":{name:"大宇怪",attr:"psychic",gen:5},
+  "litwick":{name:"烛光灵",attr:"ghost",gen:5,mid:"灯火幽灵",top:"水晶灯火灵"},
+  "lampent":{name:"灯火幽灵",attr:"ghost",gen:5,mid:"水晶灯火灵"},
+  "chandelure":{name:"水晶灯火灵",attr:"ghost",gen:5},
+  "axew":{name:"牙牙",attr:"dragon",gen:5,mid:"斧牙龙",top:"双斧战龙"},
+  "fraxure":{name:"斧牙龙",attr:"dragon",gen:5,mid:"双斧战龙"},
+  "haxorus":{name:"双斧战龙",attr:"dragon",gen:5},
   "cubchoo":{name:"喷嚏熊",attr:"ice",gen:5,mid:"冻原熊"},
   "beartic":{name:"冻原熊",attr:"ice",gen:5},
   "cryogonal":{name:"几何雪花",attr:"ice",gen:5},
-  "shelmet":{name:"小嘴蜗",attr:"neutral",gen:5,mid:"敏捷虫"},
-  "accelgor":{name:"敏捷虫",attr:"neutral",gen:5},
-  "stunfisk":{name:"泥巴鱼",attr:"neutral",gen:5},
-  "mienfoo":{name:"功夫鼬",attr:"neutral",gen:5,mid:"师父鼬"},
-  "mienshao":{name:"师父鼬",attr:"neutral",gen:5},
-  "druddigon":{name:"赤面龙",attr:"neutral",gen:5},
-  "golett":{name:"泥偶小人",attr:"neutral",gen:5,mid:"泥偶巨人"},
-  "golurk":{name:"泥偶巨人",attr:"neutral",gen:5},
-  "pawniard":{name:"驹刀小兵",attr:"neutral",gen:5,mid:"劈斩司令",top:"仆刀将军"},
-  "bisharp":{name:"劈斩司令",attr:"neutral",gen:5,mid:"仆刀将军"},
-  "bouffalant":{name:"爆炸头水牛",attr:"neutral",gen:5},
-  "rufflet":{name:"毛头小鹰",attr:"neutral",gen:5,mid:"勇士雄鹰"},
-  "braviary":{name:"勇士雄鹰",attr:"neutral",gen:5},
-  "vullaby":{name:"秃鹰丫头",attr:"neutral",gen:5,mid:"秃鹰娜"},
-  "mandibuzz":{name:"秃鹰娜",attr:"neutral",gen:5},
+  "shelmet":{name:"小嘴蜗",attr:"bug",gen:5,mid:"敏捷虫"},
+  "accelgor":{name:"敏捷虫",attr:"bug",gen:5},
+  "stunfisk":{name:"泥巴鱼",attr:"ground",gen:5},
+  "mienfoo":{name:"功夫鼬",attr:"fight",gen:5,mid:"师父鼬"},
+  "mienshao":{name:"师父鼬",attr:"fight",gen:5},
+  "druddigon":{name:"赤面龙",attr:"dragon",gen:5},
+  "golett":{name:"泥偶小人",attr:"ground",gen:5,mid:"泥偶巨人"},
+  "golurk":{name:"泥偶巨人",attr:"ground",gen:5},
+  "pawniard":{name:"驹刀小兵",attr:"dark",gen:5,mid:"劈斩司令",top:"仆刀将军"},
+  "bisharp":{name:"劈斩司令",attr:"dark",gen:5,mid:"仆刀将军"},
+  "bouffalant":{name:"爆炸头水牛",attr:"normal",gen:5},
+  "rufflet":{name:"毛头小鹰",attr:"normal",gen:5,mid:"勇士雄鹰"},
+  "braviary":{name:"勇士雄鹰",attr:"normal",gen:5},
+  "vullaby":{name:"秃鹰丫头",attr:"dark",gen:5,mid:"秃鹰娜"},
+  "mandibuzz":{name:"秃鹰娜",attr:"dark",gen:5},
   "heatmor":{name:"熔蚁兽",attr:"fire",gen:5},
-  "durant":{name:"铁蚁",attr:"neutral",gen:5},
-  "deino":{name:"单首龙",attr:"neutral",gen:5,mid:"双首暴龙",top:"三首恶龙"},
-  "zweilous":{name:"双首暴龙",attr:"neutral",gen:5,mid:"三首恶龙"},
-  "hydreigon":{name:"三首恶龙",attr:"neutral",gen:5},
-  "larvesta":{name:"燃烧虫",attr:"neutral",gen:5,mid:"火神蛾"},
-  "volcarona":{name:"火神蛾",attr:"neutral",gen:5},
-  "cobalion":{name:"勾帕路翁",attr:"neutral",gen:5},
-  "terrakion":{name:"代拉基翁",attr:"neutral",gen:5},
+  "durant":{name:"铁蚁",attr:"bug",gen:5},
+  "deino":{name:"单首龙",attr:"dark",gen:5,mid:"双首暴龙",top:"三首恶龙"},
+  "zweilous":{name:"双首暴龙",attr:"dark",gen:5,mid:"三首恶龙"},
+  "hydreigon":{name:"三首恶龙",attr:"dark",gen:5},
+  "larvesta":{name:"燃烧虫",attr:"bug",gen:5,mid:"火神蛾"},
+  "volcarona":{name:"火神蛾",attr:"bug",gen:5},
+  "cobalion":{name:"勾帕路翁",attr:"steel",gen:5},
+  "terrakion":{name:"代拉基翁",attr:"rock",gen:5},
   "virizion":{name:"毕力吉翁",attr:"grass",gen:5},
-  "tornadus-incarnate":{name:"龙卷云",attr:"neutral",gen:5},
+  "tornadus-incarnate":{name:"龙卷云",attr:"flying",gen:5},
   "thundurus-incarnate":{name:"雷电云",attr:"elec",gen:5},
-  "reshiram":{name:"莱希拉姆",attr:"neutral",gen:5},
-  "zekrom":{name:"捷克罗姆",attr:"neutral",gen:5},
-  "landorus-incarnate":{name:"土地云",attr:"neutral",gen:5},
-  "kyurem":{name:"酋雷姆",attr:"neutral",gen:5},
+  "reshiram":{name:"莱希拉姆",attr:"dragon",gen:5},
+  "zekrom":{name:"捷克罗姆",attr:"dragon",gen:5},
+  "landorus-incarnate":{name:"土地云",attr:"ground",gen:5},
+  "kyurem":{name:"酋雷姆",attr:"dragon",gen:5},
   "keldeo-ordinary":{name:"凯路迪欧",attr:"water",gen:5},
-  "meloetta-aria":{name:"美洛耶塔",attr:"neutral",gen:5},
-  "genesect":{name:"盖诺赛克特",attr:"neutral",gen:5},
+  "meloetta-aria":{name:"美洛耶塔",attr:"normal",gen:5},
+  "genesect":{name:"盖诺赛克特",attr:"bug",gen:5},
   "chespin":{name:"哈力栗",attr:"grass",gen:6,mid:"胖胖哈力",top:"布里卡隆"},
   "quilladin":{name:"胖胖哈力",attr:"grass",gen:6,mid:"布里卡隆"},
   "chesnaught":{name:"布里卡隆",attr:"grass",gen:6},
@@ -968,68 +1001,68 @@ const POKEDEX = {
   "froakie":{name:"呱呱泡蛙",attr:"water",gen:6,mid:"呱头蛙",top:"甲贺忍蛙"},
   "frogadier":{name:"呱头蛙",attr:"water",gen:6,mid:"甲贺忍蛙"},
   "greninja":{name:"甲贺忍蛙",attr:"water",gen:6},
-  "bunnelby":{name:"掘掘兔",attr:"neutral",gen:6,mid:"掘地兔"},
-  "diggersby":{name:"掘地兔",attr:"neutral",gen:6},
-  "fletchling":{name:"小箭雀",attr:"neutral",gen:6,mid:"火箭雀",top:"烈箭鹰"},
+  "bunnelby":{name:"掘掘兔",attr:"normal",gen:6,mid:"掘地兔"},
+  "diggersby":{name:"掘地兔",attr:"normal",gen:6},
+  "fletchling":{name:"小箭雀",attr:"normal",gen:6,mid:"火箭雀",top:"烈箭鹰"},
   "fletchinder":{name:"火箭雀",attr:"fire",gen:6,mid:"烈箭鹰"},
   "talonflame":{name:"烈箭鹰",attr:"fire",gen:6},
-  "scatterbug":{name:"粉蝶虫",attr:"neutral",gen:6,mid:"粉蝶蛹",top:"彩粉蝶"},
-  "spewpa":{name:"粉蝶蛹",attr:"neutral",gen:6,mid:"彩粉蝶"},
-  "vivillon":{name:"彩粉蝶",attr:"neutral",gen:6},
+  "scatterbug":{name:"粉蝶虫",attr:"bug",gen:6,mid:"粉蝶蛹",top:"彩粉蝶"},
+  "spewpa":{name:"粉蝶蛹",attr:"bug",gen:6,mid:"彩粉蝶"},
+  "vivillon":{name:"彩粉蝶",attr:"bug",gen:6},
   "litleo":{name:"小狮狮",attr:"fire",gen:6,mid:"火炎狮"},
   "pyroar-male":{name:"火炎狮",attr:"fire",gen:6},
-  "flabebe":{name:"花蓓蓓",attr:"neutral",gen:6,mid:"花叶蒂",top:"花洁夫人"},
-  "floette":{name:"花叶蒂",attr:"neutral",gen:6,mid:"花洁夫人"},
-  "florges":{name:"花洁夫人",attr:"neutral",gen:6},
+  "flabebe":{name:"花蓓蓓",attr:"fairy",gen:6,mid:"花叶蒂",top:"花洁夫人"},
+  "floette":{name:"花叶蒂",attr:"fairy",gen:6,mid:"花洁夫人"},
+  "florges":{name:"花洁夫人",attr:"fairy",gen:6},
   "skiddo":{name:"坐骑小羊",attr:"grass",gen:6,mid:"坐骑山羊"},
   "gogoat":{name:"坐骑山羊",attr:"grass",gen:6},
-  "pancham":{name:"顽皮熊猫",attr:"neutral",gen:6,mid:"霸道熊猫"},
-  "pangoro":{name:"霸道熊猫",attr:"neutral",gen:6},
-  "furfrou":{name:"多丽米亚",attr:"neutral",gen:6},
-  "espurr":{name:"妙喵",attr:"neutral",gen:6,mid:"超能妙喵"},
-  "meowstic-male":{name:"超能妙喵",attr:"neutral",gen:6},
-  "honedge":{name:"独剑鞘",attr:"neutral",gen:6,mid:"双剑鞘",top:"坚盾剑怪"},
-  "doublade":{name:"双剑鞘",attr:"neutral",gen:6,mid:"坚盾剑怪"},
-  "aegislash-shield":{name:"坚盾剑怪",attr:"neutral",gen:6},
-  "spritzee":{name:"粉香香",attr:"neutral",gen:6,mid:"芳香精"},
-  "aromatisse":{name:"芳香精",attr:"neutral",gen:6},
-  "swirlix":{name:"绵绵泡芙",attr:"neutral",gen:6,mid:"胖甜妮"},
-  "slurpuff":{name:"胖甜妮",attr:"neutral",gen:6},
-  "inkay":{name:"好啦鱿",attr:"neutral",gen:6,mid:"乌贼王"},
-  "malamar":{name:"乌贼王",attr:"neutral",gen:6},
-  "binacle":{name:"龟脚脚",attr:"neutral",gen:6,mid:"龟足巨铠"},
-  "barbaracle":{name:"龟足巨铠",attr:"neutral",gen:6},
-  "skrelp":{name:"垃垃藻",attr:"neutral",gen:6,mid:"毒藻龙"},
-  "dragalge":{name:"毒藻龙",attr:"neutral",gen:6},
+  "pancham":{name:"顽皮熊猫",attr:"fight",gen:6,mid:"霸道熊猫"},
+  "pangoro":{name:"霸道熊猫",attr:"fight",gen:6},
+  "furfrou":{name:"多丽米亚",attr:"normal",gen:6},
+  "espurr":{name:"妙喵",attr:"psychic",gen:6,mid:"超能妙喵"},
+  "meowstic-male":{name:"超能妙喵",attr:"psychic",gen:6},
+  "honedge":{name:"独剑鞘",attr:"steel",gen:6,mid:"双剑鞘",top:"坚盾剑怪"},
+  "doublade":{name:"双剑鞘",attr:"steel",gen:6,mid:"坚盾剑怪"},
+  "aegislash-shield":{name:"坚盾剑怪",attr:"steel",gen:6},
+  "spritzee":{name:"粉香香",attr:"fairy",gen:6,mid:"芳香精"},
+  "aromatisse":{name:"芳香精",attr:"fairy",gen:6},
+  "swirlix":{name:"绵绵泡芙",attr:"fairy",gen:6,mid:"胖甜妮"},
+  "slurpuff":{name:"胖甜妮",attr:"fairy",gen:6},
+  "inkay":{name:"好啦鱿",attr:"dark",gen:6,mid:"乌贼王"},
+  "malamar":{name:"乌贼王",attr:"dark",gen:6},
+  "binacle":{name:"龟脚脚",attr:"rock",gen:6,mid:"龟足巨铠"},
+  "barbaracle":{name:"龟足巨铠",attr:"rock",gen:6},
+  "skrelp":{name:"垃垃藻",attr:"poison",gen:6,mid:"毒藻龙"},
+  "dragalge":{name:"毒藻龙",attr:"poison",gen:6},
   "clauncher":{name:"铁臂枪虾",attr:"water",gen:6,mid:"钢炮臂虾"},
   "clawitzer":{name:"钢炮臂虾",attr:"water",gen:6},
   "helioptile":{name:"伞电蜥",attr:"elec",gen:6,mid:"光电伞蜥"},
   "heliolisk":{name:"光电伞蜥",attr:"elec",gen:6},
-  "tyrunt":{name:"宝宝暴龙",attr:"neutral",gen:6,mid:"怪颚龙"},
-  "tyrantrum":{name:"怪颚龙",attr:"neutral",gen:6},
-  "amaura":{name:"冰雪龙",attr:"neutral",gen:6,mid:"冰雪巨龙"},
-  "aurorus":{name:"冰雪巨龙",attr:"neutral",gen:6},
-  "sylveon":{name:"仙子伊布",attr:"neutral",gen:6},
-  "hawlucha":{name:"摔角鹰人",attr:"neutral",gen:6},
+  "tyrunt":{name:"宝宝暴龙",attr:"rock",gen:6,mid:"怪颚龙"},
+  "tyrantrum":{name:"怪颚龙",attr:"rock",gen:6},
+  "amaura":{name:"冰雪龙",attr:"rock",gen:6,mid:"冰雪巨龙"},
+  "aurorus":{name:"冰雪巨龙",attr:"rock",gen:6},
+  "sylveon":{name:"仙子伊布",attr:"fairy",gen:6},
+  "hawlucha":{name:"摔角鹰人",attr:"fight",gen:6},
   "dedenne":{name:"咚咚鼠",attr:"elec",gen:6},
-  "carbink":{name:"小碎钻",attr:"neutral",gen:6},
-  "goomy":{name:"黏黏宝",attr:"neutral",gen:6,mid:"黏美儿",top:"黏美龙"},
-  "sliggoo":{name:"黏美儿",attr:"neutral",gen:6,mid:"黏美龙"},
-  "goodra":{name:"黏美龙",attr:"neutral",gen:6},
-  "klefki":{name:"钥圈儿",attr:"neutral",gen:6},
-  "phantump":{name:"小木灵",attr:"neutral",gen:6,mid:"朽木妖"},
-  "trevenant":{name:"朽木妖",attr:"neutral",gen:6},
-  "pumpkaboo-average":{name:"南瓜精",attr:"neutral",gen:6,mid:"南瓜怪人"},
-  "gourgeist-average":{name:"南瓜怪人",attr:"neutral",gen:6},
+  "carbink":{name:"小碎钻",attr:"rock",gen:6},
+  "goomy":{name:"黏黏宝",attr:"dragon",gen:6,mid:"黏美儿",top:"黏美龙"},
+  "sliggoo":{name:"黏美儿",attr:"dragon",gen:6,mid:"黏美龙"},
+  "goodra":{name:"黏美龙",attr:"dragon",gen:6},
+  "klefki":{name:"钥圈儿",attr:"steel",gen:6},
+  "phantump":{name:"小木灵",attr:"ghost",gen:6,mid:"朽木妖"},
+  "trevenant":{name:"朽木妖",attr:"ghost",gen:6},
+  "pumpkaboo-average":{name:"南瓜精",attr:"ghost",gen:6,mid:"南瓜怪人"},
+  "gourgeist-average":{name:"南瓜怪人",attr:"ghost",gen:6},
   "bergmite":{name:"冰宝",attr:"ice",gen:6,mid:"冰岩怪"},
   "avalugg":{name:"冰岩怪",attr:"ice",gen:6},
-  "noibat":{name:"嗡蝠",attr:"neutral",gen:6,mid:"音波龙"},
-  "noivern":{name:"音波龙",attr:"neutral",gen:6},
-  "xerneas":{name:"哲尔尼亚斯",attr:"neutral",gen:6},
-  "yveltal":{name:"伊裴尔塔尔",attr:"neutral",gen:6},
-  "zygarde-50":{name:"基格尔德",attr:"neutral",gen:6},
-  "diancie":{name:"蒂安希",attr:"neutral",gen:6},
-  "hoopa":{name:"胡帕",attr:"neutral",gen:6},
+  "noibat":{name:"嗡蝠",attr:"flying",gen:6,mid:"音波龙"},
+  "noivern":{name:"音波龙",attr:"flying",gen:6},
+  "xerneas":{name:"哲尔尼亚斯",attr:"fairy",gen:6},
+  "yveltal":{name:"伊裴尔塔尔",attr:"dark",gen:6},
+  "zygarde-50":{name:"基格尔德",attr:"dragon",gen:6},
+  "diancie":{name:"蒂安希",attr:"rock",gen:6},
+  "hoopa":{name:"胡帕",attr:"psychic",gen:6},
   "volcanion":{name:"波尔凯尼恩",attr:"fire",gen:6},
   "rowlet":{name:"木木枭",attr:"grass",gen:7,mid:"投羽枭",top:"狙射树枭"},
   "dartrix":{name:"投羽枭",attr:"grass",gen:7,mid:"狙射树枭"},
@@ -1040,85 +1073,85 @@ const POKEDEX = {
   "popplio":{name:"球球海狮",attr:"water",gen:7,mid:"花漾海狮",top:"西狮海壬"},
   "brionne":{name:"花漾海狮",attr:"water",gen:7,mid:"西狮海壬"},
   "primarina":{name:"西狮海壬",attr:"water",gen:7},
-  "pikipek":{name:"小笃儿",attr:"neutral",gen:7,mid:"喇叭啄鸟",top:"铳嘴大鸟"},
-  "trumbeak":{name:"喇叭啄鸟",attr:"neutral",gen:7,mid:"铳嘴大鸟"},
-  "toucannon":{name:"铳嘴大鸟",attr:"neutral",gen:7},
-  "yungoos":{name:"猫鼬少",attr:"neutral",gen:7,mid:"猫鼬探长"},
-  "gumshoos":{name:"猫鼬探长",attr:"neutral",gen:7},
-  "grubbin":{name:"强颚鸡母虫",attr:"neutral",gen:7,mid:"虫电宝",top:"锹农炮虫"},
-  "charjabug":{name:"虫电宝",attr:"neutral",gen:7,mid:"锹农炮虫"},
-  "vikavolt":{name:"锹农炮虫",attr:"neutral",gen:7},
-  "crabrawler":{name:"好胜蟹",attr:"neutral",gen:7,mid:"好胜毛蟹"},
-  "crabominable":{name:"好胜毛蟹",attr:"neutral",gen:7},
+  "pikipek":{name:"小笃儿",attr:"normal",gen:7,mid:"喇叭啄鸟",top:"铳嘴大鸟"},
+  "trumbeak":{name:"喇叭啄鸟",attr:"normal",gen:7,mid:"铳嘴大鸟"},
+  "toucannon":{name:"铳嘴大鸟",attr:"normal",gen:7},
+  "yungoos":{name:"猫鼬少",attr:"normal",gen:7,mid:"猫鼬探长"},
+  "gumshoos":{name:"猫鼬探长",attr:"normal",gen:7},
+  "grubbin":{name:"强颚鸡母虫",attr:"bug",gen:7,mid:"虫电宝",top:"锹农炮虫"},
+  "charjabug":{name:"虫电宝",attr:"bug",gen:7,mid:"锹农炮虫"},
+  "vikavolt":{name:"锹农炮虫",attr:"bug",gen:7},
+  "crabrawler":{name:"好胜蟹",attr:"fight",gen:7,mid:"好胜毛蟹"},
+  "crabominable":{name:"好胜毛蟹",attr:"fight",gen:7},
   "oricorio-baile":{name:"花舞鸟",attr:"fire",gen:7},
-  "cutiefly":{name:"萌虻",attr:"neutral",gen:7,mid:"蝶结萌虻"},
-  "ribombee":{name:"蝶结萌虻",attr:"neutral",gen:7},
-  "rockruff":{name:"岩狗狗",attr:"neutral",gen:7,mid:"鬃岩狼人"},
-  "lycanroc-midday":{name:"鬃岩狼人",attr:"neutral",gen:7},
+  "cutiefly":{name:"萌虻",attr:"bug",gen:7,mid:"蝶结萌虻"},
+  "ribombee":{name:"蝶结萌虻",attr:"bug",gen:7},
+  "rockruff":{name:"岩狗狗",attr:"rock",gen:7,mid:"鬃岩狼人"},
+  "lycanroc-midday":{name:"鬃岩狼人",attr:"rock",gen:7},
   "wishiwashi-solo":{name:"弱丁鱼",attr:"water",gen:7},
-  "mareanie":{name:"好坏星",attr:"neutral",gen:7,mid:"超坏星"},
-  "toxapex":{name:"超坏星",attr:"neutral",gen:7},
-  "mudbray":{name:"泥驴仔",attr:"neutral",gen:7,mid:"重泥挽马"},
-  "mudsdale":{name:"重泥挽马",attr:"neutral",gen:7},
+  "mareanie":{name:"好坏星",attr:"poison",gen:7,mid:"超坏星"},
+  "toxapex":{name:"超坏星",attr:"poison",gen:7},
+  "mudbray":{name:"泥驴仔",attr:"ground",gen:7,mid:"重泥挽马"},
+  "mudsdale":{name:"重泥挽马",attr:"ground",gen:7},
   "dewpider":{name:"滴蛛",attr:"water",gen:7,mid:"滴蛛霸"},
   "araquanid":{name:"滴蛛霸",attr:"water",gen:7},
   "fomantis":{name:"伪螳草",attr:"grass",gen:7,mid:"兰螳花"},
   "lurantis":{name:"兰螳花",attr:"grass",gen:7},
   "morelull":{name:"睡睡菇",attr:"grass",gen:7,mid:"灯罩夜菇"},
   "shiinotic":{name:"灯罩夜菇",attr:"grass",gen:7},
-  "salandit":{name:"夜盗火蜥",attr:"neutral",gen:7,mid:"焰后蜥"},
-  "salazzle":{name:"焰后蜥",attr:"neutral",gen:7},
-  "stufful":{name:"童偶熊",attr:"neutral",gen:7,mid:"穿着熊"},
-  "bewear":{name:"穿着熊",attr:"neutral",gen:7},
+  "salandit":{name:"夜盗火蜥",attr:"poison",gen:7,mid:"焰后蜥"},
+  "salazzle":{name:"焰后蜥",attr:"poison",gen:7},
+  "stufful":{name:"童偶熊",attr:"normal",gen:7,mid:"穿着熊"},
+  "bewear":{name:"穿着熊",attr:"normal",gen:7},
   "bounsweet":{name:"甜竹竹",attr:"grass",gen:7,mid:"甜舞妮",top:"甜冷美后"},
   "steenee":{name:"甜舞妮",attr:"grass",gen:7,mid:"甜冷美后"},
   "tsareena":{name:"甜冷美后",attr:"grass",gen:7},
-  "comfey":{name:"花疗环环",attr:"neutral",gen:7},
-  "oranguru":{name:"智挥猩",attr:"neutral",gen:7},
-  "passimian":{name:"投掷猴",attr:"neutral",gen:7},
-  "wimpod":{name:"胆小虫",attr:"neutral",gen:7,mid:"具甲武者"},
-  "golisopod":{name:"具甲武者",attr:"neutral",gen:7},
-  "sandygast":{name:"沙丘娃",attr:"neutral",gen:7,mid:"噬沙堡爷"},
-  "palossand":{name:"噬沙堡爷",attr:"neutral",gen:7},
+  "comfey":{name:"花疗环环",attr:"fairy",gen:7},
+  "oranguru":{name:"智挥猩",attr:"normal",gen:7},
+  "passimian":{name:"投掷猴",attr:"fight",gen:7},
+  "wimpod":{name:"胆小虫",attr:"bug",gen:7,mid:"具甲武者"},
+  "golisopod":{name:"具甲武者",attr:"bug",gen:7},
+  "sandygast":{name:"沙丘娃",attr:"ghost",gen:7,mid:"噬沙堡爷"},
+  "palossand":{name:"噬沙堡爷",attr:"ghost",gen:7},
   "pyukumuku":{name:"拳海参",attr:"water",gen:7},
-  "type-null":{name:"属性：空",attr:"neutral",gen:7,mid:"银伴战兽"},
-  "silvally":{name:"银伴战兽",attr:"neutral",gen:7},
-  "minior-red-meteor":{name:"小陨星",attr:"neutral",gen:7},
-  "komala":{name:"树枕尾熊",attr:"neutral",gen:7},
+  "type-null":{name:"属性：空",attr:"normal",gen:7,mid:"银伴战兽"},
+  "silvally":{name:"银伴战兽",attr:"normal",gen:7},
+  "minior-red-meteor":{name:"小陨星",attr:"rock",gen:7},
+  "komala":{name:"树枕尾熊",attr:"normal",gen:7},
   "turtonator":{name:"爆焰龟兽",attr:"fire",gen:7},
   "togedemaru":{name:"托戈德玛尔",attr:"elec",gen:7},
-  "mimikyu-disguised":{name:"谜拟丘",attr:"neutral",gen:7},
+  "mimikyu-disguised":{name:"谜拟丘",attr:"ghost",gen:7},
   "bruxish":{name:"磨牙彩皮鱼",attr:"water",gen:7},
-  "drampa":{name:"老翁龙",attr:"neutral",gen:7},
-  "dhelmise":{name:"破破舵轮",attr:"neutral",gen:7},
-  "jangmo-o":{name:"心鳞宝",attr:"neutral",gen:7,mid:"鳞甲龙",top:"杖尾鳞甲龙"},
-  "hakamo-o":{name:"鳞甲龙",attr:"neutral",gen:7,mid:"杖尾鳞甲龙"},
-  "kommo-o":{name:"杖尾鳞甲龙",attr:"neutral",gen:7},
+  "drampa":{name:"老翁龙",attr:"normal",gen:7},
+  "dhelmise":{name:"破破舵轮",attr:"ghost",gen:7},
+  "jangmo-o":{name:"心鳞宝",attr:"dragon",gen:7,mid:"鳞甲龙",top:"杖尾鳞甲龙"},
+  "hakamo-o":{name:"鳞甲龙",attr:"dragon",gen:7,mid:"杖尾鳞甲龙"},
+  "kommo-o":{name:"杖尾鳞甲龙",attr:"dragon",gen:7},
   "tapu-koko":{name:"卡璞・鸣鸣",attr:"elec",gen:7},
-  "tapu-lele":{name:"卡璞・蝶蝶",attr:"neutral",gen:7},
+  "tapu-lele":{name:"卡璞・蝶蝶",attr:"psychic",gen:7},
   "tapu-bulu":{name:"卡璞・哞哞",attr:"grass",gen:7},
   "tapu-fini":{name:"卡璞・鳍鳍",attr:"water",gen:7},
-  "cosmog":{name:"科斯莫古",attr:"neutral",gen:7,mid:"科斯莫姆",top:"索尔迦雷欧"},
-  "cosmoem":{name:"科斯莫姆",attr:"neutral",gen:7,mid:"索尔迦雷欧"},
-  "solgaleo":{name:"索尔迦雷欧",attr:"neutral",gen:7},
-  "lunala":{name:"露奈雅拉",attr:"neutral",gen:7},
-  "nihilego":{name:"虚吾伊德",attr:"neutral",gen:7},
-  "buzzwole":{name:"爆肌蚊",attr:"neutral",gen:7},
-  "pheromosa":{name:"费洛美螂",attr:"neutral",gen:7},
+  "cosmog":{name:"科斯莫古",attr:"psychic",gen:7,mid:"科斯莫姆",top:"索尔迦雷欧"},
+  "cosmoem":{name:"科斯莫姆",attr:"psychic",gen:7,mid:"索尔迦雷欧"},
+  "solgaleo":{name:"索尔迦雷欧",attr:"psychic",gen:7},
+  "lunala":{name:"露奈雅拉",attr:"psychic",gen:7},
+  "nihilego":{name:"虚吾伊德",attr:"rock",gen:7},
+  "buzzwole":{name:"爆肌蚊",attr:"bug",gen:7},
+  "pheromosa":{name:"费洛美螂",attr:"bug",gen:7},
   "xurkitree":{name:"电束木",attr:"elec",gen:7},
-  "celesteela":{name:"铁火辉夜",attr:"neutral",gen:7},
+  "celesteela":{name:"铁火辉夜",attr:"steel",gen:7},
   "kartana":{name:"纸御剑",attr:"grass",gen:7},
-  "guzzlord":{name:"恶食大王",attr:"neutral",gen:7},
-  "necrozma":{name:"奈克洛兹玛",attr:"neutral",gen:7},
-  "magearna":{name:"玛机雅娜",attr:"neutral",gen:7},
-  "marshadow":{name:"玛夏多",attr:"neutral",gen:7},
-  "poipole":{name:"毒贝比",attr:"neutral",gen:7,mid:"四颚针龙"},
-  "naganadel":{name:"四颚针龙",attr:"neutral",gen:7},
-  "stakataka":{name:"垒磊石",attr:"neutral",gen:7},
+  "guzzlord":{name:"恶食大王",attr:"dark",gen:7},
+  "necrozma":{name:"奈克洛兹玛",attr:"psychic",gen:7},
+  "magearna":{name:"玛机雅娜",attr:"steel",gen:7},
+  "marshadow":{name:"玛夏多",attr:"fight",gen:7},
+  "poipole":{name:"毒贝比",attr:"poison",gen:7,mid:"四颚针龙"},
+  "naganadel":{name:"四颚针龙",attr:"poison",gen:7},
+  "stakataka":{name:"垒磊石",attr:"rock",gen:7},
   "blacephalon":{name:"砰头小丑",attr:"fire",gen:7},
   "zeraora":{name:"捷拉奥拉",attr:"elec",gen:7},
-  "meltan":{name:"美录坦",attr:"neutral",gen:7,mid:"美录梅塔"},
-  "melmetal":{name:"美录梅塔",attr:"neutral",gen:7},
+  "meltan":{name:"美录坦",attr:"steel",gen:7,mid:"美录梅塔"},
+  "melmetal":{name:"美录梅塔",attr:"steel",gen:7},
   "grookey":{name:"敲音猴",attr:"grass",gen:8,mid:"啪咚猴",top:"轰擂金刚猩"},
   "thwackey":{name:"啪咚猴",attr:"grass",gen:8,mid:"轰擂金刚猩"},
   "rillaboom":{name:"轰擂金刚猩",attr:"grass",gen:8},
@@ -1128,93 +1161,93 @@ const POKEDEX = {
   "sobble":{name:"泪眼蜥",attr:"water",gen:8,mid:"变涩蜥",top:"千面避役"},
   "drizzile":{name:"变涩蜥",attr:"water",gen:8,mid:"千面避役"},
   "inteleon":{name:"千面避役",attr:"water",gen:8},
-  "skwovet":{name:"贪心栗鼠",attr:"neutral",gen:8,mid:"藏饱栗鼠"},
-  "greedent":{name:"藏饱栗鼠",attr:"neutral",gen:8},
-  "rookidee":{name:"稚山雀",attr:"neutral",gen:8,mid:"蓝鸦",top:"钢铠鸦"},
-  "corvisquire":{name:"蓝鸦",attr:"neutral",gen:8,mid:"钢铠鸦"},
-  "corviknight":{name:"钢铠鸦",attr:"neutral",gen:8},
-  "blipbug":{name:"索侦虫",attr:"neutral",gen:8,mid:"天罩虫",top:"以欧路普"},
-  "dottler":{name:"天罩虫",attr:"neutral",gen:8,mid:"以欧路普"},
-  "orbeetle":{name:"以欧路普",attr:"neutral",gen:8},
-  "nickit":{name:"狡小狐",attr:"neutral",gen:8,mid:"猾大狐"},
-  "thievul":{name:"猾大狐",attr:"neutral",gen:8},
+  "skwovet":{name:"贪心栗鼠",attr:"normal",gen:8,mid:"藏饱栗鼠"},
+  "greedent":{name:"藏饱栗鼠",attr:"normal",gen:8},
+  "rookidee":{name:"稚山雀",attr:"flying",gen:8,mid:"蓝鸦",top:"钢铠鸦"},
+  "corvisquire":{name:"蓝鸦",attr:"flying",gen:8,mid:"钢铠鸦"},
+  "corviknight":{name:"钢铠鸦",attr:"flying",gen:8},
+  "blipbug":{name:"索侦虫",attr:"bug",gen:8,mid:"天罩虫",top:"以欧路普"},
+  "dottler":{name:"天罩虫",attr:"bug",gen:8,mid:"以欧路普"},
+  "orbeetle":{name:"以欧路普",attr:"bug",gen:8},
+  "nickit":{name:"狡小狐",attr:"dark",gen:8,mid:"猾大狐"},
+  "thievul":{name:"猾大狐",attr:"dark",gen:8},
   "gossifleur":{name:"幼棉棉",attr:"grass",gen:8,mid:"白蓬蓬"},
   "eldegoss":{name:"白蓬蓬",attr:"grass",gen:8},
-  "wooloo":{name:"毛辫羊",attr:"neutral",gen:8,mid:"毛毛角羊"},
-  "dubwool":{name:"毛毛角羊",attr:"neutral",gen:8},
+  "wooloo":{name:"毛辫羊",attr:"normal",gen:8,mid:"毛毛角羊"},
+  "dubwool":{name:"毛毛角羊",attr:"normal",gen:8},
   "chewtle":{name:"咬咬龟",attr:"water",gen:8,mid:"暴噬龟"},
   "drednaw":{name:"暴噬龟",attr:"water",gen:8},
   "yamper":{name:"来电汪",attr:"elec",gen:8,mid:"逐电犬"},
   "boltund":{name:"逐电犬",attr:"elec",gen:8},
-  "rolycoly":{name:"小炭仔",attr:"neutral",gen:8,mid:"大炭车",top:"巨炭山"},
-  "carkol":{name:"大炭车",attr:"neutral",gen:8,mid:"巨炭山"},
-  "coalossal":{name:"巨炭山",attr:"neutral",gen:8},
+  "rolycoly":{name:"小炭仔",attr:"rock",gen:8,mid:"大炭车",top:"巨炭山"},
+  "carkol":{name:"大炭车",attr:"rock",gen:8,mid:"巨炭山"},
+  "coalossal":{name:"巨炭山",attr:"rock",gen:8},
   "applin":{name:"啃果虫",attr:"grass",gen:8,mid:"苹裹龙"},
   "flapple":{name:"苹裹龙",attr:"grass",gen:8},
   "appletun":{name:"丰蜜龙",attr:"grass",gen:8},
-  "silicobra":{name:"沙包蛇",attr:"neutral",gen:8,mid:"沙螺蟒"},
-  "sandaconda":{name:"沙螺蟒",attr:"neutral",gen:8},
-  "cramorant":{name:"古月鸟",attr:"neutral",gen:8},
+  "silicobra":{name:"沙包蛇",attr:"ground",gen:8,mid:"沙螺蟒"},
+  "sandaconda":{name:"沙螺蟒",attr:"ground",gen:8},
+  "cramorant":{name:"古月鸟",attr:"flying",gen:8},
   "arrokuda":{name:"刺梭鱼",attr:"water",gen:8,mid:"戽斗尖梭"},
   "barraskewda":{name:"戽斗尖梭",attr:"water",gen:8},
   "toxel":{name:"电音婴",attr:"elec",gen:8,mid:"颤弦蝾螈"},
   "toxtricity-amped":{name:"颤弦蝾螈",attr:"elec",gen:8},
   "sizzlipede":{name:"烧火蚣",attr:"fire",gen:8,mid:"焚焰蚣"},
   "centiskorch":{name:"焚焰蚣",attr:"fire",gen:8},
-  "clobbopus":{name:"拳拳蛸",attr:"neutral",gen:8,mid:"八爪武师"},
-  "grapploct":{name:"八爪武师",attr:"neutral",gen:8},
-  "sinistea":{name:"来悲茶",attr:"neutral",gen:8,mid:"怖思壶"},
-  "polteageist":{name:"怖思壶",attr:"neutral",gen:8},
-  "hatenna":{name:"迷布莉姆",attr:"neutral",gen:8,mid:"提布莉姆",top:"布莉姆温"},
-  "hattrem":{name:"提布莉姆",attr:"neutral",gen:8,mid:"布莉姆温"},
-  "hatterene":{name:"布莉姆温",attr:"neutral",gen:8},
-  "impidimp":{name:"捣蛋小妖",attr:"neutral",gen:8,mid:"诈唬魔",top:"长毛巨魔"},
-  "morgrem":{name:"诈唬魔",attr:"neutral",gen:8,mid:"长毛巨魔"},
-  "grimmsnarl":{name:"长毛巨魔",attr:"neutral",gen:8},
-  "obstagoon":{name:"堵拦熊",attr:"neutral",gen:8},
-  "perrserker":{name:"喵头目",attr:"neutral",gen:8},
-  "cursola":{name:"魔灵珊瑚",attr:"neutral",gen:8},
-  "sirfetchd":{name:"葱游兵",attr:"neutral",gen:8},
+  "clobbopus":{name:"拳拳蛸",attr:"fight",gen:8,mid:"八爪武师"},
+  "grapploct":{name:"八爪武师",attr:"fight",gen:8},
+  "sinistea":{name:"来悲茶",attr:"ghost",gen:8,mid:"怖思壶"},
+  "polteageist":{name:"怖思壶",attr:"ghost",gen:8},
+  "hatenna":{name:"迷布莉姆",attr:"psychic",gen:8,mid:"提布莉姆",top:"布莉姆温"},
+  "hattrem":{name:"提布莉姆",attr:"psychic",gen:8,mid:"布莉姆温"},
+  "hatterene":{name:"布莉姆温",attr:"psychic",gen:8},
+  "impidimp":{name:"捣蛋小妖",attr:"dark",gen:8,mid:"诈唬魔",top:"长毛巨魔"},
+  "morgrem":{name:"诈唬魔",attr:"dark",gen:8,mid:"长毛巨魔"},
+  "grimmsnarl":{name:"长毛巨魔",attr:"dark",gen:8},
+  "obstagoon":{name:"堵拦熊",attr:"dark",gen:8},
+  "perrserker":{name:"喵头目",attr:"steel",gen:8},
+  "cursola":{name:"魔灵珊瑚",attr:"ghost",gen:8},
+  "sirfetchd":{name:"葱游兵",attr:"fight",gen:8},
   "mr-rime":{name:"踏冰人偶",attr:"ice",gen:8},
-  "runerigus":{name:"迭失板",attr:"neutral",gen:8},
-  "milcery":{name:"小仙奶",attr:"neutral",gen:8,mid:"霜奶仙"},
-  "alcremie":{name:"霜奶仙",attr:"neutral",gen:8},
-  "falinks":{name:"列阵兵",attr:"neutral",gen:8},
+  "runerigus":{name:"迭失板",attr:"ground",gen:8},
+  "milcery":{name:"小仙奶",attr:"fairy",gen:8,mid:"霜奶仙"},
+  "alcremie":{name:"霜奶仙",attr:"fairy",gen:8},
+  "falinks":{name:"列阵兵",attr:"fight",gen:8},
   "pincurchin":{name:"啪嚓海胆",attr:"elec",gen:8},
   "snom":{name:"雪吞虫",attr:"ice",gen:8,mid:"雪绒蛾"},
   "frosmoth":{name:"雪绒蛾",attr:"ice",gen:8},
-  "stonjourner":{name:"巨石丁",attr:"neutral",gen:8},
+  "stonjourner":{name:"巨石丁",attr:"rock",gen:8},
   "eiscue-ice":{name:"冰砌鹅",attr:"ice",gen:8},
-  "indeedee-male":{name:"爱管侍",attr:"neutral",gen:8},
+  "indeedee-male":{name:"爱管侍",attr:"psychic",gen:8},
   "morpeko-full-belly":{name:"莫鲁贝可",attr:"elec",gen:8},
-  "cufant":{name:"铜象",attr:"neutral",gen:8,mid:"大王铜象"},
-  "copperajah":{name:"大王铜象",attr:"neutral",gen:8},
+  "cufant":{name:"铜象",attr:"steel",gen:8,mid:"大王铜象"},
+  "copperajah":{name:"大王铜象",attr:"steel",gen:8},
   "dracozolt":{name:"雷鸟龙",attr:"elec",gen:8},
   "arctozolt":{name:"雷鸟海兽",attr:"elec",gen:8},
   "dracovish":{name:"鳃鱼龙",attr:"water",gen:8},
   "arctovish":{name:"鳃鱼海兽",attr:"water",gen:8},
-  "duraludon":{name:"铝钢龙",attr:"neutral",gen:8,mid:"铝钢桥龙"},
-  "dreepy":{name:"多龙梅西亚",attr:"neutral",gen:8,mid:"多龙奇",top:"多龙巴鲁托"},
-  "drakloak":{name:"多龙奇",attr:"neutral",gen:8,mid:"多龙巴鲁托"},
-  "dragapult":{name:"多龙巴鲁托",attr:"neutral",gen:8},
-  "zacian":{name:"苍响",attr:"neutral",gen:8},
-  "zamazenta":{name:"藏玛然特",attr:"neutral",gen:8},
-  "eternatus":{name:"无极汰那",attr:"neutral",gen:8},
-  "kubfu":{name:"熊徒弟",attr:"neutral",gen:8,mid:"武道熊师"},
-  "urshifu-single-strike":{name:"武道熊师",attr:"neutral",gen:8},
-  "zarude":{name:"萨戮德",attr:"neutral",gen:8},
+  "duraludon":{name:"铝钢龙",attr:"steel",gen:8,mid:"铝钢桥龙"},
+  "dreepy":{name:"多龙梅西亚",attr:"dragon",gen:8,mid:"多龙奇",top:"多龙巴鲁托"},
+  "drakloak":{name:"多龙奇",attr:"dragon",gen:8,mid:"多龙巴鲁托"},
+  "dragapult":{name:"多龙巴鲁托",attr:"dragon",gen:8},
+  "zacian":{name:"苍响",attr:"fairy",gen:8},
+  "zamazenta":{name:"藏玛然特",attr:"fight",gen:8},
+  "eternatus":{name:"无极汰那",attr:"poison",gen:8},
+  "kubfu":{name:"熊徒弟",attr:"fight",gen:8,mid:"武道熊师"},
+  "urshifu-single-strike":{name:"武道熊师",attr:"fight",gen:8},
+  "zarude":{name:"萨戮德",attr:"dark",gen:8},
   "regieleki":{name:"雷吉艾勒奇",attr:"elec",gen:8},
-  "regidrago":{name:"雷吉铎拉戈",attr:"neutral",gen:8},
+  "regidrago":{name:"雷吉铎拉戈",attr:"dragon",gen:8},
   "glastrier":{name:"雪暴马",attr:"ice",gen:8},
-  "spectrier":{name:"灵幽马",attr:"neutral",gen:8},
-  "calyrex":{name:"蕾冠王",attr:"neutral",gen:8},
-  "wyrdeer":{name:"诡角鹿",attr:"neutral",gen:8},
-  "kleavor":{name:"劈斧螳螂",attr:"neutral",gen:8},
-  "ursaluna":{name:"月月熊",attr:"neutral",gen:8},
+  "spectrier":{name:"灵幽马",attr:"ghost",gen:8},
+  "calyrex":{name:"蕾冠王",attr:"psychic",gen:8},
+  "wyrdeer":{name:"诡角鹿",attr:"normal",gen:8},
+  "kleavor":{name:"劈斧螳螂",attr:"bug",gen:8},
+  "ursaluna":{name:"月月熊",attr:"ground",gen:8},
   "basculegion-male":{name:"幽尾玄鱼",attr:"water",gen:8},
-  "sneasler":{name:"大狃拉",attr:"neutral",gen:8},
-  "overqwil":{name:"万针鱼",attr:"neutral",gen:8},
-  "enamorus-incarnate":{name:"眷恋云",attr:"neutral",gen:8},
+  "sneasler":{name:"大狃拉",attr:"fight",gen:8},
+  "overqwil":{name:"万针鱼",attr:"dark",gen:8},
+  "enamorus-incarnate":{name:"眷恋云",attr:"fairy",gen:8},
   "sprigatito":{name:"新叶喵",attr:"grass",gen:9,mid:"蒂蕾喵",top:"魔幻假面喵"},
   "floragato":{name:"蒂蕾喵",attr:"grass",gen:9,mid:"魔幻假面喵"},
   "meowscarada":{name:"魔幻假面喵",attr:"grass",gen:9},
@@ -1224,26 +1257,26 @@ const POKEDEX = {
   "quaxly":{name:"润水鸭",attr:"water",gen:9,mid:"涌跃鸭",top:"狂欢浪舞鸭"},
   "quaxwell":{name:"涌跃鸭",attr:"water",gen:9,mid:"狂欢浪舞鸭"},
   "quaquaval":{name:"狂欢浪舞鸭",attr:"water",gen:9},
-  "lechonk":{name:"爱吃豚",attr:"neutral",gen:9,mid:"飘香豚"},
-  "oinkologne-male":{name:"飘香豚",attr:"neutral",gen:9},
-  "tarountula":{name:"团珠蛛",attr:"neutral",gen:9,mid:"操陷蛛"},
-  "spidops":{name:"操陷蛛",attr:"neutral",gen:9},
-  "nymble":{name:"豆蟋蟀",attr:"neutral",gen:9,mid:"烈腿蝗"},
-  "lokix":{name:"烈腿蝗",attr:"neutral",gen:9},
+  "lechonk":{name:"爱吃豚",attr:"normal",gen:9,mid:"飘香豚"},
+  "oinkologne-male":{name:"飘香豚",attr:"normal",gen:9},
+  "tarountula":{name:"团珠蛛",attr:"bug",gen:9,mid:"操陷蛛"},
+  "spidops":{name:"操陷蛛",attr:"bug",gen:9},
+  "nymble":{name:"豆蟋蟀",attr:"bug",gen:9,mid:"烈腿蝗"},
+  "lokix":{name:"烈腿蝗",attr:"bug",gen:9},
   "pawmi":{name:"布拨",attr:"elec",gen:9,mid:"布土拨",top:"巴布土拨"},
   "pawmo":{name:"布土拨",attr:"elec",gen:9,mid:"巴布土拨"},
   "pawmot":{name:"巴布土拨",attr:"elec",gen:9},
-  "tandemaus":{name:"一对鼠",attr:"neutral",gen:9,mid:"一家鼠"},
-  "maushold-family-of-four":{name:"一家鼠",attr:"neutral",gen:9},
-  "fidough":{name:"狗仔包",attr:"neutral",gen:9,mid:"麻花犬"},
-  "dachsbun":{name:"麻花犬",attr:"neutral",gen:9},
+  "tandemaus":{name:"一对鼠",attr:"normal",gen:9,mid:"一家鼠"},
+  "maushold-family-of-four":{name:"一家鼠",attr:"normal",gen:9},
+  "fidough":{name:"狗仔包",attr:"fairy",gen:9,mid:"麻花犬"},
+  "dachsbun":{name:"麻花犬",attr:"fairy",gen:9},
   "smoliv":{name:"迷你芙",attr:"grass",gen:9,mid:"奥利纽",top:"奥利瓦"},
   "dolliv":{name:"奥利纽",attr:"grass",gen:9,mid:"奥利瓦"},
   "arboliva":{name:"奥利瓦",attr:"grass",gen:9},
-  "squawkabilly-green-plumage":{name:"怒鹦哥",attr:"neutral",gen:9},
-  "nacli":{name:"盐石宝",attr:"neutral",gen:9,mid:"盐石垒",top:"盐石巨灵"},
-  "naclstack":{name:"盐石垒",attr:"neutral",gen:9,mid:"盐石巨灵"},
-  "garganacl":{name:"盐石巨灵",attr:"neutral",gen:9},
+  "squawkabilly-green-plumage":{name:"怒鹦哥",attr:"normal",gen:9},
+  "nacli":{name:"盐石宝",attr:"rock",gen:9,mid:"盐石垒",top:"盐石巨灵"},
+  "naclstack":{name:"盐石垒",attr:"rock",gen:9,mid:"盐石巨灵"},
+  "garganacl":{name:"盐石巨灵",attr:"rock",gen:9},
   "charcadet":{name:"炭小侍",attr:"fire",gen:9,mid:"红莲铠骑"},
   "armarouge":{name:"红莲铠骑",attr:"fire",gen:9},
   "ceruledge":{name:"苍炎刃鬼",attr:"fire",gen:9},
@@ -1251,109 +1284,170 @@ const POKEDEX = {
   "bellibolt":{name:"电肚蛙",attr:"elec",gen:9},
   "wattrel":{name:"电海燕",attr:"elec",gen:9,mid:"大电海燕"},
   "kilowattrel":{name:"大电海燕",attr:"elec",gen:9},
-  "maschiff":{name:"偶叫獒",attr:"neutral",gen:9,mid:"獒教父"},
-  "mabosstiff":{name:"獒教父",attr:"neutral",gen:9},
-  "shroodle":{name:"滋汁鼹",attr:"neutral",gen:9,mid:"涂标客"},
-  "grafaiai":{name:"涂标客",attr:"neutral",gen:9},
+  "maschiff":{name:"偶叫獒",attr:"dark",gen:9,mid:"獒教父"},
+  "mabosstiff":{name:"獒教父",attr:"dark",gen:9},
+  "shroodle":{name:"滋汁鼹",attr:"poison",gen:9,mid:"涂标客"},
+  "grafaiai":{name:"涂标客",attr:"poison",gen:9},
   "bramblin":{name:"纳噬草",attr:"grass",gen:9,mid:"怖纳噬草"},
   "brambleghast":{name:"怖纳噬草",attr:"grass",gen:9},
-  "toedscool":{name:"原野水母",attr:"neutral",gen:9,mid:"陆地水母"},
-  "toedscruel":{name:"陆地水母",attr:"neutral",gen:9},
-  "klawf":{name:"毛崖蟹",attr:"neutral",gen:9},
+  "toedscool":{name:"原野水母",attr:"ground",gen:9,mid:"陆地水母"},
+  "toedscruel":{name:"陆地水母",attr:"ground",gen:9},
+  "klawf":{name:"毛崖蟹",attr:"rock",gen:9},
   "capsakid":{name:"热辣娃",attr:"grass",gen:9,mid:"狠辣椒"},
   "scovillain":{name:"狠辣椒",attr:"grass",gen:9},
-  "rellor":{name:"虫滚泥",attr:"neutral",gen:9,mid:"虫甲圣"},
-  "rabsca":{name:"虫甲圣",attr:"neutral",gen:9},
-  "flittle":{name:"飘飘雏",attr:"neutral",gen:9,mid:"超能艳鸵"},
-  "espathra":{name:"超能艳鸵",attr:"neutral",gen:9},
-  "tinkatink":{name:"小锻匠",attr:"neutral",gen:9,mid:"巧锻匠",top:"巨锻匠"},
-  "tinkatuff":{name:"巧锻匠",attr:"neutral",gen:9,mid:"巨锻匠"},
-  "tinkaton":{name:"巨锻匠",attr:"neutral",gen:9},
+  "rellor":{name:"虫滚泥",attr:"bug",gen:9,mid:"虫甲圣"},
+  "rabsca":{name:"虫甲圣",attr:"bug",gen:9},
+  "flittle":{name:"飘飘雏",attr:"psychic",gen:9,mid:"超能艳鸵"},
+  "espathra":{name:"超能艳鸵",attr:"psychic",gen:9},
+  "tinkatink":{name:"小锻匠",attr:"fairy",gen:9,mid:"巧锻匠",top:"巨锻匠"},
+  "tinkatuff":{name:"巧锻匠",attr:"fairy",gen:9,mid:"巨锻匠"},
+  "tinkaton":{name:"巨锻匠",attr:"fairy",gen:9},
   "wiglett":{name:"海地鼠",attr:"water",gen:9,mid:"三海地鼠"},
   "wugtrio":{name:"三海地鼠",attr:"water",gen:9},
-  "bombirdier":{name:"下石鸟",attr:"neutral",gen:9},
+  "bombirdier":{name:"下石鸟",attr:"flying",gen:9},
   "finizen":{name:"波普海豚",attr:"water",gen:9,mid:"海豚侠"},
   "palafin-zero":{name:"海豚侠",attr:"water",gen:9},
-  "varoom":{name:"噗隆隆",attr:"neutral",gen:9,mid:"普隆隆姆"},
-  "revavroom":{name:"普隆隆姆",attr:"neutral",gen:9},
-  "cyclizar":{name:"摩托蜥",attr:"neutral",gen:9},
-  "orthworm":{name:"拖拖蚓",attr:"neutral",gen:9},
-  "glimmet":{name:"晶光芽",attr:"neutral",gen:9,mid:"晶光花"},
-  "glimmora":{name:"晶光花",attr:"neutral",gen:9},
-  "greavard":{name:"墓仔狗",attr:"neutral",gen:9,mid:"墓扬犬"},
-  "houndstone":{name:"墓扬犬",attr:"neutral",gen:9},
-  "flamigo":{name:"纏红鹤",attr:"neutral",gen:9},
+  "varoom":{name:"噗隆隆",attr:"steel",gen:9,mid:"普隆隆姆"},
+  "revavroom":{name:"普隆隆姆",attr:"steel",gen:9},
+  "cyclizar":{name:"摩托蜥",attr:"dragon",gen:9},
+  "orthworm":{name:"拖拖蚓",attr:"steel",gen:9},
+  "glimmet":{name:"晶光芽",attr:"rock",gen:9,mid:"晶光花"},
+  "glimmora":{name:"晶光花",attr:"rock",gen:9},
+  "greavard":{name:"墓仔狗",attr:"ghost",gen:9,mid:"墓扬犬"},
+  "houndstone":{name:"墓扬犬",attr:"ghost",gen:9},
+  "flamigo":{name:"纏红鹤",attr:"flying",gen:9},
   "cetoddle":{name:"走鲸",attr:"ice",gen:9,mid:"浩大鲸"},
   "cetitan":{name:"浩大鲸",attr:"ice",gen:9},
   "veluza":{name:"轻身鳕",attr:"water",gen:9},
   "dondozo":{name:"吃吼霸",attr:"water",gen:9},
-  "tatsugiri-curly":{name:"米立龙",attr:"neutral",gen:9},
-  "annihilape":{name:"弃世猴",attr:"neutral",gen:9},
-  "clodsire":{name:"土王",attr:"neutral",gen:9},
-  "farigiraf":{name:"奇麒麟",attr:"neutral",gen:9},
-  "dudunsparce-two-segment":{name:"土龙节节",attr:"neutral",gen:9},
-  "kingambit":{name:"仆刀将军",attr:"neutral",gen:9},
-  "great-tusk":{name:"雄伟牙",attr:"neutral",gen:9},
-  "scream-tail":{name:"吼叫尾",attr:"neutral",gen:9},
+  "tatsugiri-curly":{name:"米立龙",attr:"dragon",gen:9},
+  "annihilape":{name:"弃世猴",attr:"fight",gen:9},
+  "clodsire":{name:"土王",attr:"poison",gen:9},
+  "farigiraf":{name:"奇麒麟",attr:"normal",gen:9},
+  "dudunsparce-two-segment":{name:"土龙节节",attr:"normal",gen:9},
+  "kingambit":{name:"仆刀将军",attr:"dark",gen:9},
+  "great-tusk":{name:"雄伟牙",attr:"ground",gen:9},
+  "scream-tail":{name:"吼叫尾",attr:"fairy",gen:9},
   "brute-bonnet":{name:"猛恶菇",attr:"grass",gen:9},
-  "flutter-mane":{name:"振翼发",attr:"neutral",gen:9},
-  "slither-wing":{name:"爬地翅",attr:"neutral",gen:9},
+  "flutter-mane":{name:"振翼发",attr:"ghost",gen:9},
+  "slither-wing":{name:"爬地翅",attr:"bug",gen:9},
   "sandy-shocks":{name:"沙铁皮",attr:"elec",gen:9},
-  "iron-treads":{name:"铁轍迹",attr:"neutral",gen:9},
+  "iron-treads":{name:"铁轍迹",attr:"ground",gen:9},
   "iron-bundle":{name:"铁包袱",attr:"ice",gen:9},
-  "iron-hands":{name:"铁臂膀",attr:"neutral",gen:9},
-  "iron-jugulis":{name:"铁脖颈",attr:"neutral",gen:9},
+  "iron-hands":{name:"铁臂膀",attr:"fight",gen:9},
+  "iron-jugulis":{name:"铁脖颈",attr:"dark",gen:9},
   "iron-moth":{name:"铁毒蛾",attr:"fire",gen:9},
-  "iron-thorns":{name:"铁荆棘",attr:"neutral",gen:9},
-  "frigibax":{name:"凉脊龙",attr:"neutral",gen:9,mid:"冻脊龙",top:"戟脊龙"},
-  "arctibax":{name:"冻脊龙",attr:"neutral",gen:9,mid:"戟脊龙"},
-  "baxcalibur":{name:"戟脊龙",attr:"neutral",gen:9},
-  "gimmighoul":{name:"索财灵",attr:"neutral",gen:9,mid:"赛富豪"},
-  "gholdengo":{name:"赛富豪",attr:"neutral",gen:9},
-  "wo-chien":{name:"古简蜗",attr:"neutral",gen:9},
-  "chien-pao":{name:"古剑豹",attr:"neutral",gen:9},
-  "ting-lu":{name:"古鼎鹿",attr:"neutral",gen:9},
-  "chi-yu":{name:"古玉鱼",attr:"neutral",gen:9},
-  "roaring-moon":{name:"轰鸣月",attr:"neutral",gen:9},
-  "iron-valiant":{name:"铁武者",attr:"neutral",gen:9},
-  "koraidon":{name:"故勒顿",attr:"neutral",gen:9},
+  "iron-thorns":{name:"铁荆棘",attr:"rock",gen:9},
+  "frigibax":{name:"凉脊龙",attr:"dragon",gen:9,mid:"冻脊龙",top:"戟脊龙"},
+  "arctibax":{name:"冻脊龙",attr:"dragon",gen:9,mid:"戟脊龙"},
+  "baxcalibur":{name:"戟脊龙",attr:"dragon",gen:9},
+  "gimmighoul":{name:"索财灵",attr:"ghost",gen:9,mid:"赛富豪"},
+  "gholdengo":{name:"赛富豪",attr:"steel",gen:9},
+  "wo-chien":{name:"古简蜗",attr:"dark",gen:9},
+  "chien-pao":{name:"古剑豹",attr:"dark",gen:9},
+  "ting-lu":{name:"古鼎鹿",attr:"dark",gen:9},
+  "chi-yu":{name:"古玉鱼",attr:"dark",gen:9},
+  "roaring-moon":{name:"轰鸣月",attr:"dragon",gen:9},
+  "iron-valiant":{name:"铁武者",attr:"fairy",gen:9},
+  "koraidon":{name:"故勒顿",attr:"fight",gen:9},
   "miraidon":{name:"密勒顿",attr:"elec",gen:9},
   "walking-wake":{name:"波荡水",attr:"water",gen:9},
   "iron-leaves":{name:"铁斑叶",attr:"grass",gen:9},
   "dipplin":{name:"裹蜜虫",attr:"grass",gen:9},
   "poltchageist":{name:"斯魔茶",attr:"grass",gen:9,mid:"来悲粗茶"},
   "sinistcha":{name:"来悲粗茶",attr:"grass",gen:9},
-  "okidogi":{name:"够赞狗",attr:"neutral",gen:9},
-  "munkidori":{name:"愿增猿",attr:"neutral",gen:9},
-  "fezandipiti":{name:"吉雉鸡",attr:"neutral",gen:9},
+  "okidogi":{name:"够赞狗",attr:"poison",gen:9},
+  "munkidori":{name:"愿增猿",attr:"poison",gen:9},
+  "fezandipiti":{name:"吉雉鸡",attr:"poison",gen:9},
   "ogerpon":{name:"厄诡椪",attr:"grass",gen:9},
-  "archaludon":{name:"铝钢桥龙",attr:"neutral",gen:9},
+  "archaludon":{name:"铝钢桥龙",attr:"steel",gen:9},
   "hydrapple":{name:"蜜集大蛇",attr:"grass",gen:9},
   "gouging-fire":{name:"破空焰",attr:"fire",gen:9},
   "raging-bolt":{name:"猛雷鼓",attr:"elec",gen:9},
-  "iron-boulder":{name:"铁磐岩",attr:"neutral",gen:9},
-  "iron-crown":{name:"铁头壳",attr:"neutral",gen:9},
-  "terapagos":{name:"太乐巴戈斯",attr:"neutral",gen:9},
-  "pecharunt":{name:"桃歹郎",attr:"neutral",gen:9},
-};
+  "iron-boulder":{name:"铁磐岩",attr:"rock",gen:9},
+  "iron-crown":{name:"铁头壳",attr:"steel",gen:9},
+  "terapagos":{name:"太乐巴戈斯",attr:"normal",gen:9},
+  "pecharunt":{name:"桃歹郎",attr:"poison",gen:9}
 
-const ATTR_KEYS = ["fire","elec","ice","water","grass","neutral"];
+
+};
+const ATTR_KEYS = ["normal","fire","water","grass","elec","ice","fight","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
 const POKEDEX_KEYS = Object.keys(POKEDEX);
 const POKEDEX_BY_ATTR = {};
 for(const a of ATTR_KEYS){ POKEDEX_BY_ATTR[a]=POKEDEX_KEYS.filter(id=>POKEDEX[id].attr===a); }
 const ROLE_EVOLVE_COST = [0, 60, 120];                     // 进化 1→2 需 60 金币，2→3 需 120 金币
 // 二级神（每 5 关大 Boss · 随机）
 const GODS_2 = [
-  { name:"急冻鸟", attr:"ice" }, { name:"闪电鸟", attr:"elec" },
-  { name:"火焰鸟", attr:"fire" }, { name:"水君",   attr:"water" },
-  { name:"时拉比", attr:"grass" },
+  { name:"急冻鸟",   attr:"ice" },  { name:"闪电鸟",   attr:"elec" },
+  { name:"火焰鸟",   attr:"fire" }, { name:"水君",     attr:"water" },
+  { name:"时拉比",   attr:"grass" },{ name:"雷吉洛克", attr:"rock" },
+  { name:"基拉祈",   attr:"steel" },{ name:"拉帝欧斯", attr:"dragon" },
+  { name:"克雷色利亚",attr:"psychic"},{ name:"达克莱伊", attr:"dark" },
+  { name:"龙卷云",   attr:"flying" },{ name:"土地云",   attr:"ground" },
+  { name:"勾帕路翁", attr:"fight" },{ name:"玛夏多",   attr:"ghost" },
+  { name:"虚吾伊德", attr:"poison" },{ name:"费洛美螂", attr:"bug" },
+  { name:"卡璞·蝶蝶",attr:"fairy" },{ name:"雷吉奇卡斯",attr:"normal" },
 ];
-// 一级神（每 10 关终极 Boss · 随机）
+// 一级神（每 10 关终极 Boss · 随机，原著属性）
 const GODS_1 = [
-  { name:"超梦",   attr:"elec" }, { name:"盖欧卡", attr:"water" },
-  { name:"固拉多", attr:"fire" }, { name:"裂空座", attr:"grass" },
-  { name:"酋雷姆", attr:"ice" },
+  { name:"超梦",   attr:"psychic" },{ name:"凤王",     attr:"fire" },
+  { name:"洛奇亚", attr:"flying" }, { name:"固拉多",   attr:"ground" },
+  { name:"盖欧卡", attr:"water" },  { name:"烈空坐",   attr:"dragon" },
+  { name:"帝牙卢卡",attr:"steel" }, { name:"帕路奇犽", attr:"dragon" },
+  { name:"骑拉帝纳",attr:"ghost" }, { name:"阿尔宙斯", attr:"normal" },
+  { name:"捷克罗姆",attr:"elec" },  { name:"雷希拉姆", attr:"fire" },
+  { name:"酋雷姆", attr:"ice" },    { name:"哲尔尼亚斯",attr:"fairy" },
+  { name:"伊裴尔塔尔",attr:"dark" },{ name:"基格尔德", attr:"ground" },
+  { name:"奈克洛兹玛",attr:"psychic"},{ name:"无极汰那", attr:"poison" },
 ];
+
+/* ===== Mega 石 / 极巨化 / Z 招式（金币购买 · 原著契合） ===== */
+const MEGA_COST=15000, DYNA_COST=30000, Z_COST=40000;
+// 原著可 Mega 进化名单（第 6 代起引入，含世代限定形态）
+const MEGA_SET={ venusaur:1,charizard:1,blastoise:1,beedrill:1,pidgeot:1,alakazam:1,gengar:1,kangaskhan:1,pinsir:1,scyther:1,heracross:1,houndoom:1,slowbro:1,aerodactyl:1,gyarados:1,ampharos:1,scizor:1,steelix:1,tyranitar:1,sceptile:1,blaziken:1,swampert:1,gardevoir:1,sableye:1,mawile:1,aggron:1,medicham:1,manectric:1,sharpedo:1,camerupt:1,altaria:1,banette:1,absol:1,salamence:1,metagross:1,latias:1,latios:1,rayquaza:1,lopunny:1,garchomp:1,lucario:1,abomasnow:1,gallade:1,audino:1,diancie:1,glalie:1 };
+const MEGA_TEXT={ venusaur:"超级妙蛙花",charizard:"超级喷火龙",blastoise:"超级水箭龟",beedrill:"超级大针蜂",pidgeot:"超级大比鸟",alakazam:"超级胡地",gengar:"超级耿鬼",kangaskhan:"超级袋兽",pinsir:"超级凯罗斯",scyther:"超级飞天螳螂",heracross:"超级赫拉克罗斯",houndoom:"超级黑鲁加",slowbro:"超级呆壳兽",aerodactyl:"超级化石翼龙",gyarados:"超级暴鲤龙",ampharos:"超级电龙",scizor:"超级巨钳螳螂",steelix:"超级大钢蛇",tyranitar:"超级班基拉斯",sceptile:"超级蜥蜴王",blaziken:"超级火焰鸡",swampert:"超级巨沼怪",gardevoir:"超级沙奈朵",sableye:"超级勾魂眼",mawile:"超级大嘴娃",aggron:"超级波士可多拉",medicham:"超级恰雷姆",manectric:"超级雷电兽",sharpedo:"超级巨牙鲨",camerupt:"超级喷火驼",altaria:"超级七夕青鸟",banette:"超级诅咒娃娃",absol:"超级阿勃梭鲁",salamence:"超级暴飞龙",metagross:"超级巨金怪",latias:"超级拉帝亚斯",latios:"超级拉帝欧斯",rayquaza:"超级烈空坐",lopunny:"超级长耳兔",garchomp:"超级烈咬陆鲨",lucario:"超级路卡利欧",abomasnow:"超级暴雪王",gallade:"超级艾路雷朵",audino:"超级差不多娃娃",diancie:"超级蒂安希",glalie:"超级冰鬼护" };
+const Z_MOVE_BY_ATTR={ normal:"究极冲击", fire:"超强极限爆焰弹", water:"超级水流大炮", grass:"究极无敌炮轰落花", elec:"千万伏特", ice:"激狂大地万里冰", fight:"全力无双激烈拳", poison:"最强酸性炸弹", ground:"究极大地破坏激震", flying:"极速俯冲轰炸", psychic:"究极精神冲击", bug:"究极吸力飞转", rock:"究极大地破坏", ghost:"究极幽魂幽灵", dragon:"究极龙之雷霆", dark:"究极暗影吞噬", steel:"究极金属炮轰", fairy:"究极月亮之力" };
+function roleMega(id){ return S.mega[id]?1:0; }
+function canMega(id){ return !!MEGA_SET[id]; }
+function zMoveName(){ return Z_MOVE_BY_ATTR[PK(S.activeRole).attr]||"究极冲击"; }
+function castZMove(){
+  const attr=PK(S.activeRole).attr, lvl=3+roleForm(S.activeRole)+roleMega(S.activeRole);
+  const nm=zMoveName();
+  showBanner("Z 招式 · "+nm);
+  sndExplode(true);
+  castBlast(lvl, 560, 2.6, ATTR_TEXT[attr].color, {});
+  burst(S.player.x,S.player.y,"#fff",30,320);
+  for(const e of S.enemies){ if(e.dead) continue;
+    if(attr==="fire") e.burn={t:4,dps:8};
+    if(attr==="ice") e.slowT=Math.max(e.slowT||0,4);
+    if(attr==="poison") e.poison={t:5,dps:6};
+    if(attr==="rock") e.stunT=Math.max(e.stunT||0,2);
+    if(attr==="ghost") e.fearT=Math.max(e.fearT||0,2.4);
+    if(attr==="fairy") e.charmT=Math.max(e.charmT||0,3);
+    if(attr==="elec") e.stunT=Math.max(e.stunT||0,1.2);
+  }
+  S.zCharge=0; updatePowerUI();
+}
+function tryDyna(){
+  if(!S.dynaUnlocked || S.dyna || S.dynaCharges<=0 || S.mode!=="playing") return;
+  S.dyna=true; S.dynaT=10; S.dynaCharges--;
+  showBanner("极巨化！");
+  sndLevel(); updatePowerUI();
+}
+function updatePowerUI(){
+  const db=$("btn-dyna"), zb=$("z-bar");
+  if(db){
+    db.hidden = !S.dynaUnlocked;
+    db.disabled = S.dyna || S.dynaCharges<=0 || S.mode!=="playing";
+    db.innerHTML = S.dyna ? ("极巨化中<br><small>"+Math.ceil(S.dynaT)+"s</small>")
+      : ("极巨化 ×"+S.dynaCharges+"<br><small>G</small>");
+  }
+  if(zb){
+    zb.hidden = !S.zUnlocked;
+    const zn=$("z-name"); if(zn) zn.textContent = zMoveName();
+    const zf=$("z-fill"); if(zf) zf.style.transform="scaleX("+(S.zCharge/100)+")";
+  }
+}
 
 /* ===== 状态 ===== */
 const S = {
@@ -1373,6 +1467,9 @@ const S = {
   bossId:null, playerSlowT:0, playerBurn:null, lastMult:1,
   skills:{}, skillCd:{},      // 技能等级 / 技能冷却
   buff:{ oc:0, rage:0 }, holes:[],   // 超频/狂暴 计时 · 黑洞
+  mega:{},                      // 已购 Mega 石（id → true，永久）
+  dynaUnlocked:false, dyna:false, dynaT:0, dynaCharges:1,  // 极巨化
+  zUnlocked:false, zCharge:0,   // Z 手环 + 能量条 0-100
   stats:{ kills:0 },
   best: null,
   mute:false,
@@ -1393,6 +1490,12 @@ const S = {
     const sh = JSON.parse(localStorage.getItem("starburst_shiny")||"null");
     if(sh && typeof sh==="object") S.shiny = sh;
   }catch(e){}
+  try{
+    const mg = JSON.parse(localStorage.getItem("starburst_mega")||"null");
+    if(mg && typeof mg==="object") S.mega = mg;
+  }catch(e){}
+  try{ S.dynaUnlocked = localStorage.getItem("starburst_dyna")==="1"; }catch(e){}
+  try{ S.zUnlocked = localStorage.getItem("starburst_z")==="1"; }catch(e){}
   try{ S.partySlots = parseInt(localStorage.getItem("starburst_slots")||"1",10)||1; }catch(e){}
   if(S.partySlots<1) S.partySlots=1; if(S.partySlots>3) S.partySlots=3;
   try{
@@ -1411,8 +1514,8 @@ function saveProgress(){
 }
 function PK(id){ return POKEDEX[id]||POKEDEX.pichu; }
 function roleForm(id){ return S.roster[id]||1; }
-function roleAtk(id){ const f=roleForm(id); const base=f>=3?1.22:(f>=2?1.1:1); return S.shiny[id]?base*2:base; }
-function roleMul(id){ const f=roleForm(id); return f>=3?2.2:(f>=2?1.5:1); }
+function roleAtk(id){ const f=roleForm(id); const base=f>=3?1.22:(f>=2?1.1:1); return (S.shiny[id]?base*2:base)*(S.mega[id]?1.25:1); }
+function roleMul(id){ const f=roleForm(id); return (f>=3?2.2:(f>=2?1.5:1))*(S.mega[id]?1.3:1); }
 function roleMaxForm(id){ const R=PK(id); return R.top?3:(R.mid?2:1); }
 function roleName(id,form){
   const R=PK(id); form=form||roleForm(id);
@@ -1521,6 +1624,8 @@ function stageClear(){
   const p = S.player;
   p.hp = p.maxHp; p.shieldLvl = Math.max(p.shieldLvl,1);
   refreshHpUI(); syncShieldUI();
+  S.dyna = false; S.dynaT = 0; S.dynaCharges = 1;               // 每关 1 次极巨化
+  updatePowerUI();
   const reward = (10 + S.stage*5) * S.lastMult;                      // 二级神 ×3 / 一级神 ×5
   S.coins += reward;
   S.runCoins += reward;
@@ -1555,7 +1660,7 @@ function update(dt){
   let mx=S.input.x, my=S.input.y;
   const len=Math.hypot(mx,my);
   if(len>1){ mx/=len; my/=len; }
-  let spd = CONFIG.player.speed*(1+0.12*p.speedLvl);
+  let spd = CONFIG.player.speed*(1+0.12*p.speedLvl)*(1+0.1*skillFx("speed")) * (S.dyna?1.35:1);
   if(S.buff.rage>0) spd*=1.3;                                            // 嗜血狂暴
   if(S.playerSlowT>0){ S.playerSlowT-=dt; spd*=0.55; }             // 冰 Boss 减速
   if(S.playerBurn){                                                  // 火 Boss 点燃
@@ -1575,9 +1680,9 @@ function update(dt){
   }
 
   // 炮塔开火
-  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl)/roleAtk(S.activeRole) * (S.buff.oc>0?0.56:1);
-  const dmg = CONFIG.drone.damage*(1+0.3*p.dmgLvl);
-  const shots = 1+p.multiLvl + (S.skills.gambler && Math.random()<0.10*S.skills.gambler ? 4 : 0);
+  const fireRate = CONFIG.drone.fireRate*(1+0.25*p.fireLvl)*(1+0.15*skillFx("rate"))/roleAtk(S.activeRole) * (S.buff.oc>0?0.56:1) * (S.dyna?0.7:1);
+  const dmg = CONFIG.drone.damage*(1+0.3*p.dmgLvl)*(1+0.12*skillFx("dmg"));
+  const shots = 1+p.multiLvl + skillFx("multi") + (S.skills.gambler && Math.random()<0.10*S.skills.gambler ? 4 : 0);
   for(const d of S.drones){
     d.angle += dt*1.4; d.flash=Math.max(0,d.flash-dt);
     const ox = p.x+Math.cos(d.angle)*CONFIG.drone.orbit;
@@ -1591,7 +1696,7 @@ function update(dt){
         const off = (i-(shots-1)/2)*0.16;
         S.bullets.push({ x:ox, y:oy, vx:Math.cos(base+off)*CONFIG.drone.bulletSpeed,
           vy:Math.sin(base+off)*CONFIG.drone.bulletSpeed, r:3.5, dmg,
-          life:CONFIG.drone.bulletLife, pierce:p.pierceLvl, hit:new Set(),
+          life:CONFIG.drone.bulletLife, pierce:p.pierceLvl+skillFx("pierce")+(PK(S.activeRole).attr==="flying"?1:0), hit:new Set(),
           attr:PK(S.activeRole).attr });
       }
       d.flash=0.08;
@@ -1647,8 +1752,12 @@ function update(dt){
       if(dist(b,e) < b.r+e.r){
         b.hit.add(e);
         let dmg = b.dmg;
-        if(S.skills.crit && Math.random()<0.14*S.skills.crit) dmg*=3;   // 致命一击
+        if(roleMega(S.activeRole)) dmg*=1.4;                              // Mega 形态：伤害 +40%
+        const critLvl = skillFx("crit");
+        if(critLvl && Math.random()<0.14*critLvl) dmg*=3;               // 致命一击系
         if(S.skills.doom) dmg*=2;                                        // 毁灭连击：必暴击×2
+        if(PK(S.activeRole).attr==="psychic" && Math.random()<0.10) dmg*=2;  // 超：会心
+        if(PK(S.activeRole).attr==="normal") dmg*=1.15;                  // 普：重击
         if(b.type==="fb"){                                               // 火球：爆炸灼烧 AOE
           for(const o of S.enemies){ if(o.dead) continue;
             if(dist(b,o)<88){ o.hp-=dmg; applyAttr(o,"fire","fire"); if(o.hp<=0) killEnemy(o); } }
@@ -1659,14 +1768,17 @@ function update(dt){
             if(dist(b,o)<82){ o.hp-=dmg; o.slowT=Math.max(o.slowT,1.4); if(o.hp<=0) killEnemy(o); } }
           burst(b.x,b.y,"#7dd3fc",26,230); S.bullets.splice(i,1); break;
         }
+        if(e.breakT>0 || e.charmT>0) dmg*=1.5;                            // 斗破甲 / 妖魅惑：受伤加深
         e.hp -= dmg;
         applyAttr(e, b.attr||PK(S.activeRole).attr, S.activeRole);
-        if(S.skills.split && !e.dead && Math.random()<0.30*S.skills.split){  // 分裂弹
+        const splitLvl = skillFx("split");
+        if(splitLvl && !e.dead && Math.random()<0.30*splitLvl){           // 分裂弹系
           castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
           castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
         }
-        if(S.skills.siphon && !e.dead){                                    // 奥术虹吸
-          S.player.hp=Math.min(S.player.maxHp,S.player.hp+0.5*S.skills.siphon); refreshHpUI();
+        const leechLvl = skillFx("lifesteal");                            // 命中吸血系
+        if(leechLvl && !e.dead){
+          S.player.hp=Math.min(S.player.maxHp,S.player.hp+0.5*leechLvl); refreshHpUI();
         }
         burst(b.x,b.y,"#fbbf24",4,120);
         if(e.hp<=0){ killEnemy(e); }
@@ -1680,8 +1792,8 @@ function update(dt){
   for(let i=S.enemies.length-1;i>=0;i--){
     const e=S.enemies[i];
     if(e.dead){ S.enemies.splice(i,1); continue; }
-    // 属性状态：点燃 DOT / 冰冻减速
-    let spdMul=1;
+    // 属性状态 DOT / 控制
+    let spdMul=1, frozen=false, feared=false;
     if(e.slowT>0){ e.slowT-=dt; spdMul=0.5; }
     if(e.burn){
       e.burn.t-=dt; e.hp-=e.burn.dps*dt;
@@ -1689,12 +1801,25 @@ function update(dt){
       if(e.hp<=0){ killEnemy(e); continue; }
       if(e.burn.t<=0) e.burn=null;
     }
+    if(e.poison){
+      e.poison.t-=dt; e.hp-=e.poison.dps*dt;
+      if(Math.random()<dt*14) burst(e.x+rand(-8,8),e.y+rand(-8,8),"#a78bfa",2,60);
+      if(e.hp<=0){ killEnemy(e); continue; }
+      if(e.poison.t<=0) e.poison=null;
+    }
+    if(e.stunT>0){ e.stunT-=dt; frozen=true; }
+    if(e.fearT>0){ e.fearT-=dt; feared=true; }
+    if(e.breakT>0) e.breakT-=dt;
+    if(e.charmT>0) e.charmT-=dt;
     const d=dist(e,p);
     const a=Math.atan2(p.y-e.y,p.x-e.x);
+    const flee = feared ? a+Math.PI : a;   // 恐惧时反向逃离
     e.wob+=dt*4;
     const wobble = e.type==="chaser" ? Math.sin(e.wob)*10 : 0;
-    e.x+=Math.cos(a)*e.speed*spdMul*dt + (e.type==="chaser"?wobble*dt:0);
-    e.y+=Math.sin(a)*e.speed*spdMul*dt;
+    if(!frozen){
+      e.x+=Math.cos(flee)*e.speed*spdMul*dt + (e.type==="chaser"?wobble*dt:0);
+      e.y+=Math.sin(flee)*e.speed*spdMul*dt;
+    }
     // 黑洞牵引
     for(let i=S.holes.length-1;i>=0;i--){
       const h=S.holes[i];
@@ -1709,7 +1834,7 @@ function update(dt){
     }
     if(d < e.r+p.r){
       if(p.inv<=0){
-        let dmg = e.dmg;
+        let dmg = e.dmg*(PK(S.activeRole).attr==="steel"?0.8:1)*(S.dyna?0.5:1);
         if(p.shieldLvl>0){ p.shieldLvl--; p.inv=0.8; syncShieldUI(); burst(p.x,p.y,"#38bdf8",14,200); sndHit(true); }
         else{
           p.hp-=dmg; p.inv=0.5; p.flash=0.25; S.dmgFlash=0.3; sndHit(false);
@@ -1722,9 +1847,10 @@ function update(dt){
         if(e.attr==="ice") S.playerSlowT=1.5;
         else if(e.attr==="fire") S.playerBurn={ t:2, dps:6 };
       }
-      // 荆棘装甲 / 反伤壁垒：冲撞反弹
-      if(!e.dead && (S.skills.thorns||S.skills.bastion)){
-        const dmg= (S.skills.thorns?7*S.skills.thorns:0) + (S.skills.bastion?10:0);
+      // 荆棘装甲 / 反伤壁垒 / 荆棘王国：冲撞反弹
+      const thr = skillFx("thorns"), tk = S.skills.thorn_kingdom||0;
+      if(!e.dead && (thr||tk||S.skills.bastion)){
+        const dmg= thr*7 + tk*10 + (S.skills.bastion?10:0);
         e.hp-=dmg; burst(e.x,e.y,"#f472b6",8,150);
         if(e.hp<=0){ killEnemy(e); }
       }
@@ -1746,7 +1872,7 @@ function update(dt){
   }
 
   // 拾取
-  const magnet = CONFIG.exp.magnet*(1+0.4*p.magnetLvl);
+  const magnet = CONFIG.exp.magnet*(1+0.4*p.magnetLvl)*(1+0.5*skillFx("magnet"));
   for(let i=S.pickups.length-1;i>=0;i--){
     const k=S.pickups[i];
     const d=dist(k,p);
@@ -1758,7 +1884,7 @@ function update(dt){
       if(vl>maxV){ k.vx=k.vx/vl*maxV; k.vy=k.vy/vl*maxV; }
     }
     k.x+=k.vx*dt; k.y+=k.vy*dt;
-    if(dist(k,p)< p.r+k.r){ S.pickups.splice(i,1); addExp(k.exp); }
+    if(dist(k,p)< p.r+k.r){ S.pickups.splice(i,1); addExp(k.exp); if(S.zUnlocked){ S.zCharge=Math.min(100,S.zCharge+1); updatePowerUI(); } }
   }
 
   // 粒子
@@ -1798,6 +1924,7 @@ function nearestEnemy(x,y){
 }
 function killEnemy(e){
   e.dead=true; S.kills++;
+  if(S.zUnlocked){ S.zCharge=Math.min(100,S.zCharge+4); updatePowerUI(); }   // Z 能量积攒
   if(e.type==="boss"){
     burst(e.x,e.y,"#f97316",e.mega?70:46,e.mega?520:420);
     burst(e.x,e.y,e.mega?"#fde047":"#fde68a",e.mega?46:30,e.mega?380:300);
@@ -1813,23 +1940,51 @@ function killEnemy(e){
   const drops = e.type==="brute"?3:(e.elite?5:1);
   for(let i=0;i<drops;i++) spawnPickup(e.x+rand(-14,14),e.y+rand(-14,14), e.exp/drops);
   sndExplode(e.elite);
-  // 击杀技能联动
+  // 击杀技能联动（fx 聚合 + 传统技能）
   const sk=S.skills, pl=S.player;
-  if(sk.vampiric){ pl.hp=Math.min(pl.maxHp,pl.hp+2*sk.vampiric); refreshHpUI(); }
+  const vamp = skillFx("vampkill");
+  if(vamp){ pl.hp=Math.min(pl.maxHp,pl.hp+2*vamp); refreshHpUI(); }
   if(sk.sacred){ pl.hp=Math.min(pl.maxHp,pl.hp+4); refreshHpUI(); }
+  const rage = skillFx("rage");
+  if(rage){ S.buff.rage=Math.max(S.buff.rage,1.2); }
   if(sk.rage){ S.buff.rage=1.2; }
-  if(sk.timebubble){ for(const o of S.enemies){ if(!o.dead) o.slowT=Math.max(o.slowT,0.6); } }
+  const tb = skillFx("timebubble");
+  if(tb || sk.timebubble){ for(const o of S.enemies){ if(!o.dead) o.slowT=Math.max(o.slowT,0.6); } }
+  if(PK(S.activeRole).attr==="dark"){ S.coins+=1; S.runCoins+=1; }          // 恶：击杀额外金币
+  const goldFx = skillFx("gold");
+  if(goldFx){ S.coins+=0.5*goldFx; S.runCoins+=0.5*goldFx; }
+  const expFx = skillFx("exp");
+  if(expFx){ addExp(2*expFx); }
 }
 
 /* ===== 属性技能（出战角色自动附加，进化增强） ===== */
 function applyAttr(e, attr, id){
   const mul = roleMul(id);
-  if(attr==="fire"){ e.burn={ t:2.5, dps:4*mul }; }
-  else if(attr==="ice"){ e.slowT = 1.8*(roleForm(id)>=2?1.4:1); }
-  else if(attr==="elec"){ chainStrike(e, 92, 0.45*mul); }
-  else if(attr==="water"){ splashStrike(e, 84, 0.38*mul); }
-  else if(attr==="grass"){ const p=S.player; p.hp=Math.min(p.maxHp,p.hp+0.015*p.maxHp); refreshHpUI(); }
-  // neutral：无克制特效
+  const f = roleForm(id);
+  const strong = f>=3;
+  switch(attr){
+    case "fire":  e.burn={ t:2.5+0.4*(f-1), dps:(4+1.5*(f-1))*mul }; break;
+    case "ice":   e.slowT = Math.max(e.slowT||0, (1.8+0.4*(f-1))*(strong?1.4:1)); break;
+    case "elec":  chainStrike(e, 92+14*(f-1), 0.45*mul); break;
+    case "water": splashStrike(e, 84+14*(f-1), 0.38*mul); break;
+    case "grass": { const p=S.player; p.hp=Math.min(p.maxHp,p.hp+(0.015+0.005*(f-1))*p.maxHp); refreshHpUI(); } break;
+    case "normal": strikeEnemy(e, CONFIG.drone.damage*0.22*f, "#94a3b8"); break;
+    case "fight":  e.breakT = Math.max(e.breakT||0, 2.2+0.3*(f-1)); break;
+    case "poison": e.poison={ t:3+0.5*(f-1), dps:(3+1.2*(f-1))*mul }; break;
+    case "ground": areaStrike(e, 80+12*(f-1), 0.35*mul, "#d6a15c"); break;
+    case "bug":    e.slowT = Math.max(e.slowT||0, 0.9+0.2*(f-1)); break;
+    case "rock":   e.stunT = Math.max(e.stunT||0, 0.5+0.1*(f-1)); break;
+    case "ghost":  e.fearT = Math.max(e.fearT||0, 0.8+0.2*(f-1)); break;
+    case "dragon": areaStrike(e, 110+16*(f-1), 0.4*mul, "#6366f1"); break;
+    case "fairy":  areaStrike(e, 100+14*(f-1), 0.35*mul, "#f9a8d4"); e.charmT=Math.max(e.charmT||0,2); break;
+    // flying(穿透) / psychic(暴击) / dark(击杀金币) / steel(受伤减免) 在各自计算点生效
+  }
+}
+function areaStrike(e,range,mult,color){
+  for(const o of S.enemies){
+    if(o!==e && !o.dead && dist(e,o)<range) strikeEnemy(o, CONFIG.drone.damage*mult, color);
+  }
+  burst(e.x,e.y,color,10,190);
 }
 function strikeEnemy(e,dmg,color){
   if(e.dead) return;
@@ -1864,6 +2019,9 @@ function enterLevelup(){
   if(S.mode!=="playing") return;
   S.mode="levelup"; S.timeScale=0;
   show("levelup");
+  const carry=Object.keys(S.skills).length, fus=Object.keys(S.skills).filter(isFusion).length;
+  $("up-count").textContent = carry;
+  $("up-fus").textContent = fus;
   renderChoices();
 }
 /* ===== 技能 / 融合（独立于角色属性的通用技能库） ===== */
@@ -1901,56 +2059,185 @@ function availableUpgrades(){
   return UP.filter(u=>!u.maxed());
 }
 const SKILLS=[
-  { id:"fireball",   name:"烈焰冲击", max:3, rarity:1, cd:5.2, desc:"每 5 秒发射火球，命中爆炸灼烧敌人" },
-  { id:"frostnova",  name:"冰冻新星", max:3, rarity:1, cd:6.4, desc:"每 6.5 秒释放冰环，减速周围敌人" },
-  { id:"lightning",  name:"闪电链",   max:3, rarity:2, cd:5.6, desc:"每 6 秒放一道闪电，连锁多个敌人" },
-  { id:"vampiric",   name:"生命汲取", max:3, rarity:1, cd:0,   desc:"击杀敌人回复 2 点装甲" },
-  { id:"regen",      name:"纳米再生", max:3, rarity:0, cd:0,   desc:"每秒回复 0.7 点装甲" },
-  { id:"thorns",     name:"荆棘装甲", max:3, rarity:1, cd:0,   desc:"冲撞你的敌人反受 7 点伤害" },
-  { id:"blackhole",  name:"引力坍缩", max:3, rarity:2, cd:8.4, desc:"每 8.5 秒生成黑洞，吸附周围敌人" },
-  { id:"barrage",    name:"弹幕风暴", max:3, rarity:2, cd:7.6, desc:"每 8 秒向四周散射 12 发弹" },
-  { id:"crit",       name:"致命一击", max:3, rarity:2, cd:0,   desc:"子弹 14% 概率造成 3 倍伤害" },
-  { id:"split",      name:"分裂弹",   max:3, rarity:2, cd:0,   desc:"子弹命中时 30% 概率分裂 2 颗小弹" },
-  { id:"overclock",  name:"超频模式", max:3, rarity:2, cd:11,  desc:"每 11 秒进入 3 秒射速 ×1.8" },
-  { id:"rage",       name:"嗜血狂暴", max:3, rarity:1, cd:0,   desc:"击杀后 1.2 秒移速射速 +30%" },
-  { id:"nova_shield",name:"充能护盾", max:2, rarity:2, cd:22,  desc:"每 22 秒自动补充 1 层护盾" },
-  { id:"timebubble", name:"时间气泡", max:3, rarity:2, cd:0,   desc:"击杀使全场敌人减速 0.6 秒" },
-  { id:"orbital",    name:"轨道激光", max:3, rarity:2, cd:9.4, desc:"每 9.5 秒发射一道贯穿激光" },
-  { id:"siphon",     name:"奥术虹吸", max:3, rarity:2, cd:0,   desc:"子弹命中回复 0.5 点装甲" },
-  { id:"gambler",    name:"幸运骰子", max:2, rarity:2, cd:0,   desc:"每次开火 10% 概率射出 5 连发" },
+  { id:"fireball",   name:"烈焰冲击", max:3, rarity:1, fn:"fireball",   desc:"每 5 秒发射火球，命中爆炸灼烧敌人" },
+  { id:"frostnova",  name:"冰冻新星", max:3, rarity:1, fn:"frostnova",  desc:"每 6.5 秒释放冰环，减速周围敌人" },
+  { id:"lightning",  name:"闪电链",   max:3, rarity:2, fn:"lightning",  desc:"每 6 秒放一道闪电，连锁多个敌人" },
+  { id:"vampiric",   name:"生命汲取", max:3, rarity:1, fx:"vampkill",   desc:"击杀敌人回复 2 点装甲（每级）" },
+  { id:"regen",      name:"纳米再生", max:3, rarity:0, fx:"regen",      desc:"每秒回复 0.7 点装甲（每级）" },
+  { id:"thorns",     name:"荆棘装甲", max:3, rarity:1, fx:"thorns",     desc:"冲撞你的敌人反受 7 点伤害（每级）" },
+  { id:"blackhole",  name:"引力坍缩", max:3, rarity:2, fn:"blackhole",  desc:"每 8.5 秒生成黑洞，吸附周围敌人" },
+  { id:"barrage",    name:"弹幕风暴", max:3, rarity:2, fn:"barrage",    desc:"每 8 秒向四周散射 12 发弹" },
+  { id:"crit",       name:"致命一击", max:3, rarity:2, fx:"crit",       desc:"子弹 14% 概率 3 倍伤害（每级）" },
+  { id:"split",      name:"分裂弹",   max:3, rarity:2, fx:"split",      desc:"命中 30% 概率分裂 2 颗小弹（每级）" },
+  { id:"overclock",  name:"超频模式", max:3, rarity:2, fn:"overclock",  desc:"每 11 秒进入 3 秒射速 x1.8" },
+  { id:"rage",       name:"嗜血狂暴", max:3, rarity:1, fx:"rage",       desc:"击杀后 1.2 秒移速射速 +30%" },
+  { id:"nova_shield",name:"充能护盾", max:3, rarity:2, fn:"nova_shield",desc:"每 22 秒自动补充 1 层护盾" },
+  { id:"timebubble", name:"时间气泡", max:3, rarity:2, fx:"timebubble", desc:"击杀使全场敌人减速 0.6 秒" },
+  { id:"orbital",    name:"轨道激光", max:3, rarity:2, fn:"orbital",    desc:"每 9.5 秒发射一道贯穿激光" },
+  { id:"siphon",     name:"奥术虹吸", max:3, rarity:2, fx:"lifesteal",  desc:"子弹命中回复 0.5 点装甲（每级）" },
+  { id:"gambler",    name:"幸运骰子", max:3, rarity:2, fn:"gambler",    desc:"每次开火 10% 概率射出 5 连发" },
+  { id:"power_strike", name:"重击",     max:3, rarity:0, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"fury",          name:"狂暴之力", max:3, rarity:1, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"sharp_round",   name:"锐利弹",   max:3, rarity:0, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"combat_mastery",name:"战斗精通", max:3, rarity:1, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"destruction",   name:"毁灭之击", max:3, rarity:2, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"heavy_caliber", name:"重炮",     max:3, rarity:1, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"overkill",      name:"过杀",     max:3, rarity:2, fx:"dmg",    desc:"伤害 +12%（每级）" },
+  { id:"rapid_fire",    name:"速射",     max:3, rarity:0, fx:"rate",   desc:"射速 +15%（每级）" },
+  { id:"trigger",       name:"灵敏扳机", max:3, rarity:1, fx:"rate",   desc:"射速 +15%（每级）" },
+  { id:"machine",       name:"机关枪",   max:3, rarity:1, fx:"rate",   desc:"射速 +15%（每级）" },
+  { id:"haste",         name:"急速",     max:3, rarity:0, fx:"rate",   desc:"射速 +15%（每级）" },
+  { id:"gatling",       name:"加特林",   max:3, rarity:2, fx:"rate",   desc:"射速 +15%（每级）" },
+  { id:"twin_shot",     name:"双联装",   max:3, rarity:1, fx:"multi",  desc:"每级 +1 条弹道" },
+  { id:"volley",        name:"齐射",     max:3, rarity:1, fx:"multi",  desc:"每级 +1 条弹道" },
+  { id:"spread",        name:"散射",     max:3, rarity:2, fx:"multi",  desc:"每级 +1 条弹道" },
+  { id:"swarm",         name:"蜂群",     max:3, rarity:2, fx:"multi",  desc:"每级 +1 条弹道" },
+  { id:"drill",         name:"钻头弹",   max:3, rarity:1, fx:"pierce", desc:"每级 +1 次穿透" },
+  { id:"rail",          name:"轨道炮",   max:3, rarity:2, fx:"pierce", desc:"每级 +1 次穿透" },
+  { id:"phase",         name:"相位弹",   max:3, rarity:2, fx:"pierce", desc:"每级 +1 次穿透" },
+  { id:"hunter",        name:"追猎",     max:3, rarity:1, fx:"pierce", desc:"每级 +1 次穿透" },
+  { id:"agility",       name:"敏捷",     max:3, rarity:0, fx:"speed",  desc:"移速 +10%（每级）" },
+  { id:"dash",          name:"冲刺",     max:3, rarity:1, fx:"speed",  desc:"移速 +10%（每级）" },
+  { id:"swift",         name:"迅捷",     max:3, rarity:0, fx:"speed",  desc:"移速 +10%（每级）" },
+  { id:"sprint",        name:"疾走",     max:3, rarity:1, fx:"speed",  desc:"移速 +10%（每级）" },
+  { id:"magnet_up",     name:"磁力核心", max:3, rarity:0, fx:"magnet", desc:"拾取范围 +50%（每级）" },
+  { id:"attract",       name:"引力波",   max:3, rarity:1, fx:"magnet", desc:"拾取范围 +50%（每级）" },
+  { id:"vacuum",        name:"真空吸",   max:3, rarity:2, fx:"magnet", desc:"拾取范围 +50%（每级）" },
+  { id:"vitality",      name:"活力",     max:3, rarity:0, fx:"maxhp",  desc:"装甲上限 +12%（每级）" },
+  { id:"bulk",          name:"厚重身躯", max:3, rarity:1, fx:"maxhp",  desc:"装甲上限 +12%（每级）" },
+  { id:"iron_body",     name:"铁铸之躯", max:3, rarity:1, fx:"maxhp",  desc:"装甲上限 +12%（每级）" },
+  { id:"endurance",     name:"坚韧",     max:3, rarity:2, fx:"maxhp",  desc:"装甲上限 +12%（每级）" },
+  { id:"nano",          name:"纳米修复", max:3, rarity:0, fx:"regen",  desc:"每秒回复 0.7 点装甲（每级）" },
+  { id:"healing",       name:"治愈之光", max:3, rarity:1, fx:"regen",  desc:"每秒回复 0.7 点装甲（每级）" },
+  { id:"phoenix",       name:"凤凰再生", max:3, rarity:2, fx:"regen",  desc:"每秒回复 0.7 点装甲（每级）" },
+  { id:"bloodthirst",   name:"嗜血",     max:3, rarity:1, fx:"vampkill", desc:"击杀回复 2 点装甲（每级）" },
+  { id:"reaper",        name:"收割者",   max:3, rarity:1, fx:"vampkill", desc:"击杀回复 2 点装甲（每级）" },
+  { id:"harvest",       name:"丰收",     max:3, rarity:2, fx:"vampkill", desc:"击杀回复 2 点装甲（每级）" },
+  { id:"drain",         name:"虹吸",     max:3, rarity:1, fx:"lifesteal", desc:"命中回复 0.5 点装甲（每级）" },
+  { id:"leech_shot",    name:"吸血弹",   max:3, rarity:1, fx:"lifesteal", desc:"命中回复 0.5 点装甲（每级）" },
+  { id:"vampiric_shot", name:"吸血鬼弹", max:3, rarity:2, fx:"lifesteal", desc:"命中回复 0.5 点装甲（每级）" },
+  { id:"dead_eye",      name:"鹰眼",     max:3, rarity:1, fx:"crit",  desc:"子弹 14% 概率 3 倍伤害（每级）" },
+  { id:"assassin",      name:"暗杀者",   max:3, rarity:2, fx:"crit",  desc:"子弹 14% 概率 3 倍伤害（每级）" },
+  { id:"lucky",         name:"幸运星",   max:3, rarity:1, fx:"crit",  desc:"子弹 14% 概率 3 倍伤害（每级）" },
+  { id:"sniper",        name:"狙击手",   max:3, rarity:2, fx:"crit",  desc:"子弹 14% 概率 3 倍伤害（每级）" },
+  { id:"bounce",        name:"弹跳",     max:3, rarity:1, fx:"split", desc:"命中 30% 概率分裂（每级）" },
+  { id:"shard",         name:"碎片",     max:3, rarity:1, fx:"split", desc:"命中 30% 概率分裂（每级）" },
+  { id:"polymer",       name:"聚合弹",   max:3, rarity:2, fx:"split", desc:"命中 30% 概率分裂（每级）" },
+  { id:"spikes",        name:"尖刺甲",   max:3, rarity:1, fx:"thorns", desc:"反伤 7 点（每级）" },
+  { id:"razor",         name:"利刃",     max:3, rarity:1, fx:"thorns", desc:"反伤 7 点（每级）" },
+  { id:"mirror",        name:"镜甲",     max:3, rarity:2, fx:"thorns", desc:"反伤 7 点（每级）" },
+  { id:"berserk",       name:"狂化",     max:3, rarity:2, fx:"rage",  desc:"击杀后 1.2 秒移速射速 +30%" },
+  { id:"adrenaline",    name:"肾上腺素", max:3, rarity:1, fx:"rage",  desc:"击杀后 1.2 秒移速射速 +30%" },
+  { id:"slow_motion",   name:"慢动作",   max:3, rarity:2, fx:"timebubble", desc:"击杀使全场减速 0.6 秒" },
+  { id:"chrono",        name:"时间操控", max:3, rarity:2, fx:"timebubble", desc:"击杀使全场减速 0.6 秒" },
+  { id:"rich",          name:"富饶",     max:3, rarity:0, fx:"gold",  desc:"击杀金币 +50%（每级）" },
+  { id:"merchant",      name:"商道",     max:3, rarity:1, fx:"gold",  desc:"击杀金币 +50%（每级）" },
+  { id:"greed",         name:"贪婪",     max:3, rarity:2, fx:"gold",  desc:"击杀金币 +50%（每级）" },
+  { id:"scholar",       name:"学者",     max:3, rarity:0, fx:"exp",   desc:"击杀额外经验 +2（每级）" },
+  { id:"sage",          name:"贤者",     max:3, rarity:1, fx:"exp",   desc:"击杀额外经验 +2（每级）" },
+  { id:"genius",        name:"天才",     max:3, rarity:2, fx:"exp",   desc:"击杀额外经验 +2（每级）" },
+  { id:"meteor",        name:"陨石雨",   max:3, rarity:2, fn:"meteor",      desc:"每 8.5 秒召唤陨石雨砸向敌人" },
+  { id:"solarflare",    name:"烈日",     max:3, rarity:2, fn:"solarflare",  desc:"每 9 秒发射巨大光球爆炸" },
+  { id:"frostwave",     name:"寒霜波",   max:3, rarity:1, fn:"frostwave",   desc:"每 7.5 秒释放大冰环冻结减速" },
+  { id:"storm",         name:"雷暴",     max:3, rarity:2, fn:"storm",       desc:"每 8 秒降下连环闪电" },
+  { id:"poisoncloud",   name:"毒云",     max:3, rarity:1, fn:"poisoncloud", desc:"每 8.5 秒释放毒雾持续腐蚀" },
+  { id:"earthquake",    name:"地裂",     max:3, rarity:2, fn:"earthquake",  desc:"每 9 秒大地震击眩晕周围" },
+  { id:"phantomclaw",   name:"幽灵爪",   max:3, rarity:2, fn:"phantomclaw", desc:"每 7 秒鬼爪贯穿恐惧敌人" },
+  { id:"dragonbreath",  name:"龙息",     max:3, rarity:2, fn:"dragonbreath",desc:"每 7.5 秒龙息横扫震击" },
+  { id:"fairyburst",    name:"妖精爆发", max:3, rarity:2, fn:"fairyburst",  desc:"每 8 秒妖精之光魅惑爆炸" },
+  { id:"plasmabeam",    name:"等离子束", max:3, rarity:2, fn:"plasmabeam",  desc:"每 8.5 秒贯穿等离子射线" },
+  { id:"voidlance",     name:"虚空枪",   max:3, rarity:3, fn:"voidlance",   desc:"每 9 秒虚空长枪贯穿吸附" },
+  { id:"cosmicray",     name:"宇宙射线", max:3, rarity:3, fn:"cosmicray",   desc:"每 10 秒宇宙射线超贯穿" },
+  { id:"twinbeam",      name:"双光束",   max:3, rarity:1, fn:"twinbeam",    desc:"每 7 秒发射两道贯穿光束" },
+  { id:"novaflare",     name:"新星爆发", max:3, rarity:3, fn:"novaflare",   desc:"每 9.5 秒以自身引爆全场" },
+  { id:"gigadrain",     name:"超级汲取", max:3, rarity:1, fn:"gigadrain",   desc:"每 8 秒汲取之种吸血爆炸" },
+  { id:"overheat",      name:"过热",     max:3, rarity:2, fn:"overheat",    desc:"每 8 秒烈焰风暴灼烧全场" },
+  { id:"hydro",         name:"高压水炮", max:3, rarity:1, fn:"hydro",       desc:"每 7.5 秒高压水柱贯穿溅射" },
+  { id:"blizzard",      name:"暴风雪",   max:3, rarity:2, fn:"blizzard",    desc:"每 8.5 秒暴风雪冻结全场" },
+  { id:"thunderbolt",   name:"十万伏特", max:3, rarity:2, fn:"thunderbolt", desc:"每 7 秒十万伏特连环电击" },
+  { id:"seedbomb",      name:"种子炸弹", max:3, rarity:1, fn:"seedbomb",    desc:"每 7.5 秒散射种子炸弹爆炸" },
 ];
 const FUSIONS=[
-  { a:"fireball",  b:"frostnova",  id:"icystorm",   name:"冰火风暴", rarity:3, max:1, desc:"融合 · 同发冰火双球，命中引爆冰冻+灼烧" },
-  { a:"lightning", b:"split",      id:"chainstorm", name:"连锁风暴", rarity:3, max:1, desc:"融合 · 闪电链命中后分裂传导" },
-  { a:"vampiric",  b:"regen",      id:"sacred",     name:"圣愈之光", rarity:3, max:1, desc:"融合 · 每秒回 2 点，击杀再回 4 点" },
-  { a:"blackhole", b:"barrage",    id:"nebula",     name:"星云坍缩", rarity:3, max:1, desc:"融合 · 黑洞吸附同时喷涌中心弹幕" },
-  { a:"crit",      b:"gambler",    id:"doom",       name:"毁灭连击", rarity:3, max:1, desc:"融合 · 每发必暴击 ×2 且 5 连发" },
-  { a:"thorns",    b:"nova_shield",id:"bastion",    name:"反伤壁垒", rarity:3, max:1, desc:"融合 · 反伤 10 点，每 15 秒补 1 层盾" },
+  { a:"fireball",  b:"frostnova",  id:"icystorm",   name:"冰火风暴", max:3, rarity:3, fn:"icystorm",  fus:true, desc:"融合 · 同发冰火双球，引爆冰冻+灼烧" },
+  { a:"lightning", b:"split",      id:"chainstorm", name:"连锁风暴", max:3, rarity:3, fn:"chainstorm", fus:true, desc:"融合 · 闪电链命中后分裂传导" },
+  { a:"vampiric",  b:"regen",      id:"sacred",     name:"圣愈之光", max:3, rarity:3, fn:"sacred",     fus:true, desc:"融合 · 每秒回 2 点，击杀再回 4 点" },
+  { a:"blackhole", b:"barrage",    id:"nebula",     name:"星云坍缩", max:3, rarity:3, fn:"nebula",     fus:true, desc:"融合 · 黑洞吸附同时喷涌弹幕" },
+  { a:"crit",      b:"gambler",    id:"doom",       name:"毁灭连击", max:3, rarity:3, fn:"doom",       fus:true, desc:"融合 · 每发必暴击 x2 且 5 连发" },
+  { a:"thorns",    b:"nova_shield",id:"bastion",    name:"反伤壁垒", max:3, rarity:3, fn:"bastion",    fus:true, desc:"融合 · 反伤 10 点，每 15 秒补 1 层盾" },
+  { a:"meteor",    b:"solarflare", id:"supernova",  name:"超新星",   max:3, rarity:3, fn:"supernova",  fus:true, desc:"融合 · 双烈日陨石毁灭齐落" },
+  { a:"frostwave", b:"blizzard",   id:"polar",      name:"极地风暴", max:3, rarity:3, fn:"polar",      fus:true, desc:"融合 · 全场极寒冰冻" },
+  { a:"storm",     b:"thunderbolt",id:"tempest",    name:"天罚",     max:3, rarity:3, fn:"tempest",    fus:true, desc:"融合 · 天雷地火连环轰炸" },
+  { a:"plasmabeam",b:"voidlance",  id:"hyperbeam",  name:"破坏光线", max:3, rarity:3, fn:"hyperbeam",  fus:true, desc:"融合 · 贯穿一切的光束洪流" },
+  { a:"dragonbreath",b:"cosmicray",id:"apocalypse", name:"末日龙星", max:3, rarity:3, fn:"apocalypse", fus:true, desc:"融合 · 龙星群毁天灭地" },
+  { a:"vitality",  b:"iron_body",  id:"colossus",   name:"泰坦之躯", max:3, rarity:3, fx:"maxhp",      fus:true, desc:"融合 · 装甲上限 +18%（每级）" },
+  { a:"bloodthirst",b:"harvest",   id:"vampire_lord",name:"血族之王",max:3, rarity:3, fx:"vampkill",  fus:true, desc:"融合 · 击杀回复 3 点装甲（每级）" },
+  { a:"dead_eye",  b:"assassin",   id:"executioner",name:"处刑人",   max:3, rarity:3, fx:"crit",      fus:true, desc:"融合 · 子弹 18% 概率 3 倍伤害（每级）" },
+  { a:"rapid_fire",b:"overclock",  id:"mach_flash", name:"超频风暴", max:3, rarity:3, fx:"rate",      fus:true, desc:"融合 · 射速 +20%（每级）" },
+  { a:"power_strike",b:"fury",     id:"juggernaut", name:"战争机器", max:3, rarity:3, fx:"dmg",       fus:true, desc:"融合 · 伤害 +16%（每级）" },
+  { a:"twin_shot", b:"volley",     id:"artillery",  name:"火力覆盖", max:3, rarity:3, fx:"multi",     fus:true, desc:"融合 · 每级 +2 条弹道" },
+  { a:"drill",     b:"rail",       id:"lance",      name:"贯穿之枪", max:3, rarity:3, fx:"pierce",    fus:true, desc:"融合 · 每级 +2 次穿透" },
+  { a:"spikes",    b:"mirror",     id:"thorn_kingdom",name:"荆棘王国",max:3, rarity:3, fx:"thorns",   fus:true, desc:"融合 · 反伤 10 点（每级）" },
+  { a:"rich",      b:"greed",      id:"plutocrat",  name:"亿万富翁", max:3, rarity:3, fx:"gold",      fus:true, desc:"融合 · 击杀金币 +80%（每级）" },
 ];
+const SKILLMAP = {};
+for(const s of SKILLS.concat(FUSIONS)) SKILLMAP[s.id]=s;
+function skillLvl(id){ return S.skills[id]||0; }
+function maxOf(id){ return (SKILLMAP[id]||{}).max||3; }
+function isFusion(id){ return !!(SKILLMAP[id]||{}).fus; }
+function skillFx(fx){ let v=0; for(const id in S.skills){ const s=SKILLMAP[id]; if(s && s.fx===fx && S.skills[id]>v) v=S.skills[id]; } return v; }
+function syncMaxHp(){
+  const p=S.player; if(!p) return;
+  const newMax = Math.round(100*(1+0.12*skillFx("maxhp")));
+  if(newMax!==p.maxHp){ p.hp+=newMax-p.maxHp; p.maxHp=newMax; refreshHpUI&&refreshHpUI(); }
+}
+const SKILL_FN={
+  fireball:castFireball, frostnova:castFrost, lightning:castLightning, blackhole:castBlackhole,
+  barrage:castBarrage, orbital:castOrbital, meteor:castMeteor, solarflare:castSolar,
+  frostwave:castFrostwave, storm:castStorm, poisoncloud:castPoisonCloud, earthquake:castQuake,
+  phantomclaw:castPhantom, dragonbreath:castDragon, fairyburst:castFairy, plasmabeam:castPlasma,
+  voidlance:castVoid, cosmicray:castCosmic, twinbeam:castTwin, novaflare:castNova,
+  gigadrain:castGiga, overheat:castOverheat, hydro:castHydro, blizzard:castBlizzard,
+  thunderbolt:castThunder, seedbomb:castSeed, icystorm:castIcy, chainstorm:castChain,
+  nebula:castNebula, supernova:castSuper, polar:castPolar, tempest:castTempest,
+  hyperbeam:castHyper, apocalypse:castApoc
+};
 function skillLvl(id){ return S.skills[id]||0; }
 function availableChoices(){
   const base = availableUpgrades();
-  const skills = SKILLS.filter(s=>!S.skills[s.id] || S.skills[s.id]<s.max).map(s=>({
+  const carry = Object.keys(S.skills).length;
+  const fCount = Object.keys(S.skills).filter(isFusion).length;
+  // 普通技能 + 已拥有融合技能的升级；携带上限 25（融合产生另计 10 上限）
+  const skills = SKILLS.concat(FUSIONS).filter(s=>{
+    if(s.fus && !S.skills[s.id]) return false;      // 融合技能先融合获得
+    if(S.skills[s.id]) return S.skills[s.id] < s.max; // 已拥有 → 可升级
+    return carry < 25;                               // 未拥有普通 → 受携带上限
+  }).map(s=>({
     id:s.id, name:s.name, desc:s.desc+(S.skills[s.id]?("（Lv."+S.skills[s.id]+"）"):""),
     max:s.max, rarity:s.rarity, lvl:S.skills[s.id]||0,
-    apply(){ S.skills[s.id]=(S.skills[s.id]||0)+1; } }));
-  const fusions = FUSIONS.filter(f=>skillLvl(f.a)>=1 && skillLvl(f.b)>=1 && !S.skills[f.id]).map(f=>({
-    id:f.id, name:f.name, desc:f.desc, max:f.max, rarity:f.rarity, lvl:0,
+    apply(){ S.skills[s.id]=(S.skills[s.id]||0)+1; if(SKILLMAP[s.id].fx==="maxhp") syncMaxHp(); } }));
+  // 融合：两个技能均满级 → 2 合 1 高级技能（最多合 10 个）
+  const fusions = FUSIONS.filter(f=>skillLvl(f.a)>=maxOf(f.a) && skillLvl(f.b)>=maxOf(f.b) && !S.skills[f.id] && fCount<10).map(f=>({
+    id:f.id, name:f.name, desc:f.desc, max:f.max, rarity:f.rarity, lvl:0, fus:true,
     apply(){ delete S.skills[f.a]; delete S.skills[f.b]; S.skills[f.id]=1;
-             sndLevel(); } }));
+             syncMaxHp(); sndLevel(); } }));
   return base.concat(skills, fusions);
 }
 function pickChoices(){
   const pool=availableChoices();
-  const weight=r=>[5,3,2,4][r]||2;   // 稀有度 0..3
+  // 融合卡满级后高频：权重拉满，且保证三选一中出现
+  const weight=u=>u.fus ? 1000 : ([5,3,2,4][u.rarity]||2);
   const picked=[];
   const tmp=pool.slice();
   while(picked.length<CONFIG.levelup.choices && tmp.length){
-    let total=0; for(const u of tmp) total+=weight(u.rarity);
+    let total=0; for(const u of tmp) total+=weight(u);
     let r=Math.random()*total;
     let idx=0;
-    for(let i=0;i<tmp.length;i++){ r-=weight(tmp[i].rarity); if(r<=0){idx=i;break;} }
+    for(let i=0;i<tmp.length;i++){ r-=weight(tmp[i]); if(r<=0){idx=i;break;} }
     picked.push(tmp[idx]); tmp.splice(idx,1);
+  }
+  if(pool.some(u=>u.fus) && !picked.some(u=>u.fus)){
+    const f=pool.find(u=>u.fus), idx=picked.findIndex(u=>!u.fus);
+    if(f && idx>=0) picked[idx]=f;
   }
   return picked;
 }
@@ -2008,55 +2295,193 @@ function castOrbital(lvl){
   castSkillBullet(S.player.x,S.player.y,ang,760,26*lvl,6,99,null,"orb",2.5);
   S.skillCd.orbital = Math.max(1.6, SKILLS[14].cd - lvl*0.9);
 }
+function castBlast(lvl, range, dmgMul, color, opt){
+  const p=S.player;
+  burst(p.x,p.y,color,22,220);
+  for(const e of S.enemies){
+    if(e.dead || dist(e,p)>range+e.r) continue;
+    e.hp -= CONFIG.drone.damage*dmgMul*lvl;
+    if(opt&&opt.slow) e.slowT=Math.max(e.slowT||0,opt.slow);
+    if(opt&&opt.poison) e.poison={t:3,dps:3*lvl};
+    if(opt&&opt.burn) e.burn={t:2.5,dps:3*lvl};
+    if(opt&&opt.stun) e.stunT=Math.max(e.stunT||0,opt.stun);
+    if(opt&&opt.charm) e.charmT=Math.max(e.charmT||0,opt.charm);
+    if(opt&&opt.fear) e.fearT=Math.max(e.fearT||0,opt.fear);
+    if(opt&&opt.heal){ p.hp=Math.min(p.maxHp,p.hp+opt.heal*lvl); refreshHpUI(); }
+    if(e.hp<=0) killEnemy(e);
+  }
+}
+function castPierce(lvl, dmgMul, color, type, spd, pierce, attr){
+  const p=S.player, t=nearestEnemy(p.x,p.y);
+  const ang=t?Math.atan2(t.y-p.y,t.x-p.x):rand(0,Math.PI*2);
+  castSkillBullet(p.x,p.y,ang,spd||760,CONFIG.drone.damage*dmgMul*lvl,8,pierce||6,attr||null,type||"orb",2.4);
+  burst(p.x,p.y,color,8,140);
+}
+function castRing(lvl, n, dmg, color, attr){
+  const p=S.player;
+  for(let i=0;i<n;i++) castSkillBullet(p.x,p.y,i/n*Math.PI*2,340,CONFIG.drone.damage*dmg*lvl,5,0,attr||null,null,1.4);
+  burst(p.x,p.y,color,14,180);
+}
+function castChainBase(lvl, hits, dmgMul, attr){
+  const p=S.player;
+  let t=nearestEnemy(p.x,p.y), prev=null;
+  for(let k=0;k<hits && t;k++){
+    burst(t.x,t.y,"#fde047",8,150);
+    t.hp -= CONFIG.drone.damage*dmgMul*lvl;
+    applyAttr(t, attr||"elec", "elec");
+    if(t.hp<=0) killEnemy(t);
+    let nxt=null,bd=1e9;
+    for(const e of S.enemies){ if(e.dead||e===t||e===prev) continue;
+      const dd=dist(t,e); if(dd<bd){bd=dd;nxt=e;} }
+    prev=t; t=nxt;
+  }
+}
+function castMeteor(lvl){ S.skillCd.meteor=Math.max(2,8.5-lvl*0.6);
+  for(let i=0;i<3+lvl;i++){
+    const es=S.enemies.filter(e=>!e.dead);
+    const e=es[Math.floor(Math.random()*es.length)];
+    const tx=e?e.x:S.player.x+rand(-200,200), ty=e?e.y:S.player.y+rand(-200,200);
+    burst(tx,ty,"#f97316",18,210);
+    for(const o of S.enemies){ if(o.dead) continue; if(dist(o,{x:tx,y:ty})<72+o.r){ o.hp-=CONFIG.drone.damage*1.3*lvl; applyAttr(o,"fire","fire"); if(o.hp<=0) killEnemy(o); } }
+  }
+}
+function castSolar(lvl){ S.skillCd.solarflare=Math.max(2,9-lvl*0.6);
+  const p=S.player, t=nearestEnemy(p.x,p.y);
+  const ang=t?Math.atan2(t.y-p.y,t.x-p.x):rand(0,Math.PI*2);
+  castSkillBullet(p.x,p.y,ang,300,CONFIG.drone.damage*2.2*lvl,14,3,null,"fb",2.6);
+  burst(p.x,p.y,"#fde047",16,200);
+}
+function castFrostwave(lvl){ S.skillCd.frostwave=Math.max(1.8,7.5-lvl*0.7);
+  castBlast(lvl,260,0.9,"#7dd3fc",{slow:2.2});
+}
+function castStorm(lvl){ S.skillCd.storm=Math.max(2,8-lvl*0.7);
+  castChainBase(lvl,5,0.9,"elec");
+}
+function castPoisonCloud(lvl){ S.skillCd.poisoncloud=Math.max(2,8.5-lvl*0.7);
+  castBlast(lvl,240,0.8,"#a78bfa",{poison:1});
+}
+function castQuake(lvl){ S.skillCd.earthquake=Math.max(2,9-lvl*0.7);
+  castBlast(lvl,320,1.1,"#d6a15c",{stun:0.8});
+}
+function castPhantom(lvl){ S.skillCd.phantomclaw=Math.max(1.8,7-lvl*0.6);
+  castPierce(lvl,1.2,"#818cf8",null,820,99,null);
+  castBlast(S.player.x,S.player.y,220,0.6,"#818cf8",{fear:1});
+}
+function castDragon(lvl){ S.skillCd.dragonbreath=Math.max(1.8,7.5-lvl*0.6);
+  castBlast(lvl,300,1.2,"#6366f1",{slow:1.2});
+}
+function castFairy(lvl){ S.skillCd.fairyburst=Math.max(2,8-lvl*0.6);
+  castBlast(lvl,280,1.0,"#f9a8d4",{charm:1.6});
+}
+function castPlasma(lvl){ S.skillCd.plasmabeam=Math.max(2,8.5-lvl*0.7);
+  castPierce(lvl,1.4,"#38bdf8",null,880,9,"elec");
+}
+function castVoid(lvl){ S.skillCd.voidlance=Math.max(2,9-lvl*0.7);
+  const p=S.player; S.holes.push({x:p.x,y:p.y,r:230,t:0.8});
+  castPierce(lvl,1.5,"#a78bfa",null,900,12,null);
+}
+function castCosmic(lvl){ S.skillCd.cosmicray=Math.max(2.4,10-lvl*0.8);
+  castPierce(lvl,1.8,"#f472b6",null,980,99,null);
+}
+function castTwin(lvl){ S.skillCd.twinbeam=Math.max(1.8,7-lvl*0.6);
+  castPierce(lvl,1.1,"#fbbf24",null,800,6,null);
+  castPierce(lvl,1.1,"#fbbf24",null,800,6,null);
+}
+function castNova(lvl){ S.skillCd.novaflare=Math.max(2.4,9.5-lvl*0.8);
+  castBlast(lvl,420,1.6,"#fb923c",{burn:1});
+}
+function castGiga(lvl){ S.skillCd.gigadrain=Math.max(2,8-lvl*0.6);
+  castPierce(lvl,1.2,"#4ade80",null,820,6,"grass");
+  castBlast(S.player.x,S.player.y,260,0.7,"#4ade80",{heal:1.2});
+}
+function castOverheat(lvl){ S.skillCd.overheat=Math.max(2,8-lvl*0.6);
+  castBlast(lvl,300,1.2,"#fb923c",{burn:1.4});
+}
+function castHydro(lvl){ S.skillCd.hydro=Math.max(1.8,7.5-lvl*0.6);
+  castPierce(lvl,1.2,"#38bdf8",null,820,6,"water");
+}
+function castBlizzard(lvl){ S.skillCd.blizzard=Math.max(2,8.5-lvl*0.7);
+  castBlast(lvl,340,1.2,"#bae6fd",{slow:2.6});
+}
+function castThunder(lvl){ S.skillCd.thunderbolt=Math.max(1.8,7-lvl*0.6);
+  castChainBase(lvl,7,1.0,"elec");
+}
+function castSeed(lvl){ S.skillCd.seedbomb=Math.max(1.8,7.5-lvl*0.6);
+  castRing(lvl,10,0.7,"#4ade80","grass");
+}
+function castIcy(lvl){ S.skillCd.icystorm=Math.max(1.8,5.4-lvl*0.4);
+  const p=S.player, t=nearestEnemy(p.x,p.y);
+  const ang=t?Math.atan2(t.y-p.y,t.x-p.x):rand(0,Math.PI*2);
+  castSkillBullet(p.x,p.y,ang,340,30*lvl,10,0,null,"fb",2.2);
+  castSkillBullet(p.x,p.y,ang+0.5,330,30*lvl,10,0,null,"iceball",2.2);
+}
+function castChain(lvl){ S.skillCd.chainstorm=Math.max(1.8,5.6-lvl*0.4);
+  const p=S.player;
+  let t=nearestEnemy(p.x,p.y), prev=null;
+  for(let k=0;k<5 && t;k++){
+    burst(t.x,t.y,"#fde047",8,150); t.hp-=30*lvl; applyAttr(t,"elec","elec");
+    if(t.hp<=0) killEnemy(t);
+    if(Math.random()<0.35) castSkillBullet(t.x,t.y,rand(0,Math.PI*2),260,12*lvl,4,0,null,null,1.2);
+    let nxt=null,bd=1e9;
+    for(const e of S.enemies){ if(e.dead||e===t||e===prev) continue;
+      const dd=dist(t,e); if(dd<bd){bd=dd;nxt=e;} }
+    prev=t; t=nxt;
+  }
+}
+function castNebula(lvl){ S.skillCd.nebula=Math.max(1.8,7.4-lvl*0.4);
+  const p=S.player;
+  S.holes.push({ x:p.x, y:p.y, r:200, t:1.2 });
+  burst(p.x,p.y,"#a78bfa",22,220);
+  for(let i=0;i<10;i++) castSkillBullet(p.x,p.y,i/10*Math.PI*2,340,14*lvl,4,0,null,null,1.3);
+}
+function castSuper(lvl){ S.skillCd.supernova=Math.max(2.4,8.5-lvl*0.6);
+  castBlast(lvl,380,1.8,"#fde047",{burn:1.2});
+  castBlast(S.player.x,S.player.y,300,1.2,"#fb923c",{});
+  for(let i=0;i<4;i++){
+    const tx=S.player.x+rand(-260,260), ty=S.player.y+rand(-260,260);
+    burst(tx,ty,"#f97316",18,210);
+    for(const o of S.enemies){ if(o.dead) continue; if(dist(o,{x:tx,y:ty})<70+o.r){ o.hp-=CONFIG.drone.damage*1.5*lvl; applyAttr(o,"fire","fire"); if(o.hp<=0) killEnemy(o); } }
+  }
+}
+function castPolar(lvl){ S.skillCd.polar=Math.max(2.4,8.5-lvl*0.6);
+  castBlast(lvl,460,1.8,"#e0f2fe",{slow:3});
+}
+function castTempest(lvl){ S.skillCd.tempest=Math.max(2.4,8-lvl*0.6);
+  castChainBase(lvl,9,1.2,"elec");
+  castBlast(S.player.x,S.player.y,340,1.2,"#fde047",{});
+}
+function castHyper(lvl){ S.skillCd.hyperbeam=Math.max(2.6,9-lvl*0.6);
+  castPierce(lvl,2.6,"#f472b6",null,1100,99,null);
+}
+function castApoc(lvl){ S.skillCd.apocalypse=Math.max(2.8,10-lvl*0.7);
+  castBlast(lvl,520,2.2,"#a78bfa",{slow:2});
+  for(let i=0;i<6;i++){
+    const tx=S.player.x+rand(-400,400), ty=S.player.y+rand(-400,400);
+    burst(tx,ty,"#6366f1",22,240);
+    for(const o of S.enemies){ if(o.dead) continue; if(dist(o,{x:tx,y:ty})<80+o.r){ o.hp-=CONFIG.drone.damage*1.8*lvl; applyAttr(o,"dragon","dragon"); if(o.hp<=0) killEnemy(o); } }
+  }
+}
 function tickSkills(dt){
   const sk=S.skills, cd=S.skillCd, p=S.player;
   if(!sk) return;
+  const regen=skillFx("regen");
+  if(regen && p.hp<p.maxHp){ p.hp=Math.min(p.maxHp,p.hp+0.7*regen*dt); refreshHpUI(); }
   for(const id in sk){
     const lvl=sk[id];
     if(cd[id]===undefined) cd[id]=0;
     if(cd[id]>0) cd[id]-=dt;
     if(lvl<=0) continue;
-    if(id==="regen"){ if(p.hp<p.maxHp){ p.hp=Math.min(p.maxHp,p.hp+0.7*lvl*dt); refreshHpUI(); } }
     if(id==="sacred"){ if(p.hp<p.maxHp){ p.hp=Math.min(p.maxHp,p.hp+2*dt); refreshHpUI(); } }
-    if(id==="fireball" && cd.fireball<=0) castFireball(lvl);
-    if(id==="frostnova" && cd.frostnova<=0) castFrost(lvl);
-    if(id==="lightning" && cd.lightning<=0) castLightning(lvl);
-    if(id==="blackhole" && cd.blackhole<=0) castBlackhole(lvl);
-    if(id==="barrage" && cd.barrage<=0) castBarrage(lvl);
-    if(id==="orbital" && cd.orbital<=0) castOrbital(lvl);
-    if(id==="overclock" && cd.overclock<=0){ cd.overclock = Math.max(2, 11-lvl); S.buff.oc=3; }
-    if(id==="nova_shield" && cd.nova_shield<=0){ cd.nova_shield = Math.max(6, 22-lvl*4); if(p.shieldLvl<3){ p.shieldLvl++; syncShieldUI(); burst(p.x,p.y,"#38bdf8",12,160); } }
+    if(id==="overclock" && cd.overclock<=0){ cd.overclock=Math.max(2,11-lvl); S.buff.oc=3; }
+    if(id==="nova_shield" && cd.nova_shield<=0){ cd.nova_shield=Math.max(6,22-lvl*4); if(p.shieldLvl<3){ p.shieldLvl++; syncShieldUI(); burst(p.x,p.y,"#38bdf8",12,160); } }
     if(id==="bastion" && cd.bastion<=0){ cd.bastion=15; if(p.shieldLvl<3){ p.shieldLvl++; syncShieldUI(); } }
-    if(id==="icystorm" && cd.icystorm<=0){
-      cd.icystorm = Math.max(1.6, 5.4);
-      const t=nearestEnemy(p.x,p.y); const ang=t?Math.atan2(t.y-p.y,t.x-p.x):rand(0,Math.PI*2);
-      castSkillBullet(p.x,p.y,ang,340,30,10,0,null,"fb",2.2);
-      castSkillBullet(p.x,p.y,ang+0.5,330,30,10,0,null,"iceball",2.2);
-    }
-    if(id==="chainstorm" && cd.chainstorm<=0){
-      cd.chainstorm = Math.max(1.6, 5.6);
-      let t=nearestEnemy(p.x,p.y), prev=null;
-      for(let k=0;k<5 && t;k++){
-        burst(t.x,t.y,"#fde047",8,150); t.hp-=30; applyAttr(t,"elec","elec");
-        if(t.hp<=0) killEnemy(t);
-        if(Math.random()<0.35){
-          castSkillBullet(t.x,t.y,rand(0,Math.PI*2),260,12,4,0,null,null,1.2);
-        }
-        let nxt=null,bd=1e9;
-        for(const e of S.enemies){ if(e.dead||e===t||e===prev) continue;
-          const dd=dist(t,e); if(dd<bd){bd=dd;nxt=e;} }
-        prev=t; t=nxt;
-      }
-    }
-    if(id==="nebula" && cd.nebula<=0){
-      cd.nebula = Math.max(1.8, 7.4);
-      S.holes.push({ x:p.x, y:p.y, r:200, t:1.2 });
-      burst(p.x,p.y,"#a78bfa",22,220);
-      for(let i=0;i<10;i++) castSkillBullet(p.x,p.y,i/10*Math.PI*2,340,14,4,0,null,null,1.3);
-    }
+    const fn=SKILL_FN[id];
+    if(fn && cd[id]<=0) fn(lvl);
   }
   if(S.buff.oc>0) S.buff.oc-=dt;
   if(S.buff.rage>0) S.buff.rage-=dt;
+  if(S.dyna){ S.dynaT-=dt; if(S.dynaT<=0) S.dyna=false; }
+  if(S.buff.z>0){ S.buff.z-=dt; if(S.buff.z<=0) S.buff.z=0; }
 }
 const ICONS={
   drone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="6" height="6" rx="1"/><circle cx="7" cy="11" r="1.4" fill="currentColor" stroke="none"/><path d="M10 11h4m4 0h-2m-2 0V7m0 8v-4"/></svg>',
@@ -2076,7 +2501,7 @@ function renderChoices(){
   for(const u of pickChoices()){
     const el=document.createElement("div");
     el.className="card rarity-"+u.rarity;
-    el.innerHTML='<div class="ico">'+(ICONS[u.id]||(u.rarity===3?FUSION_ICON:SKILL_ICON))+'</div><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div><div class="lvl">'+(u.max===99?"":(u.max===1&&u.lvl===0?"可融合":"已强化 Lv."+u.lvl+" / "+u.max))+'</div>';
+    el.innerHTML='<div class="ico">'+(ICONS[u.id]||(u.rarity===3?FUSION_ICON:SKILL_ICON))+'</div><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div><div class="lvl">'+(u.max===99?"":(u.fus&&u.lvl===0?"合成：满级 2 合 1":"已强化 Lv."+u.lvl+" / "+u.max))+'</div>';
     el.addEventListener("click",()=>{
       u.apply(); sndLevel();
       S.mode="playing"; S.timeScale=1;
@@ -2410,26 +2835,33 @@ function drawPlayer(){
   const p=S.player;
   const id = S.activeRole || "pichu";
   const form = roleForm(id);
+  const rr = p.r*1.05 * (roleMega(id)?1.28:1) * (S.dyna?1.9:1);
   if(p.flash>0 && Math.floor(p.flash*20)%2===0){ /* 受击闪烁帧 */ }
   else{
     const a = PK(id).attr;
-    if(a==="fire") drawFire(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(a==="ice") drawIce(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(a==="water") drawWater(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(a==="grass") drawGrass(p.x,p.y,p.r*1.05,p.angle,form);
-    else drawElec(p.x,p.y,p.r*1.05,p.angle,form);
+    attrDrawer(a)(p.x,p.y,rr,p.angle,form);
+  }
+  // Mega 光翼
+  if(roleMega(id)){
+    CTX.strokeStyle="rgba(168,85,247,0.9)"; CTX.lineWidth=2.5;
+    CTX.beginPath(); CTX.arc(p.x,p.y,rr+10,0,6.28); CTX.stroke();
+  }
+  // 极巨化 光晕
+  if(S.dyna){
+    CTX.fillStyle="rgba(168,85,247,0.12)";
+    CTX.beginPath(); CTX.arc(p.x,p.y,rr*1.6,0,6.28); CTX.fill();
   }
   // 护盾光圈
   if(p.shieldLvl>0){
     CTX.strokeStyle="rgba(56,189,248,0.55)"; CTX.lineWidth=2;
-    CTX.beginPath(); CTX.arc(p.x,p.y,p.r+8,0,6.28); CTX.stroke();
+    CTX.beginPath(); CTX.arc(p.x,p.y,rr+8,0,6.28); CTX.stroke();
   }
   // 闪光光环
   if(S.shiny[id]){
     CTX.strokeStyle="rgba(250,204,21,0.9)"; CTX.lineWidth=2;
-    CTX.beginPath(); CTX.arc(p.x,p.y,p.r+9,0,6.28); CTX.stroke();
+    CTX.beginPath(); CTX.arc(p.x,p.y,rr+9,0,6.28); CTX.stroke();
     CTX.fillStyle="#fde047"; CTX.font="bold 12px sans-serif"; CTX.textAlign="center";
-    CTX.fillText("★",p.x,p.y-p.r-12);
+    CTX.fillText("★",p.x,p.y-rr-12);
   }
 }
 function drawPartners(){
@@ -2437,7 +2869,7 @@ function drawPartners(){
     if(q.flash>0 && Math.floor(q.flash*20)%2===0) continue;
     const form=roleForm(q.id);
     const a=PK(q.id).attr;
-    const fn = a==="fire"?drawFire : a==="ice"?drawIce : a==="water"?drawWater : a==="grass"?drawGrass : a==="neutral"?drawNeutral : drawElec;
+    const fn = attrDrawer(PK(q.id).attr);
     fn(q.x,q.y,q.r*1.1,q.angle,form);
     if(S.shiny[q.id]){
       CTX.strokeStyle="rgba(250,204,21,0.9)"; CTX.lineWidth=2;
@@ -2446,6 +2878,166 @@ function drawPartners(){
       CTX.fillText("★",q.x,q.y-q.r-8);
     }
   }
+}
+function drawFight(x,y,r,rot,form){ // 斗系：圆身 + 红色头带 + 拳套
+  const R=r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#f87171");
+  CTX.fillStyle = form>=3?"#ef4444":"#f87171";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#fee2e2"; CTX.beginPath(); CTX.ellipse(0,R*0.3,R*0.5,R*0.4,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#b91c1c"; // 头带
+  CTX.fillRect(-R*0.9,-R*0.45,R*1.8,R*0.22);
+  CTX.fillStyle="#f87171"; // 拳套
+  CTX.beginPath(); CTX.arc(-R*0.75,R*0.55,R*0.3,0,6.28); CTX.arc(R*0.75,R*0.55,R*0.3,0,6.28); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.32,-R*0.15,R*0.14,0,6.28); CTX.arc(R*0.32,-R*0.15,R*0.14,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawPoison(x,y,r,rot,form){ // 毒系：圆身 + 毒泡
+  const R=r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#a78bfa");
+  CTX.fillStyle = form>=3?"#8b5cf6":"#a78bfa";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  CTX.fillStyle=form>=3?"#c084fc":"#ddd6fe";
+  for(const [ox,oy,or] of [[-0.4,-0.3,0.14],[0.42,0.1,0.12],[-0.15,0.35,0.11],[0.05,-0.35,0.1]]){
+    CTX.beginPath(); CTX.arc(ox*R,oy*R,or*R,0,6.28); CTX.fill();
+  }
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.13,0,6.28); CTX.arc(R*0.3,-R*0.2,R*0.13,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawGround(x,y,r,rot,form){ // 地系：圆身 + 土纹 + 岩角
+  const R=r*(form>=3?1.4:(form>=2?1.15:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#d6a15c");
+  CTX.fillStyle = form>=3?"#b07d3f":"#d6a15c";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.8,0,0,6.28); CTX.fill();
+  CTX.strokeStyle="rgba(120,72,32,.55)"; CTX.lineWidth=1.6;
+  CTX.beginPath(); CTX.moveTo(-R*0.6,0); CTX.lineTo(-R*0.1,R*0.35); CTX.moveTo(R*0.55,0); CTX.lineTo(R*0.05,R*0.4); CTX.stroke();
+  CTX.fillStyle=form>=3?"#8a5a2b":"#c98a4b"; // 岩角
+  CTX.beginPath(); CTX.moveTo(-R*0.5,-R*0.8); CTX.lineTo(-R*0.1,-R*1.25); CTX.lineTo(R*0.15,-R*0.8); CTX.closePath(); CTX.fill();
+  CTX.beginPath(); CTX.moveTo(R*0.5,-R*0.8); CTX.lineTo(R*0.1,-R*1.2); CTX.lineTo(-R*0.15,-R*0.8); CTX.closePath(); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.35,R*0.12,0,6.28); CTX.arc(R*0.3,-R*0.35,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawFlying(x,y,r,rot,form){ // 飞系：圆身 + 展翅
+  const R=r*(form>=3?1.3:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#93c5fd");
+  CTX.fillStyle = form>=3?"#60a5fa":"#93c5fd";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.8,0,0,6.28); CTX.fill();
+  CTX.fillStyle=form>=3?"#bfdbfe":"#dbeafe"; // 翅膀
+  for(const s of [-1,1]){
+    CTX.beginPath();
+    CTX.moveTo(s*R*0.25,0); CTX.lineTo(s*R*1.55,-R*0.55); CTX.lineTo(s*R*0.95,R*0.4); CTX.closePath(); CTX.fill();
+  }
+  CTX.fillStyle="#facc15"; CTX.beginPath(); CTX.moveTo(0,R*0.15); CTX.lineTo(-R*0.18,R*0.5); CTX.lineTo(R*0.18,R*0.5); CTX.closePath(); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.12,0,6.28); CTX.arc(R*0.3,-R*0.2,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawPsychic(x,y,r,rot,form){ // 超系：圆身 + 弯月 + 星点
+  const R=r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#f0abfc");
+  CTX.fillStyle = form>=3?"#e879f9":"#f0abfc";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  CTX.strokeStyle="#a21caf"; CTX.lineWidth=R*0.18; CTX.lineCap="round"; // 弯月
+  CTX.beginPath(); CTX.arc(0,-R*0.55,R*0.5,-2.4,-0.7); CTX.stroke();
+  CTX.fillStyle="#fdf4ff";
+  for(const a of [0.4,1.6,2.9]){ CTX.beginPath(); CTX.arc(Math.cos(a)*R*0.7,Math.sin(a)*R*0.7*0.9,R*0.09,0,6.28); CTX.fill(); }
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.13,0,6.28); CTX.arc(R*0.3,-R*0.2,R*0.13,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawBug(x,y,r,rot,form){ // 虫系：圆身 + 触角 + 小翅
+  const R=r*(form>=3?1.3:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#a3e635");
+  CTX.fillStyle = form>=3?"#84cc16":"#a3e635";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.8,0,0,6.28); CTX.fill();
+  CTX.strokeStyle=form>=3?"#3f6212":"#4d7c0f"; CTX.lineWidth=1.6; // 条纹
+  CTX.beginPath(); CTX.moveTo(-R*0.7,0); CTX.lineTo(R*0.7,0); CTX.stroke();
+  CTX.strokeStyle="#a3e635"; CTX.lineWidth=R*0.14; CTX.lineCap="round"; // 触角
+  CTX.beginPath(); CTX.moveTo(-R*0.25,-R*0.7); CTX.quadraticCurveTo(-R*0.55,-R*1.3,-R*0.2,-R*1.35); CTX.stroke();
+  CTX.beginPath(); CTX.moveTo(R*0.25,-R*0.7); CTX.quadraticCurveTo(R*0.55,-R*1.3,R*0.2,-R*1.35); CTX.stroke();
+  CTX.fillStyle="rgba(255,255,255,.5)"; // 翅
+  CTX.beginPath(); CTX.ellipse(-R*0.7,-R*0.15,R*0.42,R*0.3,0.4,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.ellipse(R*0.7,-R*0.15,R*0.42,R*0.3,-0.4,0,6.28); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.25,R*0.11,0,6.28); CTX.arc(R*0.3,-R*0.25,R*0.11,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawRock(x,y,r,rot,form){ // 岩系：棱角身体 + 岩刺
+  const R=r*(form>=3?1.4:(form>=2?1.15:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#a8a29e");
+  CTX.fillStyle = form>=3?"#78716c":"#a8a29e";
+  CTX.beginPath(); CTX.moveTo(0,-R*1.1); CTX.lineTo(R*0.95,-R*0.35); CTX.lineTo(R*0.7,R*0.85); CTX.lineTo(-R*0.7,R*0.85); CTX.lineTo(-R*0.95,-R*0.35); CTX.closePath(); CTX.fill();
+  CTX.fillStyle=form>=3?"#57534e":"#d6d3d1"; // 岩刺
+  CTX.beginPath(); CTX.moveTo(-R*0.4,-R*0.4); CTX.lineTo(-R*0.75,-R*0.95); CTX.lineTo(-R*0.1,-R*0.75); CTX.closePath(); CTX.fill();
+  CTX.beginPath(); CTX.moveTo(R*0.35,R*0.3); CTX.lineTo(R*0.95,R*0.5); CTX.lineTo(R*0.55,R*0.75); CTX.closePath(); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.15,R*0.12,0,6.28); CTX.arc(R*0.3,-R*0.15,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawGhost(x,y,r,rot,form){ // 鬼系：幽灵飘体 + 拖尾
+  const R=r*(form>=3?1.4:(form>=2?1.15:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#818cf8");
+  CTX.fillStyle = form>=3?"#6366f1":"#818cf8";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  CTX.beginPath(); // 裙摆拖尾
+  CTX.moveTo(-R*0.85,R*0.5); CTX.lineTo(-R*0.5,R*1.15); CTX.lineTo(0,R*0.75); CTX.lineTo(R*0.5,R*1.15); CTX.lineTo(R*0.85,R*0.5); CTX.closePath(); CTX.fill();
+  CTX.fillStyle="rgba(255,255,255,.45)";
+  CTX.beginPath(); CTX.ellipse(-R*0.3,-R*0.15,R*0.13,R*0.2,0.3,0,6.28); CTX.fill();
+  CTX.beginPath(); CTX.ellipse(R*0.3,-R*0.15,R*0.13,R*0.2,-0.3,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawDragon(x,y,r,rot,form){ // 龙系：圆身 + 龙角 + 小翼
+  const R=r*(form>=3?1.4:(form>=2?1.15:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#6366f1");
+  CTX.fillStyle = form>=3?"#4f46e5":"#6366f1";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.9,0,0,6.28); CTX.fill();
+  CTX.fillStyle=form>=3?"#818cf8":"#a5b4fc"; // 龙角
+  for(const s of [-1,1]){
+    CTX.beginPath(); CTX.moveTo(s*R*0.3,-R*0.6); CTX.lineTo(s*R*0.8,-R*1.2); CTX.lineTo(s*R*0.55,-R*0.55); CTX.closePath(); CTX.fill();
+  }
+  CTX.fillStyle=form>=3?"#818cf8":"#a5b4fc"; // 小翼
+  for(const s of [-1,1]){
+    CTX.beginPath(); CTX.moveTo(s*R*0.4,0); CTX.lineTo(s*R*1.4,-R*0.4); CTX.lineTo(s*R*0.8,R*0.35); CTX.closePath(); CTX.fill();
+  }
+  CTX.fillStyle="#fde047"; CTX.beginPath(); CTX.ellipse(0,R*0.25,R*0.28,R*0.18,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.25,R*0.13,0,6.28); CTX.arc(R*0.3,-R*0.25,R*0.13,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawDark(x,y,r,rot,form){ // 恶系：圆身 + 尖耳 + 眼
+  const R=r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#57534e");
+  CTX.fillStyle = form>=3?"#44403c":"#57534e";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  CTX.fillStyle=form>=3?"#292524":"#78716c"; // 尖耳
+  CTX.beginPath(); CTX.moveTo(-R*0.55,-R*0.45); CTX.lineTo(-R*0.8,-R*1.15); CTX.lineTo(-R*0.15,-R*0.7); CTX.closePath(); CTX.fill();
+  CTX.beginPath(); CTX.moveTo(R*0.55,-R*0.45); CTX.lineTo(R*0.8,-R*1.15); CTX.lineTo(R*0.15,-R*0.7); CTX.closePath(); CTX.fill();
+  CTX.fillStyle="#facc15"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.15,R*0.13,0,6.28); CTX.arc(R*0.3,-R*0.15,R*0.13,0,6.28); CTX.fill();
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.15,R*0.07,0,6.28); CTX.arc(R*0.3,-R*0.15,R*0.07,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawSteel(x,y,r,rot,form){ // 钢系：金属圆身 + 板纹
+  const R=r*(form>=3?1.35:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#cbd5e1");
+  CTX.fillStyle = form>=3?"#94a3b8":"#cbd5e1";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  CTX.strokeStyle="#64748b"; CTX.lineWidth=1.6; // 板纹
+  CTX.beginPath(); CTX.ellipse(0,0,R*0.7,R*0.55,0,0,6.28); CTX.stroke();
+  CTX.fillStyle="#94a3b8"; // 铆钉
+  for(const [ox,oy] of [[-0.6,0],[0.6,0],[0,-0.4],[0,0.5]]){
+    CTX.beginPath(); CTX.arc(ox*R,oy*R,R*0.1,0,6.28); CTX.fill();
+  }
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.12,0,6.28); CTX.arc(R*0.3,-R*0.2,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
+}
+function drawFairy(x,y,r,rot,form){ // 妖系：圆身 + 蝴蝶小翅 + 星
+  const R=r*(form>=3?1.3:(form>=2?1.1:0.85));
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot); glow("#f9a8d4");
+  CTX.fillStyle = form>=3?"#f472b6":"#f9a8d4";
+  CTX.beginPath(); CTX.ellipse(0,0,R,R*0.85,0,0,6.28); CTX.fill();
+  CTX.fillStyle="rgba(253,164,175,.8)"; // 小翅
+  for(const s of [-1,1]){
+    CTX.beginPath(); CTX.ellipse(s*R*0.85,-R*0.25,R*0.45,R*0.3,0,0,6.28); CTX.fill();
+  }
+  CTX.fillStyle="#fdf4ff";
+  for(const a of [0,1.2,2.4,3.6,4.8]){ CTX.beginPath(); CTX.arc(Math.cos(a)*R*0.65,Math.sin(a)*R*0.6,R*0.08,0,6.28); CTX.fill(); }
+  CTX.fillStyle="#0f172a"; CTX.beginPath(); CTX.arc(-R*0.3,-R*0.2,R*0.12,0,6.28); CTX.arc(R*0.3,-R*0.2,R*0.12,0,6.28); CTX.fill();
+  CTX.restore();
 }
 function drawNeutral(x,y,r,rot,form){
   CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
@@ -2458,6 +3050,15 @@ function drawNeutral(x,y,r,rot,form){
   CTX.fillStyle="#1e293b";
   CTX.beginPath(); CTX.arc(-r*0.24*s,r*0.12*s,r*0.12*s,0,6.28); CTX.arc(r*0.24*s,r*0.12*s,r*0.12*s,0,6.28); CTX.fill();
   CTX.restore();
+}
+function attrDrawer(attr){
+  const M={
+    fire:drawFire, elec:drawElec, ice:drawIce, water:drawWater, grass:drawGrass,
+    normal:drawNeutral, fight:drawFight, poison:drawPoison, ground:drawGround,
+    flying:drawFlying, psychic:drawPsychic, bug:drawBug, rock:drawRock,
+    ghost:drawGhost, dragon:drawDragon, dark:drawDark, steel:drawSteel, fairy:drawFairy
+  };
+  return M[attr]||drawNeutral;
 }
 function drawDrones(){
   const p=S.player;
@@ -2499,11 +3100,7 @@ function drawEnemies(){
         CTX.restore();
         if(Math.random()<0.5) burst(e.x+rand(-e.r,e.r), e.y+rand(-e.r,e.r), e.ult?"#c084fc":"#fde047", 2, 70);
       }
-      if(e.attr==="fire") drawCharizard(e.x,e.y,e.r,rot);
-      else if(e.attr==="elec") drawElec(e.x,e.y,e.r,rot,3);
-      else if(e.attr==="ice") drawIce(e.x,e.y,e.r,rot,3);
-      else if(e.attr==="water") drawWater(e.x,e.y,e.r,rot,3);
-      else drawGrass(e.x,e.y,e.r,rot,3);
+      attrDrawer(e.attr)(e.x,e.y,e.r,rot,3);
     }
     else if(e.type==="elite") drawCharizard(e.x,e.y,e.r,rot);
     else if(e.type==="brute") drawSnorlax(e.x,e.y,e.r,rot);
@@ -2667,6 +3264,20 @@ function renderCollection(){
     tb.addEventListener("click",()=>{ S.colGen=g; renderCollection(); });
     tabs.appendChild(tb);
   }
+  // 手环商店：极巨化 / Z 招式（永久解锁）
+  const shop=$("shop-row"); shop.innerHTML="";
+  const dynaBtn=document.createElement("button");
+  dynaBtn.className="shop-btn"+(S.dynaUnlocked?" owned":"");
+  dynaBtn.textContent = S.dynaUnlocked? "极巨手环 · 已解锁（每关 1 次，按 G 极巨化）" : "极巨手环 "+DYNA_COST+" 金币";
+  dynaBtn.disabled = S.dynaUnlocked || S.coins<DYNA_COST;
+  dynaBtn.addEventListener("click",()=>{ if(S.coins>=DYNA_COST && !S.dynaUnlocked){ S.coins-=DYNA_COST; S.dynaUnlocked=true; try{localStorage.setItem("starburst_dyna","1");}catch(e){} saveProgress(); renderCollection(); } });
+  shop.appendChild(dynaBtn);
+  const zBtn=document.createElement("button");
+  zBtn.className="shop-btn"+(S.zUnlocked?" owned":"");
+  zBtn.textContent = S.zUnlocked? "Z 手环 · 已解锁（战斗中满能量按 Z 放"+zMoveName()+"）" : "Z 手环 "+Z_COST+" 金币";
+  zBtn.disabled = S.zUnlocked || S.coins<Z_COST;
+  zBtn.addEventListener("click",()=>{ if(S.coins>=Z_COST && !S.zUnlocked){ S.coins-=Z_COST; S.zUnlocked=true; try{localStorage.setItem("starburst_z","1");}catch(e){} saveProgress(); renderCollection(); } });
+  shop.appendChild(zBtn);
   const grid=$("col-grid"); grid.innerHTML="";
   const list = S.colGen==="all" ? POKEDEX_KEYS : POKEDEX_KEYS.filter(id=>PK(id).gen===+S.colGen);
   for(const id of list){
@@ -2702,6 +3313,17 @@ function renderCollection(){
       mz.textContent = id===S.activeRole ? "主战" : "设主战";
       if(id===S.activeRole){ mz.classList.add("used"); }
       else mz.addEventListener("click",()=>{ S.activeRole=id; S.party=S.party.filter(x=>x!==id); saveProgress(); renderCollection(); });
+      // Mega 石（原著可 Mega 名单内）
+      if(canMega(id)){
+        const mb=document.createElement("button"); mb.className="btn-pick";
+        if(S.mega[id]){ mb.textContent="已 Mega"; mb.classList.add("used"); mb.disabled=true; }
+        else{
+          mb.textContent="Mega 石 "+MEGA_COST;
+          mb.disabled = S.coins<MEGA_COST;
+          mb.addEventListener("click",()=>{ if(S.coins>=MEGA_COST){ S.coins-=MEGA_COST; S.mega[id]=true; try{localStorage.setItem("starburst_mega",JSON.stringify(S.mega));}catch(e){} saveProgress(); renderCollection(); } });
+        }
+        actions.appendChild(mb);
+      }
       const jo=document.createElement("button"); jo.className="btn-pick";
       if(id===S.activeRole){ jo.textContent="已出战"; jo.disabled=true; }
       else if(S.party.includes(id)){ jo.textContent="移出"; jo.addEventListener("click",()=>{ S.party=S.party.filter(x=>x!==id); saveProgress(); renderCollection(); }); }
@@ -2738,6 +3360,7 @@ function startGame(){
   S.t=0; S.kills=0; S.stage=1; S.stageTimer=CONFIG.level.duration; S.bossActive=false;
   S.runCoins=0; S.playerSlowT=0; S.playerBurn=null; S.lastMult=1;
   S.skills={}; S.skillCd={}; S.buff={ oc:0, rage:0 }; S.holes=[];
+  S.dyna=false; S.dynaT=0; S.dynaCharges=1; S.zCharge=0;
   S.level=1; S.exp=0;
   S.expNeed=CONFIG.exp.base;
   S.spawnTimer=0.8; S.eliteTimer=CONFIG.spawn.eliteEvery; S.dmgFlash=0;
@@ -2750,6 +3373,7 @@ function startGame(){
   hide("menu"); hide("gameover"); hide("levelup"); hide("pause"); hide("banner"); hide("collection");
   show("hud"); show("topbtns");
   refreshHpUI(); syncShieldUI(); refreshExpUI(); refreshLevelUI(); refreshTopUI();
+  updatePowerUI();
   if(isTouchDevice()) $("joy-area").classList.add("on");
 }
 function renderPauseSkills(){
@@ -2802,6 +3426,8 @@ window.addEventListener("keydown",e=>{
     if(S.mode==="playing") pauseGame();
     else if(S.mode==="paused") resumeGame();
   }
+  if(e.code==="KeyG") tryDyna();
+  if(e.code==="KeyZ" && S.zUnlocked && S.zCharge>=100 && S.mode==="playing") castZMove();
 });
 window.addEventListener("keyup",e=>{ KEYS[e.code]=false; });
 function pollKeyboard(){
@@ -2879,6 +3505,7 @@ $("btn-retry").addEventListener("click",startGame);
 $("btn-pause").addEventListener("click",()=>{
   if(S.mode==="playing") pauseGame(); else if(S.mode==="paused") resumeGame();
 });
+$("btn-dyna").addEventListener("click",tryDyna);
 $("btn-mute").addEventListener("click",()=>{
   S.mute=!S.mute;
   try{ localStorage.setItem("starburst_mute",S.mute?"1":"0"); }catch(e){}
