@@ -211,7 +211,7 @@
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
       你只管走位闪避、拾取能量、升级强化，在无尽虫潮中活下来。
     </div>
-    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
+    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>每 5 关出现二级神 · 每 10 关出现一级神（随机）<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
     <div class="menu-coins">金币 <b id="menu-coins">0</b></div>
     <div class="menu-btns">
       <button class="btn" id="btn-start">开始游戏</button>
@@ -274,7 +274,7 @@ const CONFIG = {
   },
   exp: { base:30, perLevel:16, magnet:170 },
   spawn: { interval:0.62, intervalMin:0.26, intervalDecay:0.05, batchMin:1, batchMax:2, eliteEvery:32 },
-  level: { duration:90, bossBase:360, bossPerStage:140, megaEvery:10, megaMult:3 },
+  level: { duration:90, bossBase:360, bossPerStage:140, megaEvery:5, ultEvery:10, megaMult:3, ultMult:5 },
   levelup: { choices:3 },
   stars: { layers:[ {count:90, depth:0.25}, {count:40, depth:0.6} ] }
 };
@@ -292,7 +292,19 @@ const ROSTER = {
   grass:{ name:"妙蛙种子", mid:"妙蛙草", top:"妙蛙花", attr:"草", color:"#4ade80",
     skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" }
 };
-const BOSS_POOL = ["fire","elec","ice","water","grass"];   // 关卡 Boss 循环：火→电→冰→水→草
+const BOSS_POOL = ["fire","elec","ice","water","grass"];   // 普通 Boss 属性池（每关随机）
+// 二级神（每 5 关大 Boss · 随机）
+const GODS_2 = [
+  { name:"急冻鸟", attr:"ice" }, { name:"闪电鸟", attr:"elec" },
+  { name:"火焰鸟", attr:"fire" }, { name:"水君",   attr:"water" },
+  { name:"时拉比", attr:"grass" },
+];
+// 一级神（每 10 关终极 Boss · 随机）
+const GODS_1 = [
+  { name:"超梦",   attr:"elec" }, { name:"盖欧卡", attr:"water" },
+  { name:"固拉多", attr:"fire" }, { name:"裂空座", attr:"grass" },
+  { name:"酋雷姆", attr:"ice" },
+];
 const ATTR_KEYS = ["fire","elec","ice","water","grass"];
 const ROLE_EVOLVE_COST = [0, 60, 120];                     // 进化 1→2 需 60 金币，2→3 需 120 金币
 const ROLE_ORDER = ["elec","fire","ice","water","grass"];  // 图鉴展示顺序
@@ -309,7 +321,7 @@ const S = {
   level:1, exp:0, expNeed:CONFIG.exp.base,
   roster:{ elec:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
   coins:0, runCoins:0, activeRole:"elec",  // 金币 / 本局金币 / 当前出战角色
-  bossId:null, playerSlowT:0, playerBurn:null, lastMega:false,
+  bossId:null, playerSlowT:0, playerBurn:null, lastMult:1,
   skills:{}, skillCd:{},      // 技能等级 / 技能冷却
   buff:{ oc:0, rage:0 }, holes:[],   // 超频/狂暴 计时 · 黑洞
   stats:{ kills:0 },
@@ -405,17 +417,21 @@ function spawnElite(){
 function spawnBoss(){
   S.bossActive = true;
   S.enemies.length = 0;                                              // 清场，专注 Boss
-  const mega = (S.stage % CONFIG.level.megaEvery) === 0;             // 每 10 关大 Boss
-  const bid = BOSS_POOL[(S.stage-1)%BOSS_POOL.length];               // 每关 Boss 不同（循环）
+  // 每 10 关终极 Boss（一级神）· 每 5 关大 Boss（二级神）· 其余普通 Boss（全部随机）
+  let ult=false, mega=false, name="", bid;
+  if(S.stage % CONFIG.level.ultEvery === 0){ ult=true; const g=GODS_1[Math.floor(Math.random()*GODS_1.length)]; bid=g.attr; name=g.name; }
+  else if(S.stage % CONFIG.level.megaEvery === 0){ mega=true; const g=GODS_2[Math.floor(Math.random()*GODS_2.length)]; bid=g.attr; name=g.name; }
+  else { bid = BOSS_POOL[Math.floor(Math.random()*BOSS_POOL.length)]; }
   S.bossId = bid;
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.5 + 60;
   const base = CONFIG.level.bossBase + (S.stage-1)*CONFIG.level.bossPerStage;
-  const m = mega ? CONFIG.level.megaMult : 1;
-  S.enemies.push({ type:"boss", attr:bid, mega, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
-    r: mega?58:40, hp:base*m, maxHp:base*m, speed: mega?40:32, dmg: mega?50:35, exp:0,
+  const m = ult ? CONFIG.level.ultMult : mega ? CONFIG.level.megaMult : 1;
+  S.enemies.push({ type:"boss", attr:bid, name, mega, ult, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
+    r: ult?74: mega?58:40, hp:base*m, maxHp:base*m, speed: ult?44: mega?40:32, dmg: ult?60: mega?50:35, exp:0,
     angle:a, wob:0, elite:false, dead:false });
-  showBanner((mega?"最终 BOSS · ":"BOSS 来袭 · ")+ROSTER[bid].top);
+  const tag = ult ? ("终极 Boss · "+name) : mega ? ("大 Boss · "+name) : ("BOSS 来袭 · "+ROSTER[bid].top);
+  showBanner(tag);
   sndExplode(true);
 }
 function captureBoss(){
@@ -435,7 +451,7 @@ function stageClear(){
   const p = S.player;
   p.hp = p.maxHp; p.shieldLvl = Math.max(p.shieldLvl,1);
   refreshHpUI(); syncShieldUI();
-  const reward = (10 + S.stage*5) * (S.lastMega?3:1);               // 大 Boss 金币 ×3
+  const reward = (10 + S.stage*5) * S.lastMult;                      // 二级神 ×3 / 一级神 ×5
   S.coins += reward;
   S.runCoins += reward;
   saveProgress();
@@ -684,7 +700,7 @@ function killEnemy(e){
     burst(e.x,e.y,"#f97316",e.mega?70:46,e.mega?520:420);
     burst(e.x,e.y,e.mega?"#fde047":"#fde68a",e.mega?46:30,e.mega?380:300);
     sndExplode(true);
-    S.lastMega = !!e.mega;
+    S.lastMult = e.ult?5 : e.mega?3 : 1;
     captureBoss();      // 打赢即可捕捉（基础形态）
     stageClear();
     return;
@@ -1318,6 +1334,25 @@ function drawEnemies(){
   for(const e of S.enemies){
     const rot=e.angle+Math.sin(e.wob)*0.3;
     if(e.type==="boss"){
+      // 神兽光环（大 Boss 金色 · 终极 Boss 紫金双环 + 光晕）
+      if(e.mega||e.ult){
+        CTX.save(); CTX.translate(e.x,e.y);
+        const rot=e.wob*0.9;
+        const c1 = e.ult?"rgba(192,132,252,":"rgba(245,158,11,";
+        const c2 = e.ult?"rgba(232,121,249,":"rgba(253,224,71,";
+        for(let k=0;k<2;k++){
+          CTX.save(); CTX.rotate(rot*(k? -1.35 : 1.15));
+          CTX.strokeStyle=c1+(k?0.85:0.65)+")"; CTX.lineWidth=k?3:4;
+          CTX.beginPath();
+          CTX.ellipse(0,0,e.r+12+k*9, e.r*0.52+6+k*6, 0, 0, Math.PI*2);
+          CTX.stroke();
+          CTX.restore();
+        }
+        CTX.strokeStyle=c2+"0.9)"; CTX.lineWidth=2;
+        CTX.beginPath(); CTX.arc(0,0,e.r+3,0,6.28); CTX.stroke();
+        CTX.restore();
+        if(Math.random()<0.5) burst(e.x+rand(-e.r,e.r), e.y+rand(-e.r,e.r), e.ult?"#c084fc":"#fde047", 2, 70);
+      }
       if(e.attr==="fire") drawCharizard(e.x,e.y,e.r,rot);
       else if(e.attr==="elec") drawElec(e.x,e.y,e.r,rot,3);
       else if(e.attr==="ice") drawIce(e.x,e.y,e.r,rot,3);
@@ -1329,19 +1364,22 @@ function drawEnemies(){
     else if(e.type==="swarmer") drawZubat(e.x,e.y,e.r,rot);
     else drawGastly(e.x,e.y,e.r,rot);
     if(e.type==="boss"){
-      // 顶部大血条（大 Boss 金色加高）
+      // 顶部大血条（二级神金色 · 一级神紫色加高）
       const bw=Math.min(W*0.62,430), bx=(W-bw)/2, by=16;
-      const bh = e.mega?13:9;
+      const bh = e.ult?15 : e.mega?13 : 9;
       CTX.setTransform(DPR,0,0,DPR,0,0);
       CTX.fillStyle="rgba(2,6,23,0.72)";
       CTX.fillRect(bx,by,bw,bh);
-      CTX.fillStyle = e.mega?"#f59e0b":"#fb923c";
+      CTX.fillStyle = e.ult?"#c084fc" : e.mega?"#f59e0b" : "#fb923c";
       CTX.fillRect(bx,by,bw*clamp(e.hp/e.maxHp,0,1),bh);
-      CTX.strokeStyle = e.mega?"rgba(245,158,11,.7)":"rgba(249,115,22,.6)"; CTX.lineWidth=1;
+      CTX.strokeStyle = e.ult?"rgba(192,132,252,.75)" : e.mega?"rgba(245,158,11,.7)" : "rgba(249,115,22,.6)"; CTX.lineWidth=1;
       CTX.strokeRect(bx-0.5,by-0.5,bw+1,bh+1);
       CTX.fillStyle="#fde68a"; CTX.font="bold 12px system-ui, sans-serif";
       CTX.textAlign="center";
-      CTX.fillText((e.mega?"最终 BOSS · ":"BOSS · ")+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关", W/2, by-6);
+      const tag = e.ult ? ("终极 Boss · "+e.name+" · 第 "+S.stage+" 关")
+                : e.mega ? ("大 Boss · "+e.name+" · 第 "+S.stage+" 关")
+                : ("BOSS · "+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关");
+      CTX.fillText(tag, W/2, by-6);
     }
     // 血条（受伤时显示）
     if(e.hp<e.maxHp && e.type!=="boss"){
@@ -1497,7 +1535,7 @@ function startGame(){
   const p = newPlayer();
   S.mode="playing"; S.timeScale=1;
   S.t=0; S.kills=0; S.stage=1; S.stageTimer=CONFIG.level.duration; S.bossActive=false;
-  S.runCoins=0; S.playerSlowT=0; S.playerBurn=null; S.lastMega=false;
+  S.runCoins=0; S.playerSlowT=0; S.playerBurn=null; S.lastMult=1;
   S.skills={}; S.skillCd={}; S.buff={ oc:0, rage:0 }; S.holes=[];
   S.level=1; S.exp=0;
   S.expNeed=CONFIG.exp.base;
