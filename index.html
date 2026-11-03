@@ -35,6 +35,23 @@
   #exp-bar > i { background:linear-gradient(90deg,#34d399,#22d3ee); }
   #exp-wrap .bar-label { justify-content:center; }
 
+  /* ===== 关卡进度条 ===== */
+  #hud .bar-wrap.stage { width:min(200px, 40vw); }
+  #hud .bar-wrap.stage .bar { height:6px; }
+  #hud .bar-wrap.stage .bar > i { background:linear-gradient(90deg,#38bdf8,#818cf8); }
+  #hud .bar-wrap.stage.warn .bar > i { background:linear-gradient(90deg,#f97316,#fb7185); }
+  #hud .bar-wrap.stage .bar-label { font-size:11px; gap:10px; }
+
+  /* ===== 关卡横幅 ===== */
+  #banner { position:absolute; top:15%; left:0; right:0; text-align:center; pointer-events:none; z-index:25; }
+  #banner span {
+    display:inline-block; font-size:26px; font-weight:900; letter-spacing:8px; color:#f8fafc;
+    padding:10px 26px; border-radius:12px; background:rgba(15,23,42,.55);
+    text-shadow:0 0 24px rgba(56,189,248,.8); animation:bannerIn .4s ease;
+  }
+  @keyframes bannerIn { from{ opacity:0; transform:translateY(-10px) scale(.94); } to{ opacity:1; transform:none; } }
+  @media (min-width:768px){ #banner span { font-size:36px; letter-spacing:14px; } }
+
   /* ===== 通用 overlay ===== */
   .overlay { position:absolute; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(3,6,15,.82); backdrop-filter:blur(6px); padding:20px; }
   .overlay[hidden] { display:none; }
@@ -84,6 +101,7 @@
   #gameover .stats .s .k { font-size:12px; color:#94a3b8; letter-spacing:2px; margin-top:4px; }
   #gameover .best { margin-top:14px; font-size:14px; color:#67e8f9; letter-spacing:2px; }
   #gameover .best.hidden { visibility:hidden; }
+  #gameover .go-stage { margin-top:10px; font-size:13px; color:#94a3b8; letter-spacing:2px; }
 
   /* ===== 1 分钟表白页 ===== */
   #love { background:#04060f; padding:0; }
@@ -142,7 +160,10 @@
     <div class="top-right">
       <div class="timer" id="timer">00:00</div>
       <div class="stat kills">击毁 <b id="kills">0</b></div>
-      <div class="stat">波次 <b id="wave">1</b></div>
+      <div class="bar-wrap stage" id="stage-bar-wrap">
+        <div class="bar-label"><span>第 <b id="stage">1</b> 关</span><span id="stage-left">45s</span></div>
+        <div class="bar" id="stage-bar"><i style="transform:scaleX(1)"></i></div>
+      </div>
     </div>
     <div id="exp-wrap">
       <div class="bar-label">等级 <b id="level">1</b></div>
@@ -161,6 +182,9 @@
 
   <!-- ===== 触摸摇杆 ===== -->
   <div id="joy-area"><div id="joy-bg"></div><div id="joy-knob"></div></div>
+
+  <!-- ===== 关卡横幅 ===== -->
+  <div id="banner" hidden><span id="banner-text"></span></div>
 
   <!-- ===== 开始界面 ===== -->
   <div class="overlay" id="menu">
@@ -197,6 +221,7 @@
       <div class="s"><div class="v" id="go-level">1</div><div class="k">最终等级</div></div>
     </div>
     <div class="best" id="go-best">新纪录</div>
+    <div class="go-stage" id="go-stage"></div>
     <button class="btn" id="btn-retry">再来一次</button>
   </div>
 
@@ -232,6 +257,7 @@ const CONFIG = {
   },
   exp: { base:30, perLevel:16, magnet:170 },
   spawn: { interval:0.7, intervalMin:0.28, intervalDecay:0.05, batchMin:1, batchMax:2, eliteEvery:35 },
+  level: { duration:45, bossBase:320, bossPerStage:120 },
   levelup: { choices:3 },
   stars: { layers:[ {count:90, depth:0.25}, {count:40, depth:0.6} ] }
 };
@@ -244,7 +270,7 @@ const S = {
   player:null,
   drones:[], bullets:[], enemies:[], pickups:[], particles:[],
   spawnTimer:0, eliteTimer:0, dmgFlash:0,
-  kills:0, wave:1,
+  kills:0, stage:1, stageTimer:CONFIG.level.duration, bossActive:false,
   level:1, exp:0, expNeed:CONFIG.exp.base,
   loveShown:false, loveTimer:null,
   stats:{ kills:0 },
@@ -296,9 +322,11 @@ function spawnEnemy(type){
   const c = CONFIG.enemies[type];
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.55 + rand(30,90);
-  const scale = 1 + Math.min(S.t/60, 8) * 0.22;            // 随时间增强
-  const spdMul = 1 + Math.min(S.t/120, 3) * 0.10;
-  const hpMul = 1 + Math.min(S.t/60, 8) * 0.28;
+  const stageHp = 1 + (S.stage-1)*0.30;                              // 每关 +30% 血量
+  const stageSpd = 1 + (S.stage-1)*0.08;                             // 每关 +8% 速度
+  const scale = (1 + Math.min(S.t/60, 8) * 0.22) * stageHp;
+  const spdMul = (1 + Math.min(S.t/120, 3) * 0.10) * stageSpd;
+  const hpMul = (1 + Math.min(S.t/60, 8) * 0.28) * stageHp;
   S.enemies.push({ type, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
     r:c.r, hp:c.hp*hpMul, maxHp:c.hp*hpMul, speed:c.speed*spdMul, dmg:c.dmg,
     exp:c.exp, angle:a, wob:rand(0,6.28), elite:false, dead:false });
@@ -307,10 +335,34 @@ function spawnElite(){
   const c = CONFIG.enemies.brute;
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.55 + 40;
-  const scale = 1 + Math.min(S.t/60, 8) * 0.22;
+  const stageHp = 1 + (S.stage-1)*0.30;
+  const scale = (1 + Math.min(S.t/60, 8) * 0.22) * stageHp;
   S.enemies.push({ type:"elite", x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
     r:c.r*1.7, hp:c.hp*4*scale, maxHp:c.hp*4*scale, speed:c.speed*1.15, dmg:c.dmg*1.5,
     exp:c.exp*5, angle:a, wob:0, elite:true, dead:false });
+}
+function spawnBoss(){
+  S.bossActive = true;
+  S.enemies.length = 0;                                              // 清场，专注 Boss
+  const a = rand(0, Math.PI*2);
+  const d = Math.max(W,H)*0.5 + 60;
+  const base = CONFIG.level.bossBase + (S.stage-1)*CONFIG.level.bossPerStage;
+  S.enemies.push({ type:"boss", x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
+    r:40, hp:base, maxHp:base, speed:32, dmg:35, exp:0,
+    angle:a, wob:0, elite:false, dead:false });
+  showBanner("BOSS 来袭");
+  sndExplode(true);
+}
+function stageClear(){
+  S.bossActive = false;
+  S.stage++;
+  S.stageTimer = CONFIG.level.duration;
+  S.enemies.length = 0; S.bullets.length = 0;
+  const p = S.player;
+  p.hp = p.maxHp; p.shieldLvl = Math.max(p.shieldLvl,1);
+  refreshHpUI(); syncShieldUI();
+  showBanner("第 "+S.stage+" 关");
+  sndLevel();
 }
 function spawnPickup(x,y,exp){
   S.pickups.push({ x, y, exp, r:5, vx:rand(-40,40), vy:rand(-40,40), t:rand(0,6.28) });
@@ -327,6 +379,9 @@ function burst(x,y,color,n,speed){
 function update(dt){
   S.t += dt;
   if(!S.loveShown && S.t>=60 && S.mode==="playing"){ startLove(); }
+  // 关卡计时：倒计时结束且无 Boss → 刷 Boss
+  S.stageTimer -= dt;
+  if(S.stageTimer<=0 && !S.bossActive && S.mode==="playing"){ spawnBoss(); }
   const p = S.player;
   p.inv = Math.max(0, p.inv-dt);
   p.flash = Math.max(0, p.flash-dt);
@@ -452,22 +507,24 @@ function update(dt){
     if(pa.t>=pa.life) S.particles.splice(i,1);
   }
 
-  // 波次生成
+  // 波次生成（Boss 战不刷小怪；间隔与批次随关卡增强）
   const interval = Math.max(CONFIG.spawn.intervalMin,
-    CONFIG.spawn.interval - Math.floor(S.t/45)*CONFIG.spawn.intervalDecay);
+    CONFIG.spawn.interval - (S.stage-1)*0.06 - Math.min(S.t/90,2)*0.03);
   S.spawnTimer -= dt;
-  if(S.spawnTimer<=0){
+  if(!S.bossActive && S.spawnTimer<=0){
     S.spawnTimer = interval;
-    const batch = Math.floor(rand(CONFIG.spawn.batchMin, CONFIG.spawn.batchMax + Math.min(S.t/90,2)));
+    const batch = Math.floor(rand(CONFIG.spawn.batchMin, CONFIG.spawn.batchMax + Math.min(S.t/90,2) + (S.stage-1)*0.3));
     for(let i=0;i<batch;i++){
       const r=Math.random();
       const type = r<0.62?"chaser":(r<0.88?"swarmer":"brute");
       spawnEnemy(type);
     }
   }
-  S.wave = 1+Math.floor(S.t/40);
   S.eliteTimer -= dt;
-  if(S.eliteTimer<=0 && S.t>25){ S.eliteTimer=CONFIG.spawn.eliteEvery; spawnElite(); }
+  if(!S.bossActive && S.eliteTimer<=0 && S.t>25){
+    S.eliteTimer = Math.max(20, CONFIG.spawn.eliteEvery - (S.stage-1)*5);
+    spawnElite();
+  }
 }
 
 function nearestEnemy(x,y){
@@ -480,6 +537,12 @@ function nearestEnemy(x,y){
 }
 function killEnemy(e){
   e.dead=true; S.kills++;
+  if(e.type==="boss"){
+    burst(e.x,e.y,"#f97316",46,420); burst(e.x,e.y,"#fde68a",30,300);
+    sndExplode(true);
+    stageClear();
+    return;
+  }
   const c = e.type==="elite" ? CONFIG.enemies.brute : CONFIG.enemies[e.type];
   const color = e.type==="elite" ? "#fb923c" : c.color;
   burst(e.x,e.y,color,e.elite?26:10, e.elite?280:170);
@@ -605,7 +668,18 @@ function fmtTime(s){
 function refreshTopUI(){
   $("timer").textContent=fmtTime(S.t);
   $("kills").textContent=S.kills;
-  $("wave").textContent=S.wave;
+  $("stage").textContent=S.stage;
+  const remain=Math.max(0,S.stageTimer);
+  const wrap=$("stage-bar-wrap");
+  if(S.bossActive){
+    $("stage-left").textContent="BOSS";
+    $("stage-bar").firstElementChild.style.transform="scaleX(1)";
+    wrap.classList.add("warn");
+  } else {
+    $("stage-left").textContent=Math.ceil(remain)+"s";
+    $("stage-bar").firstElementChild.style.transform="scaleX("+clamp(remain/CONFIG.level.duration,0,1)+")";
+    wrap.classList.toggle("warn", remain<=6);
+  }
 }
 
 /* ===== 渲染 ===== */
@@ -784,12 +858,26 @@ function drawBullets(){
 function drawEnemies(){
   for(const e of S.enemies){
     const rot=e.angle+Math.sin(e.wob)*0.3;
-    if(e.type==="elite") drawCharizard(e.x,e.y,e.r,rot);
+    if(e.type==="boss") drawCharizard(e.x,e.y,e.r,rot);
+    else if(e.type==="elite") drawCharizard(e.x,e.y,e.r,rot);
     else if(e.type==="brute") drawSnorlax(e.x,e.y,e.r,rot);
     else if(e.type==="swarmer") drawZubat(e.x,e.y,e.r,rot);
     else drawGastly(e.x,e.y,e.r,rot);
+    if(e.type==="boss"){
+      // 顶部大血条
+      const bw=Math.min(W*0.62,430), bx=(W-bw)/2, by=16;
+      CTX.setTransform(DPR,0,0,DPR,0,0);
+      CTX.fillStyle="rgba(2,6,23,0.72)";
+      CTX.fillRect(bx,by,bw,9);
+      CTX.fillStyle="#fb923c";
+      CTX.fillRect(bx,by,bw*clamp(e.hp/e.maxHp,0,1),9);
+      CTX.strokeStyle="rgba(249,115,22,.6)"; CTX.lineWidth=1;
+      CTX.strokeRect(bx-0.5,by-0.5,bw+1,10);
+      CTX.fillStyle="#fde68a"; CTX.font="bold 12px system-ui, sans-serif";
+      CTX.textAlign="center"; CTX.fillText("BOSS · 第 "+S.stage+" 关", W/2, by-6);
+    }
     // 血条（受伤时显示）
-    if(e.hp<e.maxHp){
+    if(e.hp<e.maxHp && e.type!=="boss"){
       CTX.setTransform(DPR,0,0,DPR,0,0);
       CTX.fillStyle="rgba(2,6,23,0.7)";
       CTX.fillRect(e.x-e.r, e.y-e.r-9, e.r*2, 3.5);
@@ -887,6 +975,13 @@ function closeLove(){
 }
 
 /* ===== 视图控制 ===== */
+let bannerTO=null;
+function showBanner(txt){
+  $("banner-text").textContent=txt;
+  $("banner").hidden=false;
+  if(bannerTO) clearTimeout(bannerTO);
+  bannerTO=setTimeout(()=>{ $("banner").hidden=true; },2200);
+}
 function show(id){ $(id).hidden=false; }
 function hide(id){ $(id).hidden=true; }
 function isTouchDevice(){ return ("ontouchstart" in window) || navigator.maxTouchPoints>0; }
@@ -895,14 +990,15 @@ function startGame(){
   ensureAudio();
   const p = newPlayer();
   S.mode="playing"; S.timeScale=1;
-  S.t=0; S.kills=0; S.wave=1; S.level=1; S.exp=0;
+  S.t=0; S.kills=0; S.stage=1; S.stageTimer=CONFIG.level.duration; S.bossActive=false;
+  S.level=1; S.exp=0;
   S.expNeed=CONFIG.exp.base;
   S.loveShown=false; if(S.loveTimer){ clearInterval(S.loveTimer); S.loveTimer=null; }
   S.spawnTimer=0.8; S.eliteTimer=CONFIG.spawn.eliteEvery; S.dmgFlash=0;
   S.player=p; S.drones=[]; S.bullets=[]; S.enemies=[]; S.pickups=[]; S.particles=[];
   S.input.x=0; S.input.y=0;
   syncDrones();
-  hide("menu"); hide("gameover"); hide("levelup"); hide("pause");
+  hide("menu"); hide("gameover"); hide("levelup"); hide("pause"); hide("banner");
   show("hud"); show("topbtns");
   refreshHpUI(); syncShieldUI(); refreshExpUI(); refreshLevelUI(); refreshTopUI();
   if(isTouchDevice()) $("joy-area").classList.add("on");
@@ -933,6 +1029,7 @@ function gameOver(){
   if(isBest){ el.classList.remove("hidden"); el.textContent="新纪录 · "+fmtTime(rec.time); }
   else if(best){ el.classList.remove("hidden"); el.textContent="最佳记录 "+fmtTime(best.time); }
   else el.classList.add("hidden");
+  $("go-stage").textContent="到达第 "+S.stage+" 关 · 最终等级 Lv."+S.level;
   show("gameover");
 }
 
