@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>星环突围 · 太空割草生存</title>
+<title>POKORUSH · 宝可梦太空割草</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='27' fill='%23ef4444'/%3E%3Cpath d='M5 32h54' stroke='%231e293b' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='27' fill='none' stroke='%231e293b' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%23f8fafc' stroke='%231e293b' stroke-width='5'/%3E%3C/svg%3E">
 <style>
   /* ===== 基础（窄屏优先，375px 起步） ===== */
@@ -205,7 +205,7 @@
 
   <!-- ===== 开始界面 ===== -->
   <div class="overlay" id="menu">
-    <div class="game-title">星环突围</div>
+    <div class="game-title">POKORUSH</div>
     <div class="sub">STAR RING BREAKOUT</div>
     <div class="intro">
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
@@ -222,7 +222,7 @@
   <!-- ===== 宝可梦图鉴 / 捕捉 / 进化 ===== -->
   <div class="overlay" id="collection" hidden>
     <div class="col-title">我的宝可梦</div>
-    <div class="col-sub">金币 <b id="col-coins">0</b> · 每关通关获得金币，可进化伙伴</div>
+    <div class="col-sub">金币 <b id="col-coins">0</b> · <span id="col-own"></span></div>
     <div id="col-grid"></div>
     <button class="btn" id="btn-col-back">返回</button>
   </div>
@@ -237,7 +237,7 @@
   <!-- ===== 暂停 ===== -->
   <div class="overlay" id="pause" hidden>
     <div class="p-title">已暂停</div>
-    <div class="p-tip">按 P 或点击按钮继续</div>
+    <div class="p-tip">按 P 或点击按钮继续 · 悬停技能可查看说明</div>
     <div class="p-skills" id="p-skills"></div>
     <button class="btn" id="btn-resume">继续</button>
   </div>
@@ -259,7 +259,7 @@
 <script>
 "use strict";
 /* ================================================================
- * 星环突围 · 太空割草生存 MVP（单文件 · 原生 Canvas 2D）
+ * POKORUSH · 宝可梦太空割草生存（单文件 · 原生 Canvas 2D）
  * 核心循环：走位 → 炮塔自动开火 → 虫群刷出 → 拾取能量 → 三选一升级
  * ================================================================ */
 
@@ -280,19 +280,116 @@ const CONFIG = {
 };
 
 /* ===== 宝可梦图鉴（程序化同人 · 私用非盈利） ===== */
-const ROSTER = {
-  fire:{ name:"小火龙", mid:"火恐龙", top:"喷火龙", attr:"火", color:"#fb923c",
-    skills:["灼烧","烈焰灼烧","炼狱点燃"], desc:"点燃敌人持续掉血" },
-  elec:{ name:"皮丘", mid:"皮卡丘", top:"雷丘", attr:"电", color:"#facc15",
-    skills:["静电连锁","麻痹传导","雷霆溅射"], desc:"电弧连锁波及附近敌人" },
-  ice:{ name:"小山猪", mid:"长毛猪", top:"象牙猪", attr:"冰", color:"#7dd3fc",
-    skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人大幅减速" },
-  water:{ name:"杰尼龟", mid:"卡咪龟", top:"水箭龟", attr:"水", color:"#38bdf8",
-    skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围敌人" },
-  grass:{ name:"妙蛙种子", mid:"妙蛙草", top:"妙蛙花", attr:"草", color:"#4ade80",
-    skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" }
+/* ===== 全世代宝可梦图鉴（1-9 世代 · 每属性 18 只 · 战斗按 5 大属性） ===== */
+const ATTR_TEXT={
+  fire:{ attr:"火", color:"#fb923c", skills:["灼烧","烈焰灼烧","炼狱点燃"], desc:"点燃敌人持续掉血" },
+  elec:{ attr:"电", color:"#facc15", skills:["静电连锁","麻痹传导","雷霆溅射"], desc:"电弧连锁波及附近敌人" },
+  ice:{ attr:"冰", color:"#7dd3fc", skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人大幅减速" },
+  water:{ attr:"水", color:"#38bdf8", skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围敌人" },
+  grass:{ attr:"草", color:"#4ade80", skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" }
 };
-const BOSS_POOL = ["fire","elec","ice","water","grass"];   // 普通 Boss 属性池（每关随机）
+const POKEDEX={
+  /* 火 */
+  charmander:{name:"小火龙",mid:"火恐龙",top:"喷火龙",attr:"fire",gen:1},
+  vulpix:{name:"六尾",mid:"九尾",attr:"fire",gen:1},
+  growlithe:{name:"卡蒂狗",mid:"风速狗",attr:"fire",gen:1},
+  ponyta:{name:"小火马",mid:"烈焰马",attr:"fire",gen:1},
+  magby:{name:"鸭嘴宝宝",mid:"鸭嘴火兽",top:"鸭嘴炎龙",attr:"fire",gen:2},
+  torchic:{name:"火稚鸡",mid:"力壮鸡",top:"火焰鸡",attr:"fire",gen:3},
+  numel:{name:"呆火驼",mid:"喷火驼",attr:"fire",gen:3},
+  torkoal:{name:"煤炭龟",attr:"fire",gen:3},
+  lampent:{name:"烛光灵",mid:"灯火幽灵",top:"水晶灯火灵",attr:"fire",gen:5},
+  heatmor:{name:"熔蚁兽",attr:"fire",gen:5},
+  fennekin:{name:"火狐狸",mid:"长尾火狐",top:"妖火红狐",attr:"fire",gen:6},
+  salandit:{name:"夜盗火蜥",mid:"焰后蜥",attr:"fire",gen:7},
+  litten:{name:"火斑喵",mid:"炎热喵",top:"炽焰咆哮虎",attr:"fire",gen:7},
+  turtonator:{name:"爆焰龟兽",attr:"fire",gen:7},
+  scorbunny:{name:"炎兔儿",mid:"腾蹴小将",top:"闪焰王牌",attr:"fire",gen:8},
+  charcadet:{name:"炭小侍",mid:"红莲铠骑",attr:"fire",gen:9},
+  hooh:{name:"凤王",attr:"fire",gen:2},
+  groudon:{name:"固拉多",attr:"fire",gen:3},
+  /* 电 */
+  pichu:{name:"皮丘",mid:"皮卡丘",top:"雷丘",attr:"elec",gen:2},
+  magnemite:{name:"小磁怪",mid:"三合一磁怪",top:"自爆磁怪",attr:"elec",gen:1},
+  voltorb:{name:"霹雳电球",mid:"顽皮雷弹",attr:"elec",gen:1},
+  electrike:{name:"落雷兽",mid:"雷电兽",attr:"elec",gen:3},
+  plusle:{name:"正电拍拍",attr:"elec",gen:3},
+  minun:{name:"负电拍拍",attr:"elec",gen:3},
+  mareep:{name:"咩利羊",mid:"茸茸羊",top:"电龙",attr:"elec",gen:2},
+  shinx:{name:"小猫怪",mid:"勒克猫",top:"伦琴猫",attr:"elec",gen:4},
+  pachirisu:{name:"帕奇利兹",attr:"elec",gen:4},
+  blitzle:{name:"斑斑马",mid:"雷电斑马",attr:"elec",gen:5},
+  joltik:{name:"电电虫",mid:"电蜘蛛",attr:"elec",gen:5},
+  tynamo:{name:"麻麻小鱼",mid:"麻麻鳗",top:"麻麻鳗鱼王",attr:"elec",gen:5},
+  grubbin:{name:"强颚鸡母虫",mid:"虫电宝",top:"锹农炮虫",attr:"elec",gen:7},
+  togedemaru:{name:"托戈德玛尔",attr:"elec",gen:7},
+  yamper:{name:"来电汪",mid:"逐电犬",attr:"elec",gen:8},
+  zapdos:{name:"闪电鸟",attr:"elec",gen:1},
+  zekrom:{name:"捷克罗姆",attr:"elec",gen:5},
+  mewtwo:{name:"超梦",attr:"elec",gen:1},
+  /* 冰 */
+  swinub:{name:"小山猪",mid:"长毛猪",top:"象牙猪",attr:"ice",gen:2},
+  seel:{name:"小海狮",mid:"白海狮",attr:"ice",gen:1},
+  sneasel:{name:"狃拉",mid:"玛狃拉",attr:"ice",gen:2},
+  snorunt:{name:"雪童子",mid:"冰鬼护",attr:"ice",gen:3},
+  spheal:{name:"海豹球",mid:"海魔狮",top:"帝牙海狮",attr:"ice",gen:3},
+  snover:{name:"雪笠怪",mid:"暴雪王",attr:"ice",gen:4},
+  glaceon:{name:"冰伊布",attr:"ice",gen:4},
+  vanillite:{name:"迷你冰",mid:"多多冰",top:"双倍多多冰",attr:"ice",gen:5},
+  cubchoo:{name:"喷嚏熊",mid:"冻原熊",attr:"ice",gen:5},
+  bergmite:{name:"冰宝",mid:"冰岩怪",attr:"ice",gen:6},
+  crabrawler:{name:"好胜蟹",mid:"好胜毛蟹",attr:"ice",gen:7},
+  eiscue:{name:"冰砌鹅",attr:"ice",gen:8},
+  snom:{name:"雪吞虫",mid:"雪绒蛾",attr:"ice",gen:8},
+  cetoddle:{name:"走鲸",mid:"浩大鲸",attr:"ice",gen:9},
+  frigibax:{name:"凉脊龙",mid:"冻脊龙",top:"戟脊龙",attr:"ice",gen:9},
+  articuno:{name:"急冻鸟",attr:"ice",gen:1},
+  kyurem:{name:"酋雷姆",attr:"ice",gen:5},
+  regice:{name:"雷吉艾斯",attr:"ice",gen:3},
+  /* 水 */
+  squirtle:{name:"杰尼龟",mid:"卡咪龟",top:"水箭龟",attr:"water",gen:1},
+  psyduck:{name:"可达鸭",mid:"哥达鸭",attr:"water",gen:1},
+  poliwag:{name:"蚊香蝌蚪",mid:"蚊香君",top:"蚊香泳士",attr:"water",gen:1},
+  tentacool:{name:"玛瑙水母",mid:"毒刺水母",attr:"water",gen:1},
+  goldeen:{name:"角金鱼",mid:"金鱼王",attr:"water",gen:1},
+  magikarp:{name:"鲤鱼王",mid:"暴鲤龙",attr:"water",gen:1},
+  totodile:{name:"小锯鳄",mid:"蓝鳄",top:"大力鳄",attr:"water",gen:2},
+  mudkip:{name:"水跃鱼",mid:"沼跃鱼",top:"巨沼怪",attr:"water",gen:3},
+  lotad:{name:"莲叶童子",mid:"莲帽小童",top:"乐天河童",attr:"water",gen:3},
+  oshawott:{name:"水水獭",mid:"双刃丸",top:"大剑鬼",attr:"water",gen:5},
+  froakie:{name:"呱呱泡蛙",mid:"呱头蛙",top:"甲贺忍蛙",attr:"water",gen:6},
+  clawitzer:{name:"钢炮臂虾",attr:"water",gen:6},
+  popplio:{name:"球球海狮",mid:"花漾海狮",top:"西狮海壬",attr:"water",gen:7},
+  sobble:{name:"泪眼蜥",mid:"变涩蜥",top:"千面避役",attr:"water",gen:8},
+  dondozo:{name:"吃吼霸",attr:"water",gen:9},
+  suicune:{name:"水君",attr:"water",gen:2},
+  kyogre:{name:"盖欧卡",attr:"water",gen:3},
+  manaphy:{name:"玛纳霏",attr:"water",gen:4},
+  /* 草 */
+  bulbasaur:{name:"妙蛙种子",mid:"妙蛙草",top:"妙蛙花",attr:"grass",gen:1},
+  oddish:{name:"走路草",mid:"臭臭花",top:"霸王花",attr:"grass",gen:1},
+  bellsprout:{name:"喇叭芽",mid:"口呆花",top:"大食花",attr:"grass",gen:1},
+  chikorita:{name:"菊草叶",mid:"月桂叶",top:"大竺葵",attr:"grass",gen:2},
+  treecko:{name:"木守宫",mid:"森林蜥蜴",top:"蜥蜴王",attr:"grass",gen:3},
+  shroomish:{name:"蘑蘑菇",mid:"斗笠菇",attr:"grass",gen:3},
+  turtwig:{name:"草苗龟",mid:"树林龟",top:"土台龟",attr:"grass",gen:4},
+  budew:{name:"含羞苞",mid:"毒蔷薇",top:"罗丝雷朵",attr:"grass",gen:4},
+  cherubi:{name:"樱花宝",mid:"樱花儿",attr:"grass",gen:4},
+  snivy:{name:"藤藤蛇",mid:"青藤蛇",top:"君主蛇",attr:"grass",gen:5},
+  foongus:{name:"哎呀球菇",mid:"败露球菇",attr:"grass",gen:5},
+  chespin:{name:"哈力栗",mid:"胖胖哈力",top:"布里卡隆",attr:"grass",gen:6},
+  phantump:{name:"小木灵",mid:"朽木妖",attr:"grass",gen:6},
+  rowlet:{name:"木木枭",mid:"投羽枭",top:"狙射树枭",attr:"grass",gen:7},
+  bounsweet:{name:"甜竹竹",mid:"甜舞妮",top:"甜冷美后",attr:"grass",gen:7},
+  grookey:{name:"敲音猴",mid:"啪咚猴",top:"轰擂金刚猩",attr:"grass",gen:8},
+  sprigatito:{name:"新叶喵",mid:"蒂蕾喵",top:"魔幻假面喵",attr:"grass",gen:9},
+  celebi:{name:"时拉比",attr:"grass",gen:2}
+};
+const ATTR_KEYS = ["fire","elec","ice","water","grass"];
+const POKEDEX_KEYS = Object.keys(POKEDEX);
+const POKEDEX_BY_ATTR = {};
+for(const a of ATTR_KEYS){ POKEDEX_BY_ATTR[a]=POKEDEX_KEYS.filter(id=>POKEDEX[id].attr===a); }
+const ROLE_EVOLVE_COST = [0, 60, 120];                     // 进化 1→2 需 60 金币，2→3 需 120 金币
 // 二级神（每 5 关大 Boss · 随机）
 const GODS_2 = [
   { name:"急冻鸟", attr:"ice" }, { name:"闪电鸟", attr:"elec" },
@@ -305,9 +402,6 @@ const GODS_1 = [
   { name:"固拉多", attr:"fire" }, { name:"裂空座", attr:"grass" },
   { name:"酋雷姆", attr:"ice" },
 ];
-const ATTR_KEYS = ["fire","elec","ice","water","grass"];
-const ROLE_EVOLVE_COST = [0, 60, 120];                     // 进化 1→2 需 60 金币，2→3 需 120 金币
-const ROLE_ORDER = ["elec","fire","ice","water","grass"];  // 图鉴展示顺序
 
 /* ===== 状态 ===== */
 const S = {
@@ -319,8 +413,8 @@ const S = {
   spawnTimer:0, eliteTimer:0, dmgFlash:0,
   kills:0, stage:1, stageTimer:CONFIG.level.duration, bossActive:false,
   level:1, exp:0, expNeed:CONFIG.exp.base,
-  roster:{ elec:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
-  coins:0, runCoins:0, activeRole:"elec",  // 金币 / 本局金币 / 当前出战角色
+  roster:{ pichu:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
+  coins:0, runCoins:0, activeRole:"pichu",  // 金币 / 本局金币 / 当前出战角色
   bossId:null, playerSlowT:0, playerBurn:null, lastMult:1,
   skills:{}, skillCd:{},      // 技能等级 / 技能冷却
   buff:{ oc:0, rage:0 }, holes:[],   // 超频/狂暴 计时 · 黑洞
@@ -337,7 +431,7 @@ const S = {
     const rr = JSON.parse(localStorage.getItem("starburst_roster")||"null");
     if(rr && typeof rr==="object") S.roster = rr;
   }catch(e){}
-  if(!S.roster.elec) S.roster.elec = 2;
+  if(!S.roster.pichu) S.roster.pichu = 2;   // 初始伙伴：皮卡丘（皮丘 Lv.2）
   try{ S.coins = parseInt(localStorage.getItem("starburst_coins")||"0",10)||0; }catch(e){}
 })();
 function saveProgress(){
@@ -346,11 +440,13 @@ function saveProgress(){
     localStorage.setItem("starburst_coins", String(S.coins));
   }catch(e){}
 }
+function PK(id){ return POKEDEX[id]||POKEDEX.pichu; }
 function roleForm(id){ return S.roster[id]||1; }
 function roleAtk(id){ const f=roleForm(id); return f>=3?1.22:(f>=2?1.1:1); }
 function roleMul(id){ const f=roleForm(id); return f>=3?2.2:(f>=2?1.5:1); }
+function roleMaxForm(id){ const R=PK(id); return R.top?3:(R.mid?2:1); }
 function roleName(id,form){
-  const R=ROSTER[id]; form=form||roleForm(id);
+  const R=PK(id); form=form||roleForm(id);
   return form>=3?R.top:(form===2?R.mid:R.name);
 }
 let CANVAS, CTX, W, H, DPR;
@@ -421,7 +517,7 @@ function spawnBoss(){
   let ult=false, mega=false, name="", bid;
   if(S.stage % CONFIG.level.ultEvery === 0){ ult=true; const g=GODS_1[Math.floor(Math.random()*GODS_1.length)]; bid=g.attr; name=g.name; }
   else if(S.stage % CONFIG.level.megaEvery === 0){ mega=true; const g=GODS_2[Math.floor(Math.random()*GODS_2.length)]; bid=g.attr; name=g.name; }
-  else { bid = BOSS_POOL[Math.floor(Math.random()*BOSS_POOL.length)]; }
+  else { const gi=POKEDEX_KEYS[Math.floor(Math.random()*POKEDEX_KEYS.length)]; bid=PK(gi).attr; name=PK(gi).name; }
   S.bossId = bid;
   const a = rand(0, Math.PI*2);
   const d = Math.max(W,H)*0.5 + 60;
@@ -430,16 +526,19 @@ function spawnBoss(){
   S.enemies.push({ type:"boss", attr:bid, name, mega, ult, x:W/2+Math.cos(a)*d, y:H/2+Math.sin(a)*d,
     r: ult?74: mega?58:40, hp:base*m, maxHp:base*m, speed: ult?44: mega?40:32, dmg: ult?60: mega?50:35, exp:0,
     angle:a, wob:0, elite:false, dead:false });
-  const tag = ult ? ("终极 Boss · "+name) : mega ? ("大 Boss · "+name) : ("BOSS 来袭 · "+ROSTER[bid].top);
+  const tag = ult ? ("终极 Boss · "+name) : mega ? ("大 Boss · "+name) : ("BOSS 来袭 · "+name);
   showBanner(tag);
   sndExplode(true);
 }
 function captureBoss(){
-  const bid = S.bossId || "fire";
-  if(!S.roster[bid]){
-    S.roster[bid] = 1;
+  const attr = S.bossId;                                    // 打赢 Boss → 捕捉同属性精灵（基础形态）
+  const pool = POKEDEX_BY_ATTR[attr]||POKEDEX_KEYS;
+  const unowned = pool.filter(id=>!S.roster[id]);
+  if(unowned.length){
+    const id = unowned[Math.floor(Math.random()*unowned.length)];
+    S.roster[id] = 1;
     saveProgress();
-    showBanner("捕捉到 "+ROSTER[bid].name+"！");
+    showBanner("捕捉到 "+PK(id).name+"！");
     sndLevel();
   }
 }
@@ -522,7 +621,7 @@ function update(dt){
         S.bullets.push({ x:ox, y:oy, vx:Math.cos(base+off)*CONFIG.drone.bulletSpeed,
           vy:Math.sin(base+off)*CONFIG.drone.bulletSpeed, r:3.5, dmg,
           life:CONFIG.drone.bulletLife, pierce:p.pierceLvl, hit:new Set(),
-          attr:S.activeRole });
+          attr:PK(S.activeRole).attr });
       }
       d.flash=0.08;
       sndShot();
@@ -569,7 +668,7 @@ function update(dt){
           burst(b.x,b.y,"#7dd3fc",26,230); S.bullets.splice(i,1); break;
         }
         e.hp -= dmg;
-        applyAttr(e, b.attr||S.activeRole, S.activeRole);
+        applyAttr(e, b.attr||PK(S.activeRole).attr, S.activeRole);
         if(S.skills.split && !e.dead && Math.random()<0.30*S.skills.split){  // 分裂弹
           castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
           castSkillBullet(b.x,b.y,rand(0,Math.PI*2),300,dmg*0.5,2.5,0,null,null,1.1);
@@ -638,7 +737,7 @@ function update(dt){
         if(e.hp<=0){ killEnemy(e); }
       }
       // 冲撞附带出战角色属性
-      applyAttr(e, S.activeRole, S.activeRole);
+      applyAttr(e, PK(S.activeRole).attr, S.activeRole);
       if(e.type!=="brute" && e.type!=="elite"){ killEnemy(e); }
     }
   }
@@ -1297,14 +1396,15 @@ function drawCharizard(x,y,r,rot){ // 精英敌人 → 喷火龙
 }
 function drawPlayer(){
   const p=S.player;
-  const id = S.activeRole || "elec";
+  const id = S.activeRole || "pichu";
   const form = roleForm(id);
   if(p.flash>0 && Math.floor(p.flash*20)%2===0){ /* 受击闪烁帧 */ }
   else{
-    if(id==="fire") drawFire(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(id==="ice") drawIce(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(id==="water") drawWater(p.x,p.y,p.r*1.05,p.angle,form);
-    else if(id==="grass") drawGrass(p.x,p.y,p.r*1.05,p.angle,form);
+    const a = PK(id).attr;
+    if(a==="fire") drawFire(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(a==="ice") drawIce(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(a==="water") drawWater(p.x,p.y,p.r*1.05,p.angle,form);
+    else if(a==="grass") drawGrass(p.x,p.y,p.r*1.05,p.angle,form);
     else drawElec(p.x,p.y,p.r*1.05,p.angle,form);
   }
   // 护盾光圈
@@ -1378,7 +1478,7 @@ function drawEnemies(){
       CTX.textAlign="center";
       const tag = e.ult ? ("终极 Boss · "+e.name+" · 第 "+S.stage+" 关")
                 : e.mega ? ("大 Boss · "+e.name+" · 第 "+S.stage+" 关")
-                : ("BOSS · "+(ROSTER[e.attr]?ROSTER[e.attr].top:"")+" · 第 "+S.stage+" 关");
+                : ("BOSS · "+e.name+" · 第 "+S.stage+" 关");
       CTX.fillText(tag, W/2, by-6);
     }
     // 血条（受伤时显示）
@@ -1480,23 +1580,26 @@ function showBanner(txt){
 /* ===== 宝可梦图鉴面板 ===== */
 function refreshMenuCoins(){ $("menu-coins").textContent=S.coins; }
 function renderCollection(){
+  const ownedCount = POKEDEX_KEYS.filter(id=>S.roster[id]).length;
   $("col-coins").textContent=S.coins;
+  $("col-own").textContent = "已捕捉 "+ownedCount+" / "+POKEDEX_KEYS.length;
   const grid=$("col-grid"); grid.innerHTML="";
-  for(const id of ROLE_ORDER){
-    const R=ROSTER[id];
+  for(const id of POKEDEX_KEYS){
+    const R=PK(id); const T=ATTR_TEXT[R.attr];
     const form=roleForm(id);
     const owned=!!S.roster[id];
     const card=document.createElement("div");
     card.className="col-card"+(owned?"":" locked");
     card.innerHTML=
-      '<div class="col-dot" style="background:'+(owned?R.color:"rgba(148,163,184,.15)")+'">'+(owned?"":"?")+'</div>'+
-      '<div class="col-name">'+(owned?roleName(id):"？？？")+'</div>'+
-      '<div class="col-attr">'+R.attr+' 属性 · '+(owned?("形态 "+form+"/3"):"未捕捉")+'</div>'+
-      '<div class="col-skill">'+(owned?(R.skills[form-1]+" · "+R.desc):"击败对应 Boss 即可捕捉")+'</div>';
+      '<div class="col-dot" style="background:'+(owned?T.color:"rgba(148,163,184,.15)")+'">'+(owned?T.attr:"·")+'</div>'+
+      '<div class="col-name">'+(owned?roleName(id):R.name)+'</div>'+
+      '<div class="col-attr">G'+R.gen+' · '+T.attr+'属性 · '+(owned?("形态 "+form+"/"+roleMaxForm(id)):"未捕捉")+'</div>'+
+      '<div class="col-skill">'+(owned?(T.skills[Math.min(form,3)-1]+" · "+T.desc):"击败"+T.attr+"系 Boss 可捕捉")+'</div>';
     if(owned){
       const actions=document.createElement("div"); actions.className="col-actions";
       const ev=document.createElement("button"); ev.className="btn-evolve";
-      if(form>=3){ ev.textContent="已进化满"; ev.disabled=true; }
+      const mf=roleMaxForm(id);
+      if(form>=mf){ ev.textContent="已进化满"; ev.disabled=true; }
       else{
         const cost=ROLE_EVOLVE_COST[form];
         ev.textContent="进化 "+cost+" 金币";
@@ -1554,8 +1657,8 @@ function renderPauseSkills(){
   for(const id in S.skills){
     const lvl=S.skills[id];
     const s=SKILLS.find(x=>x.id===id); const f=FUSIONS.find(x=>x.id===id);
-    if(f) names.push('<span class="psk fused">'+f.name+'</span>');
-    else if(s) names.push('<span class="psk">'+s.name+' Lv.'+lvl+'</span>');
+    if(f) names.push('<span class="psk fused" title="'+f.name+'：'+f.desc+'">'+f.name+'</span>');
+    else if(s) names.push('<span class="psk" title="'+s.name+'：'+s.desc+'">'+s.name+' Lv.'+lvl+'</span>');
   }
   box.innerHTML = names.length? names.join("") : '<span class="psk-empty">尚未学习技能 · 升级时选择</span>';
 }
