@@ -80,26 +80,43 @@
   #collection .col-title { font-size:24px; font-weight:800; letter-spacing:6px; color:#f8fafc; margin-bottom:6px; text-shadow:0 0 16px rgba(74,222,128,.5); }
   #collection .col-sub { font-size:13px; color:#94a3b8; letter-spacing:1px; margin-bottom:18px; }
   #collection .col-sub b { color:#fbbf24; }
-  #col-grid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; width:100%; max-width:660px; max-height:52vh; overflow-y:auto; padding:4px; }
+  #col-grid { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; width:100%; max-width:720px; max-height:46vh; overflow-y:auto; padding:4px; }
   .col-card {
-    flex:1 1 150px; min-width:150px; max-width:200px; background:rgba(15,23,42,.9);
-    border:1px solid rgba(148,163,184,.3); border-radius:14px; padding:14px 12px 12px;
+    position:relative; flex:1 1 128px; min-width:128px; max-width:176px; background:rgba(15,23,42,.9);
+    border:1px solid rgba(148,163,184,.3); border-radius:12px; padding:10px 10px 10px;
     text-align:center; cursor:pointer; pointer-events:auto; transition:transform .1s ease, border-color .15s;
   }
   .col-card:hover { transform:translateY(-3px); }
-  .col-card .col-dot { width:52px; height:52px; border-radius:50%; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#0f172a; }
-  .col-card .col-name { font-size:15px; font-weight:700; color:#f8fafc; letter-spacing:1px; }
-  .col-card .col-attr { font-size:11px; color:#94a3b8; margin-top:4px; letter-spacing:1px; }
-  .col-card .col-skill { font-size:12px; color:#67e8f9; margin-top:6px; min-height:30px; line-height:1.5; }
+  .col-card .col-dot { width:42px; height:42px; border-radius:50%; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#0f172a; }
+  .col-card .col-name { font-size:14px; font-weight:700; color:#f8fafc; letter-spacing:1px; }
+  .col-card .col-attr { font-size:10px; color:#94a3b8; margin-top:3px; letter-spacing:1px; }
+  .col-card .col-skill { font-size:11px; color:#67e8f9; margin-top:5px; min-height:28px; line-height:1.45; }
   .col-card .col-lvl { font-size:11px; color:#64748b; margin-top:4px; }
-  .col-card .col-actions { display:flex; gap:6px; justify-content:center; margin-top:10px; }
-  .col-card button { flex:1; min-width:0; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; pointer-events:auto; }
+  .col-card .col-actions { display:flex; gap:4px; justify-content:center; margin-top:8px; flex-wrap:wrap; }
+  .col-card button { flex:1; min-width:0; padding:6px 3px; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; pointer-events:auto; }
   .col-card .btn-evolve { background:linear-gradient(120deg,#fbbf24,#f59e0b); color:#1e293b; }
   .col-card .btn-evolve:disabled { background:rgba(148,163,184,.2); color:#64748b; cursor:not-allowed; }
   .col-card .btn-pick { background:linear-gradient(120deg,#22d3ee,#67e8f9); color:#04121a; }
   .col-card .btn-pick.used { background:rgba(148,163,184,.18); color:#94a3b8; }
-  .col-card.locked { opacity:.5; }
+  .col-card.locked { opacity:.55; }
   .col-card.locked .col-dot { background:rgba(148,163,184,.15) !important; color:#64748b; }
+  .col-card.shiny { border-color:#facc15; box-shadow:0 0 10px rgba(250,204,21,.35); }
+  .col-card .col-tag { position:absolute; top:5px; right:8px; color:#fde047; font-size:11px; font-weight:900; }
+  #collection .col-tabs { display:flex; gap:5px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; max-width:720px; }
+  #collection .col-tab { padding:5px 11px; border:1px solid rgba(148,163,184,.35); border-radius:8px; background:rgba(15,23,42,.85); color:#94a3b8; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:1px; }
+  #collection .col-tab.on { background:linear-gradient(120deg,#22d3ee,#67e8f9); color:#04121a; border-color:transparent; }
+  #party-bar { display:flex; gap:10px; justify-content:center; margin-bottom:12px; width:100%; max-width:720px; }
+  #party-bar .pslot { flex:1; max-width:210px; min-width:0; padding:9px 8px; border:1px solid rgba(148,163,184,.3); border-radius:12px; background:rgba(15,23,42,.9); text-align:center; }
+  #party-bar .pslot .pn { font-size:13px; font-weight:800; color:#f8fafc; letter-spacing:1px; }
+  #party-bar .pslot .pk { font-size:10px; color:#64748b; letter-spacing:1px; margin-top:3px; }
+  #party-bar .pslot.locked { border-style:dashed; opacity:.75; }
+  #party-bar .pslot .unlock { margin-top:6px; padding:5px 10px; border:none; border-radius:8px; background:linear-gradient(120deg,#fbbf24,#f59e0b); color:#1e293b; font-size:11px; font-weight:800; cursor:pointer; }
+  #party-bar .pslot .unlock:disabled { background:rgba(148,163,184,.2); color:#64748b; cursor:not-allowed; }
+  #hp-partners { display:flex; gap:6px; margin-top:6px; flex-direction:column; }
+  #hp-partners .php { display:flex; align-items:center; gap:6px; }
+  #hp-partners .php-dot { width:8px; height:8px; border-radius:50%; flex:none; }
+  #hp-partners .php-bar { width:110px; height:6px; border-radius:4px; background:rgba(148,163,184,.2); overflow:hidden; }
+  #hp-partners .php-bar div { height:100%; background:linear-gradient(90deg,#22d3ee,#67e8f9); }
   #collection .btn { margin-top:20px; }
 
   /* ===== 升级三选一 ===== */
@@ -173,6 +190,7 @@
         <div class="bar-label"><span>护盾</span><span id="shield-num">0</span></div>
         <div class="bar" id="shield-bar"><i style="transform:scaleX(0)"></i></div>
       </div>
+      <div id="hp-partners" hidden></div>
     </div>
     <div class="top-right">
       <div class="timer" id="timer">00:00</div>
@@ -211,7 +229,7 @@
       你是星环站的最后一名驾驶员。<span>浮游炮塔会自动开火</span>，
       你只管走位闪避、拾取能量、升级强化，在无尽虫潮中活下来。
     </div>
-    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>每 5 关出现二级神 · 每 10 关出现一级神（随机）<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
+    <div class="controls">键盘 WASD / 方向键 移动 · P 暂停<br>手机：左侧拖拽摇杆移动<br>击败每关 Boss 可捕捉伙伴 · 金币可进化出战<br>每 5 关出现二级神 · 每 10 关出现一级神（随机）<br>捕捉有 1/8192 概率出闪光 · 最多 3 名角色组队出战（血量独立）<br>升级可学 17 种技能 · 拥有两个技能可融合成更强技能</div>
     <div class="menu-coins">金币 <b id="menu-coins">0</b></div>
     <div class="menu-btns">
       <button class="btn" id="btn-start">开始游戏</button>
@@ -219,10 +237,12 @@
     </div>
   </div>
 
-  <!-- ===== 宝可梦图鉴 / 捕捉 / 进化 ===== -->
+  <!-- ===== 宝可梦图鉴 / 捕捉 / 进化 / 组队 ===== -->
   <div class="overlay" id="collection" hidden>
     <div class="col-title">我的宝可梦</div>
-    <div class="col-sub">金币 <b id="col-coins">0</b> · <span id="col-own"></span></div>
+    <div class="col-sub">金币 <b id="col-coins">0</b> · <span id="col-own"></span> · 全世代 1025 只</div>
+    <div id="party-bar"></div>
+    <div id="col-tabs"></div>
     <div id="col-grid"></div>
     <button class="btn" id="btn-col-back">返回</button>
   </div>
@@ -286,106 +306,1038 @@ const ATTR_TEXT={
   elec:{ attr:"电", color:"#facc15", skills:["静电连锁","麻痹传导","雷霆溅射"], desc:"电弧连锁波及附近敌人" },
   ice:{ attr:"冰", color:"#7dd3fc", skills:["冰霜","寒气蔓延","极寒领域"], desc:"冰冻敌人大幅减速" },
   water:{ attr:"水", color:"#38bdf8", skills:["水溅","水波扩散","高压水炮"], desc:"命中溅射波及周围敌人" },
-  grass:{ attr:"草", color:"#4ade80", skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" }
+  grass:{ attr:"草", color:"#4ade80", skills:["汲取","光合回复","生命绽放"], desc:"命中汲取生命力回复自身" },
+  neutral:{ attr:"普", color:"#94a3b8", skills:["—","—","—"], desc:"中性属性 · 无克制特效" }
 };
-const POKEDEX={
-  /* 火 */
-  charmander:{name:"小火龙",mid:"火恐龙",top:"喷火龙",attr:"fire",gen:1},
-  vulpix:{name:"六尾",mid:"九尾",attr:"fire",gen:1},
-  growlithe:{name:"卡蒂狗",mid:"风速狗",attr:"fire",gen:1},
-  ponyta:{name:"小火马",mid:"烈焰马",attr:"fire",gen:1},
-  magby:{name:"鸭嘴宝宝",mid:"鸭嘴火兽",top:"鸭嘴炎龙",attr:"fire",gen:2},
-  torchic:{name:"火稚鸡",mid:"力壮鸡",top:"火焰鸡",attr:"fire",gen:3},
-  numel:{name:"呆火驼",mid:"喷火驼",attr:"fire",gen:3},
-  torkoal:{name:"煤炭龟",attr:"fire",gen:3},
-  lampent:{name:"烛光灵",mid:"灯火幽灵",top:"水晶灯火灵",attr:"fire",gen:5},
-  heatmor:{name:"熔蚁兽",attr:"fire",gen:5},
-  fennekin:{name:"火狐狸",mid:"长尾火狐",top:"妖火红狐",attr:"fire",gen:6},
-  salandit:{name:"夜盗火蜥",mid:"焰后蜥",attr:"fire",gen:7},
-  litten:{name:"火斑喵",mid:"炎热喵",top:"炽焰咆哮虎",attr:"fire",gen:7},
-  turtonator:{name:"爆焰龟兽",attr:"fire",gen:7},
-  scorbunny:{name:"炎兔儿",mid:"腾蹴小将",top:"闪焰王牌",attr:"fire",gen:8},
-  charcadet:{name:"炭小侍",mid:"红莲铠骑",attr:"fire",gen:9},
-  hooh:{name:"凤王",attr:"fire",gen:2},
-  groudon:{name:"固拉多",attr:"fire",gen:3},
-  /* 电 */
-  pichu:{name:"皮丘",mid:"皮卡丘",top:"雷丘",attr:"elec",gen:2},
-  magnemite:{name:"小磁怪",mid:"三合一磁怪",top:"自爆磁怪",attr:"elec",gen:1},
-  voltorb:{name:"霹雳电球",mid:"顽皮雷弹",attr:"elec",gen:1},
-  electrike:{name:"落雷兽",mid:"雷电兽",attr:"elec",gen:3},
-  plusle:{name:"正电拍拍",attr:"elec",gen:3},
-  minun:{name:"负电拍拍",attr:"elec",gen:3},
-  mareep:{name:"咩利羊",mid:"茸茸羊",top:"电龙",attr:"elec",gen:2},
-  shinx:{name:"小猫怪",mid:"勒克猫",top:"伦琴猫",attr:"elec",gen:4},
-  pachirisu:{name:"帕奇利兹",attr:"elec",gen:4},
-  blitzle:{name:"斑斑马",mid:"雷电斑马",attr:"elec",gen:5},
-  joltik:{name:"电电虫",mid:"电蜘蛛",attr:"elec",gen:5},
-  tynamo:{name:"麻麻小鱼",mid:"麻麻鳗",top:"麻麻鳗鱼王",attr:"elec",gen:5},
-  grubbin:{name:"强颚鸡母虫",mid:"虫电宝",top:"锹农炮虫",attr:"elec",gen:7},
-  togedemaru:{name:"托戈德玛尔",attr:"elec",gen:7},
-  yamper:{name:"来电汪",mid:"逐电犬",attr:"elec",gen:8},
-  zapdos:{name:"闪电鸟",attr:"elec",gen:1},
-  zekrom:{name:"捷克罗姆",attr:"elec",gen:5},
-  mewtwo:{name:"超梦",attr:"elec",gen:1},
-  /* 冰 */
-  swinub:{name:"小山猪",mid:"长毛猪",top:"象牙猪",attr:"ice",gen:2},
-  seel:{name:"小海狮",mid:"白海狮",attr:"ice",gen:1},
-  sneasel:{name:"狃拉",mid:"玛狃拉",attr:"ice",gen:2},
-  snorunt:{name:"雪童子",mid:"冰鬼护",attr:"ice",gen:3},
-  spheal:{name:"海豹球",mid:"海魔狮",top:"帝牙海狮",attr:"ice",gen:3},
-  snover:{name:"雪笠怪",mid:"暴雪王",attr:"ice",gen:4},
-  glaceon:{name:"冰伊布",attr:"ice",gen:4},
-  vanillite:{name:"迷你冰",mid:"多多冰",top:"双倍多多冰",attr:"ice",gen:5},
-  cubchoo:{name:"喷嚏熊",mid:"冻原熊",attr:"ice",gen:5},
-  bergmite:{name:"冰宝",mid:"冰岩怪",attr:"ice",gen:6},
-  crabrawler:{name:"好胜蟹",mid:"好胜毛蟹",attr:"ice",gen:7},
-  eiscue:{name:"冰砌鹅",attr:"ice",gen:8},
-  snom:{name:"雪吞虫",mid:"雪绒蛾",attr:"ice",gen:8},
-  cetoddle:{name:"走鲸",mid:"浩大鲸",attr:"ice",gen:9},
-  frigibax:{name:"凉脊龙",mid:"冻脊龙",top:"戟脊龙",attr:"ice",gen:9},
-  articuno:{name:"急冻鸟",attr:"ice",gen:1},
-  kyurem:{name:"酋雷姆",attr:"ice",gen:5},
-  regice:{name:"雷吉艾斯",attr:"ice",gen:3},
-  /* 水 */
-  squirtle:{name:"杰尼龟",mid:"卡咪龟",top:"水箭龟",attr:"water",gen:1},
-  psyduck:{name:"可达鸭",mid:"哥达鸭",attr:"water",gen:1},
-  poliwag:{name:"蚊香蝌蚪",mid:"蚊香君",top:"蚊香泳士",attr:"water",gen:1},
-  tentacool:{name:"玛瑙水母",mid:"毒刺水母",attr:"water",gen:1},
-  goldeen:{name:"角金鱼",mid:"金鱼王",attr:"water",gen:1},
-  magikarp:{name:"鲤鱼王",mid:"暴鲤龙",attr:"water",gen:1},
-  totodile:{name:"小锯鳄",mid:"蓝鳄",top:"大力鳄",attr:"water",gen:2},
-  mudkip:{name:"水跃鱼",mid:"沼跃鱼",top:"巨沼怪",attr:"water",gen:3},
-  lotad:{name:"莲叶童子",mid:"莲帽小童",top:"乐天河童",attr:"water",gen:3},
-  oshawott:{name:"水水獭",mid:"双刃丸",top:"大剑鬼",attr:"water",gen:5},
-  froakie:{name:"呱呱泡蛙",mid:"呱头蛙",top:"甲贺忍蛙",attr:"water",gen:6},
-  clawitzer:{name:"钢炮臂虾",attr:"water",gen:6},
-  popplio:{name:"球球海狮",mid:"花漾海狮",top:"西狮海壬",attr:"water",gen:7},
-  sobble:{name:"泪眼蜥",mid:"变涩蜥",top:"千面避役",attr:"water",gen:8},
-  dondozo:{name:"吃吼霸",attr:"water",gen:9},
-  suicune:{name:"水君",attr:"water",gen:2},
-  kyogre:{name:"盖欧卡",attr:"water",gen:3},
-  manaphy:{name:"玛纳霏",attr:"water",gen:4},
-  /* 草 */
-  bulbasaur:{name:"妙蛙种子",mid:"妙蛙草",top:"妙蛙花",attr:"grass",gen:1},
-  oddish:{name:"走路草",mid:"臭臭花",top:"霸王花",attr:"grass",gen:1},
-  bellsprout:{name:"喇叭芽",mid:"口呆花",top:"大食花",attr:"grass",gen:1},
-  chikorita:{name:"菊草叶",mid:"月桂叶",top:"大竺葵",attr:"grass",gen:2},
-  treecko:{name:"木守宫",mid:"森林蜥蜴",top:"蜥蜴王",attr:"grass",gen:3},
-  shroomish:{name:"蘑蘑菇",mid:"斗笠菇",attr:"grass",gen:3},
-  turtwig:{name:"草苗龟",mid:"树林龟",top:"土台龟",attr:"grass",gen:4},
-  budew:{name:"含羞苞",mid:"毒蔷薇",top:"罗丝雷朵",attr:"grass",gen:4},
-  cherubi:{name:"樱花宝",mid:"樱花儿",attr:"grass",gen:4},
-  snivy:{name:"藤藤蛇",mid:"青藤蛇",top:"君主蛇",attr:"grass",gen:5},
-  foongus:{name:"哎呀球菇",mid:"败露球菇",attr:"grass",gen:5},
-  chespin:{name:"哈力栗",mid:"胖胖哈力",top:"布里卡隆",attr:"grass",gen:6},
-  phantump:{name:"小木灵",mid:"朽木妖",attr:"grass",gen:6},
-  rowlet:{name:"木木枭",mid:"投羽枭",top:"狙射树枭",attr:"grass",gen:7},
-  bounsweet:{name:"甜竹竹",mid:"甜舞妮",top:"甜冷美后",attr:"grass",gen:7},
-  grookey:{name:"敲音猴",mid:"啪咚猴",top:"轰擂金刚猩",attr:"grass",gen:8},
-  sprigatito:{name:"新叶喵",mid:"蒂蕾喵",top:"魔幻假面喵",attr:"grass",gen:9},
-  celebi:{name:"时拉比",attr:"grass",gen:2}
+const POKEDEX = {
+  "bulbasaur":{name:"妙蛙种子",attr:"grass",gen:1,mid:"妙蛙草",top:"妙蛙花"},
+  "ivysaur":{name:"妙蛙草",attr:"grass",gen:1,mid:"妙蛙花"},
+  "venusaur":{name:"妙蛙花",attr:"grass",gen:1},
+  "charmander":{name:"小火龙",attr:"fire",gen:1,mid:"火恐龙",top:"喷火龙"},
+  "charmeleon":{name:"火恐龙",attr:"fire",gen:1,mid:"喷火龙"},
+  "charizard":{name:"喷火龙",attr:"fire",gen:1},
+  "squirtle":{name:"杰尼龟",attr:"water",gen:1,mid:"卡咪龟",top:"水箭龟"},
+  "wartortle":{name:"卡咪龟",attr:"water",gen:1,mid:"水箭龟"},
+  "blastoise":{name:"水箭龟",attr:"water",gen:1},
+  "caterpie":{name:"绿毛虫",attr:"neutral",gen:1,mid:"铁甲蛹",top:"巴大蝶"},
+  "metapod":{name:"铁甲蛹",attr:"neutral",gen:1,mid:"巴大蝶"},
+  "butterfree":{name:"巴大蝶",attr:"neutral",gen:1},
+  "weedle":{name:"独角虫",attr:"neutral",gen:1,mid:"铁壳蛹",top:"大针蜂"},
+  "kakuna":{name:"铁壳蛹",attr:"neutral",gen:1,mid:"大针蜂"},
+  "beedrill":{name:"大针蜂",attr:"neutral",gen:1},
+  "pidgey":{name:"波波",attr:"neutral",gen:1,mid:"比比鸟",top:"大比鸟"},
+  "pidgeotto":{name:"比比鸟",attr:"neutral",gen:1,mid:"大比鸟"},
+  "pidgeot":{name:"大比鸟",attr:"neutral",gen:1},
+  "rattata":{name:"小拉达",attr:"neutral",gen:1,mid:"拉达"},
+  "raticate":{name:"拉达",attr:"neutral",gen:1},
+  "spearow":{name:"烈雀",attr:"neutral",gen:1,mid:"大嘴雀"},
+  "fearow":{name:"大嘴雀",attr:"neutral",gen:1},
+  "ekans":{name:"阿柏蛇",attr:"neutral",gen:1,mid:"阿柏怪"},
+  "arbok":{name:"阿柏怪",attr:"neutral",gen:1},
+  "pikachu":{name:"皮卡丘",attr:"elec",gen:1,mid:"雷丘"},
+  "raichu":{name:"雷丘",attr:"elec",gen:1},
+  "sandshrew":{name:"穿山鼠",attr:"neutral",gen:1,mid:"穿山王"},
+  "sandslash":{name:"穿山王",attr:"neutral",gen:1},
+  "nidoran-f":{name:"尼多兰",attr:"neutral",gen:1,mid:"尼多娜",top:"尼多后"},
+  "nidorina":{name:"尼多娜",attr:"neutral",gen:1,mid:"尼多后"},
+  "nidoqueen":{name:"尼多后",attr:"neutral",gen:1},
+  "nidoran-m":{name:"尼多朗",attr:"neutral",gen:1,mid:"尼多力诺",top:"尼多王"},
+  "nidorino":{name:"尼多力诺",attr:"neutral",gen:1,mid:"尼多王"},
+  "nidoking":{name:"尼多王",attr:"neutral",gen:1},
+  "clefairy":{name:"皮皮",attr:"neutral",gen:1,mid:"皮可西"},
+  "clefable":{name:"皮可西",attr:"neutral",gen:1},
+  "vulpix":{name:"六尾",attr:"fire",gen:1,mid:"九尾"},
+  "ninetales":{name:"九尾",attr:"fire",gen:1},
+  "jigglypuff":{name:"胖丁",attr:"neutral",gen:1,mid:"胖可丁"},
+  "wigglytuff":{name:"胖可丁",attr:"neutral",gen:1},
+  "zubat":{name:"超音蝠",attr:"neutral",gen:1,mid:"大嘴蝠",top:"叉字蝠"},
+  "golbat":{name:"大嘴蝠",attr:"neutral",gen:1,mid:"叉字蝠"},
+  "oddish":{name:"走路草",attr:"grass",gen:1,mid:"臭臭花",top:"霸王花"},
+  "gloom":{name:"臭臭花",attr:"grass",gen:1,mid:"霸王花"},
+  "vileplume":{name:"霸王花",attr:"grass",gen:1},
+  "paras":{name:"派拉斯",attr:"neutral",gen:1,mid:"派拉斯特"},
+  "parasect":{name:"派拉斯特",attr:"neutral",gen:1},
+  "venonat":{name:"毛球",attr:"neutral",gen:1,mid:"摩鲁蛾"},
+  "venomoth":{name:"摩鲁蛾",attr:"neutral",gen:1},
+  "diglett":{name:"地鼠",attr:"neutral",gen:1,mid:"三地鼠"},
+  "dugtrio":{name:"三地鼠",attr:"neutral",gen:1},
+  "meowth":{name:"喵喵",attr:"neutral",gen:1,mid:"猫老大"},
+  "persian":{name:"猫老大",attr:"neutral",gen:1},
+  "psyduck":{name:"可达鸭",attr:"water",gen:1,mid:"哥达鸭"},
+  "golduck":{name:"哥达鸭",attr:"water",gen:1},
+  "mankey":{name:"猴怪",attr:"neutral",gen:1,mid:"火暴猴",top:"弃世猴"},
+  "primeape":{name:"火暴猴",attr:"neutral",gen:1,mid:"弃世猴"},
+  "growlithe":{name:"卡蒂狗",attr:"fire",gen:1,mid:"风速狗"},
+  "arcanine":{name:"风速狗",attr:"fire",gen:1},
+  "poliwag":{name:"蚊香蝌蚪",attr:"water",gen:1,mid:"蚊香君",top:"蚊香泳士"},
+  "poliwhirl":{name:"蚊香君",attr:"water",gen:1,mid:"蚊香泳士"},
+  "poliwrath":{name:"蚊香泳士",attr:"water",gen:1},
+  "abra":{name:"凯西",attr:"neutral",gen:1,mid:"勇基拉",top:"胡地"},
+  "kadabra":{name:"勇基拉",attr:"neutral",gen:1,mid:"胡地"},
+  "alakazam":{name:"胡地",attr:"neutral",gen:1},
+  "machop":{name:"腕力",attr:"neutral",gen:1,mid:"豪力",top:"怪力"},
+  "machoke":{name:"豪力",attr:"neutral",gen:1,mid:"怪力"},
+  "machamp":{name:"怪力",attr:"neutral",gen:1},
+  "bellsprout":{name:"喇叭芽",attr:"grass",gen:1,mid:"口呆花",top:"大食花"},
+  "weepinbell":{name:"口呆花",attr:"grass",gen:1,mid:"大食花"},
+  "victreebel":{name:"大食花",attr:"grass",gen:1},
+  "tentacool":{name:"玛瑙水母",attr:"water",gen:1,mid:"毒刺水母"},
+  "tentacruel":{name:"毒刺水母",attr:"water",gen:1},
+  "geodude":{name:"小拳石",attr:"neutral",gen:1,mid:"隆隆石",top:"隆隆岩"},
+  "graveler":{name:"隆隆石",attr:"neutral",gen:1,mid:"隆隆岩"},
+  "golem":{name:"隆隆岩",attr:"neutral",gen:1},
+  "ponyta":{name:"小火马",attr:"fire",gen:1,mid:"烈焰马"},
+  "rapidash":{name:"烈焰马",attr:"fire",gen:1},
+  "slowpoke":{name:"呆呆兽",attr:"water",gen:1,mid:"呆壳兽"},
+  "slowbro":{name:"呆壳兽",attr:"water",gen:1},
+  "magnemite":{name:"小磁怪",attr:"elec",gen:1,mid:"三合一磁怪",top:"自爆磁怪"},
+  "magneton":{name:"三合一磁怪",attr:"elec",gen:1,mid:"自爆磁怪"},
+  "farfetchd":{name:"大葱鸭",attr:"neutral",gen:1,mid:"葱游兵"},
+  "doduo":{name:"嘟嘟",attr:"neutral",gen:1,mid:"嘟嘟利"},
+  "dodrio":{name:"嘟嘟利",attr:"neutral",gen:1},
+  "seel":{name:"小海狮",attr:"water",gen:1,mid:"白海狮"},
+  "dewgong":{name:"白海狮",attr:"water",gen:1},
+  "grimer":{name:"臭泥",attr:"neutral",gen:1,mid:"臭臭泥"},
+  "muk":{name:"臭臭泥",attr:"neutral",gen:1},
+  "shellder":{name:"大舌贝",attr:"water",gen:1,mid:"刺甲贝"},
+  "cloyster":{name:"刺甲贝",attr:"water",gen:1},
+  "gastly":{name:"鬼斯",attr:"neutral",gen:1,mid:"鬼斯通",top:"耿鬼"},
+  "haunter":{name:"鬼斯通",attr:"neutral",gen:1,mid:"耿鬼"},
+  "gengar":{name:"耿鬼",attr:"neutral",gen:1},
+  "onix":{name:"大岩蛇",attr:"neutral",gen:1,mid:"大钢蛇"},
+  "drowzee":{name:"催眠貘",attr:"neutral",gen:1,mid:"引梦貘人"},
+  "hypno":{name:"引梦貘人",attr:"neutral",gen:1},
+  "krabby":{name:"大钳蟹",attr:"water",gen:1,mid:"巨钳蟹"},
+  "kingler":{name:"巨钳蟹",attr:"water",gen:1},
+  "voltorb":{name:"霹雳电球",attr:"elec",gen:1,mid:"顽皮雷弹"},
+  "electrode":{name:"顽皮雷弹",attr:"elec",gen:1},
+  "exeggcute":{name:"蛋蛋",attr:"grass",gen:1,mid:"椰蛋树"},
+  "exeggutor":{name:"椰蛋树",attr:"grass",gen:1},
+  "cubone":{name:"卡拉卡拉",attr:"neutral",gen:1,mid:"嘎啦嘎啦"},
+  "marowak":{name:"嘎啦嘎啦",attr:"neutral",gen:1},
+  "hitmonlee":{name:"飞腿郎",attr:"neutral",gen:1},
+  "hitmonchan":{name:"快拳郎",attr:"neutral",gen:1},
+  "lickitung":{name:"大舌头",attr:"neutral",gen:1,mid:"大舌舔"},
+  "koffing":{name:"瓦斯弹",attr:"neutral",gen:1,mid:"双弹瓦斯"},
+  "weezing":{name:"双弹瓦斯",attr:"neutral",gen:1},
+  "rhyhorn":{name:"独角犀牛",attr:"neutral",gen:1,mid:"钻角犀兽",top:"超甲狂犀"},
+  "rhydon":{name:"钻角犀兽",attr:"neutral",gen:1,mid:"超甲狂犀"},
+  "chansey":{name:"吉利蛋",attr:"neutral",gen:1,mid:"幸福蛋"},
+  "tangela":{name:"蔓藤怪",attr:"grass",gen:1,mid:"巨蔓藤"},
+  "kangaskhan":{name:"袋兽",attr:"neutral",gen:1},
+  "horsea":{name:"墨海马",attr:"water",gen:1,mid:"海刺龙",top:"刺龙王"},
+  "seadra":{name:"海刺龙",attr:"water",gen:1,mid:"刺龙王"},
+  "goldeen":{name:"角金鱼",attr:"water",gen:1,mid:"金鱼王"},
+  "seaking":{name:"金鱼王",attr:"water",gen:1},
+  "staryu":{name:"海星星",attr:"water",gen:1,mid:"宝石海星"},
+  "starmie":{name:"宝石海星",attr:"water",gen:1},
+  "mr-mime":{name:"魔墙人偶",attr:"neutral",gen:1,mid:"踏冰人偶"},
+  "scyther":{name:"飞天螳螂",attr:"neutral",gen:1,mid:"巨钳螳螂"},
+  "jynx":{name:"迷唇姐",attr:"ice",gen:1},
+  "electabuzz":{name:"电击兽",attr:"elec",gen:1,mid:"电击魔兽"},
+  "magmar":{name:"鸭嘴火兽",attr:"fire",gen:1,mid:"鸭嘴炎兽"},
+  "pinsir":{name:"凯罗斯",attr:"neutral",gen:1},
+  "tauros":{name:"肯泰罗",attr:"neutral",gen:1},
+  "magikarp":{name:"鲤鱼王",attr:"water",gen:1,mid:"暴鲤龙"},
+  "gyarados":{name:"暴鲤龙",attr:"water",gen:1},
+  "lapras":{name:"拉普拉斯",attr:"water",gen:1},
+  "ditto":{name:"百变怪",attr:"neutral",gen:1},
+  "eevee":{name:"伊布",attr:"neutral",gen:1,mid:"水伊布"},
+  "vaporeon":{name:"水伊布",attr:"water",gen:1},
+  "jolteon":{name:"雷伊布",attr:"elec",gen:1},
+  "flareon":{name:"火伊布",attr:"fire",gen:1},
+  "porygon":{name:"多边兽",attr:"neutral",gen:1,mid:"多边兽２型",top:"多边兽乙型"},
+  "omanyte":{name:"菊石兽",attr:"neutral",gen:1,mid:"多刺菊石兽"},
+  "omastar":{name:"多刺菊石兽",attr:"neutral",gen:1},
+  "kabuto":{name:"化石盔",attr:"neutral",gen:1,mid:"镰刀盔"},
+  "kabutops":{name:"镰刀盔",attr:"neutral",gen:1},
+  "aerodactyl":{name:"化石翼龙",attr:"neutral",gen:1},
+  "snorlax":{name:"卡比兽",attr:"neutral",gen:1},
+  "articuno":{name:"急冻鸟",attr:"ice",gen:1},
+  "zapdos":{name:"闪电鸟",attr:"elec",gen:1},
+  "moltres":{name:"火焰鸟",attr:"fire",gen:1},
+  "dratini":{name:"迷你龙",attr:"neutral",gen:1,mid:"哈克龙",top:"快龙"},
+  "dragonair":{name:"哈克龙",attr:"neutral",gen:1,mid:"快龙"},
+  "dragonite":{name:"快龙",attr:"neutral",gen:1},
+  "mewtwo":{name:"超梦",attr:"neutral",gen:1},
+  "mew":{name:"梦幻",attr:"neutral",gen:1},
+  "chikorita":{name:"菊草叶",attr:"grass",gen:2,mid:"月桂叶",top:"大竺葵"},
+  "bayleef":{name:"月桂叶",attr:"grass",gen:2,mid:"大竺葵"},
+  "meganium":{name:"大竺葵",attr:"grass",gen:2},
+  "cyndaquil":{name:"火球鼠",attr:"fire",gen:2,mid:"火岩鼠",top:"火暴兽"},
+  "quilava":{name:"火岩鼠",attr:"fire",gen:2,mid:"火暴兽"},
+  "typhlosion":{name:"火暴兽",attr:"fire",gen:2},
+  "totodile":{name:"小锯鳄",attr:"water",gen:2,mid:"蓝鳄",top:"大力鳄"},
+  "croconaw":{name:"蓝鳄",attr:"water",gen:2,mid:"大力鳄"},
+  "feraligatr":{name:"大力鳄",attr:"water",gen:2},
+  "sentret":{name:"尾立",attr:"neutral",gen:2,mid:"大尾立"},
+  "furret":{name:"大尾立",attr:"neutral",gen:2},
+  "hoothoot":{name:"咕咕",attr:"neutral",gen:2,mid:"猫头夜鹰"},
+  "noctowl":{name:"猫头夜鹰",attr:"neutral",gen:2},
+  "ledyba":{name:"芭瓢虫",attr:"neutral",gen:2,mid:"安瓢虫"},
+  "ledian":{name:"安瓢虫",attr:"neutral",gen:2},
+  "spinarak":{name:"圆丝蛛",attr:"neutral",gen:2,mid:"阿利多斯"},
+  "ariados":{name:"阿利多斯",attr:"neutral",gen:2},
+  "crobat":{name:"叉字蝠",attr:"neutral",gen:2},
+  "chinchou":{name:"灯笼鱼",attr:"water",gen:2,mid:"电灯怪"},
+  "lanturn":{name:"电灯怪",attr:"water",gen:2},
+  "pichu":{name:"皮丘",attr:"elec",gen:2,mid:"皮卡丘",top:"雷丘"},
+  "cleffa":{name:"皮宝宝",attr:"neutral",gen:2,mid:"皮皮",top:"皮可西"},
+  "igglybuff":{name:"宝宝丁",attr:"neutral",gen:2,mid:"胖丁",top:"胖可丁"},
+  "togepi":{name:"波克比",attr:"neutral",gen:2,mid:"波克基古",top:"波克基斯"},
+  "togetic":{name:"波克基古",attr:"neutral",gen:2,mid:"波克基斯"},
+  "natu":{name:"天然雀",attr:"neutral",gen:2,mid:"天然鸟"},
+  "xatu":{name:"天然鸟",attr:"neutral",gen:2},
+  "mareep":{name:"咩利羊",attr:"elec",gen:2,mid:"茸茸羊",top:"电龙"},
+  "flaaffy":{name:"茸茸羊",attr:"elec",gen:2,mid:"电龙"},
+  "ampharos":{name:"电龙",attr:"elec",gen:2},
+  "bellossom":{name:"美丽花",attr:"grass",gen:2},
+  "marill":{name:"玛力露",attr:"water",gen:2,mid:"玛力露丽"},
+  "azumarill":{name:"玛力露丽",attr:"water",gen:2},
+  "sudowoodo":{name:"树才怪",attr:"neutral",gen:2},
+  "politoed":{name:"蚊香蛙皇",attr:"water",gen:2},
+  "hoppip":{name:"毽子草",attr:"grass",gen:2,mid:"毽子花",top:"毽子棉"},
+  "skiploom":{name:"毽子花",attr:"grass",gen:2,mid:"毽子棉"},
+  "jumpluff":{name:"毽子棉",attr:"grass",gen:2},
+  "aipom":{name:"长尾怪手",attr:"neutral",gen:2,mid:"双尾怪手"},
+  "sunkern":{name:"向日种子",attr:"grass",gen:2,mid:"向日花怪"},
+  "sunflora":{name:"向日花怪",attr:"grass",gen:2},
+  "yanma":{name:"蜻蜻蜓",attr:"neutral",gen:2,mid:"远古巨蜓"},
+  "wooper":{name:"乌波",attr:"water",gen:2,mid:"沼王"},
+  "quagsire":{name:"沼王",attr:"water",gen:2},
+  "espeon":{name:"太阳伊布",attr:"neutral",gen:2},
+  "umbreon":{name:"月亮伊布",attr:"neutral",gen:2},
+  "murkrow":{name:"黑暗鸦",attr:"neutral",gen:2,mid:"乌鸦头头"},
+  "slowking":{name:"呆呆王",attr:"water",gen:2},
+  "misdreavus":{name:"梦妖",attr:"neutral",gen:2,mid:"梦妖魔"},
+  "unown":{name:"未知图腾",attr:"neutral",gen:2},
+  "wobbuffet":{name:"果然翁",attr:"neutral",gen:2},
+  "girafarig":{name:"麒麟奇",attr:"neutral",gen:2,mid:"奇麒麟"},
+  "pineco":{name:"榛果球",attr:"neutral",gen:2,mid:"佛烈托斯"},
+  "forretress":{name:"佛烈托斯",attr:"neutral",gen:2},
+  "dunsparce":{name:"土龙弟弟",attr:"neutral",gen:2,mid:"土龙节节"},
+  "gligar":{name:"天蝎",attr:"neutral",gen:2,mid:"天蝎王"},
+  "steelix":{name:"大钢蛇",attr:"neutral",gen:2},
+  "snubbull":{name:"布鲁",attr:"neutral",gen:2,mid:"布鲁皇"},
+  "granbull":{name:"布鲁皇",attr:"neutral",gen:2},
+  "qwilfish":{name:"千针鱼",attr:"water",gen:2,mid:"万针鱼"},
+  "scizor":{name:"巨钳螳螂",attr:"neutral",gen:2},
+  "shuckle":{name:"壶壶",attr:"neutral",gen:2},
+  "heracross":{name:"赫拉克罗斯",attr:"neutral",gen:2},
+  "sneasel":{name:"狃拉",attr:"neutral",gen:2,mid:"玛狃拉"},
+  "teddiursa":{name:"熊宝宝",attr:"neutral",gen:2,mid:"圈圈熊",top:"月月熊"},
+  "ursaring":{name:"圈圈熊",attr:"neutral",gen:2,mid:"月月熊"},
+  "slugma":{name:"熔岩虫",attr:"fire",gen:2,mid:"熔岩蜗牛"},
+  "magcargo":{name:"熔岩蜗牛",attr:"fire",gen:2},
+  "swinub":{name:"小山猪",attr:"ice",gen:2,mid:"长毛猪",top:"象牙猪"},
+  "piloswine":{name:"长毛猪",attr:"ice",gen:2,mid:"象牙猪"},
+  "corsola":{name:"太阳珊瑚",attr:"water",gen:2,mid:"魔灵珊瑚"},
+  "remoraid":{name:"铁炮鱼",attr:"water",gen:2,mid:"章鱼桶"},
+  "octillery":{name:"章鱼桶",attr:"water",gen:2},
+  "delibird":{name:"信使鸟",attr:"ice",gen:2},
+  "mantine":{name:"巨翅飞鱼",attr:"water",gen:2},
+  "skarmory":{name:"盔甲鸟",attr:"neutral",gen:2},
+  "houndour":{name:"戴鲁比",attr:"neutral",gen:2,mid:"黑鲁加"},
+  "houndoom":{name:"黑鲁加",attr:"neutral",gen:2},
+  "kingdra":{name:"刺龙王",attr:"water",gen:2},
+  "phanpy":{name:"小小象",attr:"neutral",gen:2,mid:"顿甲"},
+  "donphan":{name:"顿甲",attr:"neutral",gen:2},
+  "porygon2":{name:"多边兽２型",attr:"neutral",gen:2,mid:"多边兽乙型"},
+  "stantler":{name:"惊角鹿",attr:"neutral",gen:2,mid:"诡角鹿"},
+  "smeargle":{name:"图图犬",attr:"neutral",gen:2},
+  "tyrogue":{name:"无畏小子",attr:"neutral",gen:2,mid:"飞腿郎"},
+  "hitmontop":{name:"战舞郎",attr:"neutral",gen:2},
+  "smoochum":{name:"迷唇娃",attr:"ice",gen:2,mid:"迷唇姐"},
+  "elekid":{name:"电击怪",attr:"elec",gen:2,mid:"电击兽",top:"电击魔兽"},
+  "magby":{name:"鸭嘴宝宝",attr:"fire",gen:2,mid:"鸭嘴火兽",top:"鸭嘴炎兽"},
+  "miltank":{name:"大奶罐",attr:"neutral",gen:2},
+  "blissey":{name:"幸福蛋",attr:"neutral",gen:2},
+  "raikou":{name:"雷公",attr:"elec",gen:2},
+  "entei":{name:"炎帝",attr:"fire",gen:2},
+  "suicune":{name:"水君",attr:"water",gen:2},
+  "larvitar":{name:"幼基拉斯",attr:"neutral",gen:2,mid:"沙基拉斯",top:"班基拉斯"},
+  "pupitar":{name:"沙基拉斯",attr:"neutral",gen:2,mid:"班基拉斯"},
+  "tyranitar":{name:"班基拉斯",attr:"neutral",gen:2},
+  "lugia":{name:"洛奇亚",attr:"neutral",gen:2},
+  "ho-oh":{name:"凤王",attr:"fire",gen:2},
+  "celebi":{name:"时拉比",attr:"neutral",gen:2},
+  "treecko":{name:"木守宫",attr:"grass",gen:3,mid:"森林蜥蜴",top:"蜥蜴王"},
+  "grovyle":{name:"森林蜥蜴",attr:"grass",gen:3,mid:"蜥蜴王"},
+  "sceptile":{name:"蜥蜴王",attr:"grass",gen:3},
+  "torchic":{name:"火稚鸡",attr:"fire",gen:3,mid:"力壮鸡",top:"火焰鸡"},
+  "combusken":{name:"力壮鸡",attr:"fire",gen:3,mid:"火焰鸡"},
+  "blaziken":{name:"火焰鸡",attr:"fire",gen:3},
+  "mudkip":{name:"水跃鱼",attr:"water",gen:3,mid:"沼跃鱼",top:"巨沼怪"},
+  "marshtomp":{name:"沼跃鱼",attr:"water",gen:3,mid:"巨沼怪"},
+  "swampert":{name:"巨沼怪",attr:"water",gen:3},
+  "poochyena":{name:"土狼犬",attr:"neutral",gen:3,mid:"大狼犬"},
+  "mightyena":{name:"大狼犬",attr:"neutral",gen:3},
+  "zigzagoon":{name:"蛇纹熊",attr:"neutral",gen:3,mid:"直冲熊",top:"堵拦熊"},
+  "linoone":{name:"直冲熊",attr:"neutral",gen:3,mid:"堵拦熊"},
+  "wurmple":{name:"刺尾虫",attr:"neutral",gen:3,mid:"甲壳茧",top:"狩猎凤蝶"},
+  "silcoon":{name:"甲壳茧",attr:"neutral",gen:3,mid:"狩猎凤蝶"},
+  "beautifly":{name:"狩猎凤蝶",attr:"neutral",gen:3},
+  "cascoon":{name:"盾甲茧",attr:"neutral",gen:3},
+  "dustox":{name:"毒粉蛾",attr:"neutral",gen:3},
+  "lotad":{name:"莲叶童子",attr:"water",gen:3,mid:"莲帽小童",top:"乐天河童"},
+  "lombre":{name:"莲帽小童",attr:"water",gen:3,mid:"乐天河童"},
+  "ludicolo":{name:"乐天河童",attr:"water",gen:3},
+  "seedot":{name:"橡实果",attr:"grass",gen:3,mid:"长鼻叶",top:"狡猾天狗"},
+  "nuzleaf":{name:"长鼻叶",attr:"grass",gen:3,mid:"狡猾天狗"},
+  "shiftry":{name:"狡猾天狗",attr:"grass",gen:3},
+  "taillow":{name:"傲骨燕",attr:"neutral",gen:3,mid:"大王燕"},
+  "swellow":{name:"大王燕",attr:"neutral",gen:3},
+  "wingull":{name:"长翅鸥",attr:"water",gen:3,mid:"大嘴鸥"},
+  "pelipper":{name:"大嘴鸥",attr:"water",gen:3},
+  "ralts":{name:"拉鲁拉丝",attr:"neutral",gen:3,mid:"奇鲁莉安",top:"沙奈朵"},
+  "kirlia":{name:"奇鲁莉安",attr:"neutral",gen:3,mid:"沙奈朵"},
+  "gardevoir":{name:"沙奈朵",attr:"neutral",gen:3},
+  "surskit":{name:"溜溜糖球",attr:"neutral",gen:3,mid:"雨翅蛾"},
+  "masquerain":{name:"雨翅蛾",attr:"neutral",gen:3},
+  "shroomish":{name:"蘑蘑菇",attr:"grass",gen:3,mid:"斗笠菇"},
+  "breloom":{name:"斗笠菇",attr:"grass",gen:3},
+  "slakoth":{name:"懒人獭",attr:"neutral",gen:3,mid:"过动猿",top:"请假王"},
+  "vigoroth":{name:"过动猿",attr:"neutral",gen:3,mid:"请假王"},
+  "slaking":{name:"请假王",attr:"neutral",gen:3},
+  "nincada":{name:"土居忍士",attr:"neutral",gen:3,mid:"铁面忍者"},
+  "ninjask":{name:"铁面忍者",attr:"neutral",gen:3},
+  "shedinja":{name:"脱壳忍者",attr:"neutral",gen:3},
+  "whismur":{name:"咕妞妞",attr:"neutral",gen:3,mid:"吼爆弹",top:"爆音怪"},
+  "loudred":{name:"吼爆弹",attr:"neutral",gen:3,mid:"爆音怪"},
+  "exploud":{name:"爆音怪",attr:"neutral",gen:3},
+  "makuhita":{name:"幕下力士",attr:"neutral",gen:3,mid:"铁掌力士"},
+  "hariyama":{name:"铁掌力士",attr:"neutral",gen:3},
+  "azurill":{name:"露力丽",attr:"neutral",gen:3,mid:"玛力露",top:"玛力露丽"},
+  "nosepass":{name:"朝北鼻",attr:"neutral",gen:3,mid:"大朝北鼻"},
+  "skitty":{name:"向尾喵",attr:"neutral",gen:3,mid:"优雅猫"},
+  "delcatty":{name:"优雅猫",attr:"neutral",gen:3},
+  "sableye":{name:"勾魂眼",attr:"neutral",gen:3},
+  "mawile":{name:"大嘴娃",attr:"neutral",gen:3},
+  "aron":{name:"可可多拉",attr:"neutral",gen:3,mid:"可多拉",top:"波士可多拉"},
+  "lairon":{name:"可多拉",attr:"neutral",gen:3,mid:"波士可多拉"},
+  "aggron":{name:"波士可多拉",attr:"neutral",gen:3},
+  "meditite":{name:"玛沙那",attr:"neutral",gen:3,mid:"恰雷姆"},
+  "medicham":{name:"恰雷姆",attr:"neutral",gen:3},
+  "electrike":{name:"落雷兽",attr:"elec",gen:3,mid:"雷电兽"},
+  "manectric":{name:"雷电兽",attr:"elec",gen:3},
+  "plusle":{name:"正电拍拍",attr:"elec",gen:3},
+  "minun":{name:"負电拍拍",attr:"elec",gen:3},
+  "volbeat":{name:"电萤虫",attr:"neutral",gen:3},
+  "illumise":{name:"甜甜萤",attr:"neutral",gen:3},
+  "roselia":{name:"毒蔷薇",attr:"grass",gen:3,mid:"罗丝雷朵"},
+  "gulpin":{name:"溶食兽",attr:"neutral",gen:3,mid:"吞食兽"},
+  "swalot":{name:"吞食兽",attr:"neutral",gen:3},
+  "carvanha":{name:"利牙鱼",attr:"water",gen:3,mid:"巨牙鲨"},
+  "sharpedo":{name:"巨牙鲨",attr:"water",gen:3},
+  "wailmer":{name:"吼吼鲸",attr:"water",gen:3,mid:"吼鲸王"},
+  "wailord":{name:"吼鲸王",attr:"water",gen:3},
+  "numel":{name:"呆火驼",attr:"fire",gen:3,mid:"喷火驼"},
+  "camerupt":{name:"喷火驼",attr:"fire",gen:3},
+  "torkoal":{name:"煤炭龟",attr:"fire",gen:3},
+  "spoink":{name:"跳跳猪",attr:"neutral",gen:3,mid:"噗噗猪"},
+  "grumpig":{name:"噗噗猪",attr:"neutral",gen:3},
+  "spinda":{name:"晃晃斑",attr:"neutral",gen:3},
+  "trapinch":{name:"大颚蚁",attr:"neutral",gen:3,mid:"超音波幼虫",top:"沙漠蜻蜓"},
+  "vibrava":{name:"超音波幼虫",attr:"neutral",gen:3,mid:"沙漠蜻蜓"},
+  "flygon":{name:"沙漠蜻蜓",attr:"neutral",gen:3},
+  "cacnea":{name:"刺球仙人掌",attr:"grass",gen:3,mid:"梦歌仙人掌"},
+  "cacturne":{name:"梦歌仙人掌",attr:"grass",gen:3},
+  "swablu":{name:"青绵鸟",attr:"neutral",gen:3,mid:"七夕青鸟"},
+  "altaria":{name:"七夕青鸟",attr:"neutral",gen:3},
+  "zangoose":{name:"猫鼬斩",attr:"neutral",gen:3},
+  "seviper":{name:"饭匙蛇",attr:"neutral",gen:3},
+  "lunatone":{name:"月石",attr:"neutral",gen:3},
+  "solrock":{name:"太阳岩",attr:"neutral",gen:3},
+  "barboach":{name:"泥泥鳅",attr:"water",gen:3,mid:"鲶鱼王"},
+  "whiscash":{name:"鲶鱼王",attr:"water",gen:3},
+  "corphish":{name:"龙虾小兵",attr:"water",gen:3,mid:"铁螯龙虾"},
+  "crawdaunt":{name:"铁螯龙虾",attr:"water",gen:3},
+  "baltoy":{name:"天秤偶",attr:"neutral",gen:3,mid:"念力土偶"},
+  "claydol":{name:"念力土偶",attr:"neutral",gen:3},
+  "lileep":{name:"触手百合",attr:"neutral",gen:3,mid:"摇篮百合"},
+  "cradily":{name:"摇篮百合",attr:"neutral",gen:3},
+  "anorith":{name:"太古羽虫",attr:"neutral",gen:3,mid:"太古盔甲"},
+  "armaldo":{name:"太古盔甲",attr:"neutral",gen:3},
+  "feebas":{name:"丑丑鱼",attr:"water",gen:3,mid:"美纳斯"},
+  "milotic":{name:"美纳斯",attr:"water",gen:3},
+  "castform":{name:"飘浮泡泡",attr:"neutral",gen:3},
+  "kecleon":{name:"变隐龙",attr:"neutral",gen:3},
+  "shuppet":{name:"怨影娃娃",attr:"neutral",gen:3,mid:"诅咒娃娃"},
+  "banette":{name:"诅咒娃娃",attr:"neutral",gen:3},
+  "duskull":{name:"夜巡灵",attr:"neutral",gen:3,mid:"彷徨夜灵",top:"黑夜魔灵"},
+  "dusclops":{name:"彷徨夜灵",attr:"neutral",gen:3,mid:"黑夜魔灵"},
+  "tropius":{name:"热带龙",attr:"grass",gen:3},
+  "chimecho":{name:"风铃铃",attr:"neutral",gen:3},
+  "absol":{name:"阿勃梭鲁",attr:"neutral",gen:3},
+  "wynaut":{name:"小果然",attr:"neutral",gen:3,mid:"果然翁"},
+  "snorunt":{name:"雪童子",attr:"ice",gen:3,mid:"冰鬼护"},
+  "glalie":{name:"冰鬼护",attr:"ice",gen:3},
+  "spheal":{name:"海豹球",attr:"ice",gen:3,mid:"海魔狮",top:"帝牙海狮"},
+  "sealeo":{name:"海魔狮",attr:"ice",gen:3,mid:"帝牙海狮"},
+  "walrein":{name:"帝牙海狮",attr:"ice",gen:3},
+  "clamperl":{name:"珍珠贝",attr:"water",gen:3,mid:"猎斑鱼"},
+  "huntail":{name:"猎斑鱼",attr:"water",gen:3},
+  "gorebyss":{name:"樱花鱼",attr:"water",gen:3},
+  "relicanth":{name:"古空棘鱼",attr:"water",gen:3},
+  "luvdisc":{name:"爱心鱼",attr:"water",gen:3},
+  "bagon":{name:"宝贝龙",attr:"neutral",gen:3,mid:"甲壳龙",top:"暴飞龙"},
+  "shelgon":{name:"甲壳龙",attr:"neutral",gen:3,mid:"暴飞龙"},
+  "salamence":{name:"暴飞龙",attr:"neutral",gen:3},
+  "beldum":{name:"铁哑铃",attr:"neutral",gen:3,mid:"金属怪",top:"巨金怪"},
+  "metang":{name:"金属怪",attr:"neutral",gen:3,mid:"巨金怪"},
+  "metagross":{name:"巨金怪",attr:"neutral",gen:3},
+  "regirock":{name:"雷吉洛克",attr:"neutral",gen:3},
+  "regice":{name:"雷吉艾斯",attr:"ice",gen:3},
+  "registeel":{name:"雷吉斯奇鲁",attr:"neutral",gen:3},
+  "latias":{name:"拉帝亚斯",attr:"neutral",gen:3},
+  "latios":{name:"拉帝欧斯",attr:"neutral",gen:3},
+  "kyogre":{name:"盖欧卡",attr:"water",gen:3},
+  "groudon":{name:"固拉多",attr:"neutral",gen:3},
+  "rayquaza":{name:"烈空坐",attr:"neutral",gen:3},
+  "jirachi":{name:"基拉祈",attr:"neutral",gen:3},
+  "deoxys-normal":{name:"代欧奇希斯",attr:"neutral",gen:3},
+  "turtwig":{name:"草苗龟",attr:"grass",gen:4,mid:"树林龟",top:"土台龟"},
+  "grotle":{name:"树林龟",attr:"grass",gen:4,mid:"土台龟"},
+  "torterra":{name:"土台龟",attr:"grass",gen:4},
+  "chimchar":{name:"小火焰猴",attr:"fire",gen:4,mid:"猛火猴",top:"烈焰猴"},
+  "monferno":{name:"猛火猴",attr:"fire",gen:4,mid:"烈焰猴"},
+  "infernape":{name:"烈焰猴",attr:"fire",gen:4},
+  "piplup":{name:"波加曼",attr:"water",gen:4,mid:"波皇子",top:"帝王拿波"},
+  "prinplup":{name:"波皇子",attr:"water",gen:4,mid:"帝王拿波"},
+  "empoleon":{name:"帝王拿波",attr:"water",gen:4},
+  "starly":{name:"姆克儿",attr:"neutral",gen:4,mid:"姆克鸟",top:"姆克鹰"},
+  "staravia":{name:"姆克鸟",attr:"neutral",gen:4,mid:"姆克鹰"},
+  "staraptor":{name:"姆克鹰",attr:"neutral",gen:4},
+  "bidoof":{name:"大牙狸",attr:"neutral",gen:4,mid:"大尾狸"},
+  "bibarel":{name:"大尾狸",attr:"neutral",gen:4},
+  "kricketot":{name:"圆法师",attr:"neutral",gen:4,mid:"音箱蟀"},
+  "kricketune":{name:"音箱蟀",attr:"neutral",gen:4},
+  "shinx":{name:"小猫怪",attr:"elec",gen:4,mid:"勒克猫",top:"伦琴猫"},
+  "luxio":{name:"勒克猫",attr:"elec",gen:4,mid:"伦琴猫"},
+  "luxray":{name:"伦琴猫",attr:"elec",gen:4},
+  "budew":{name:"含羞苞",attr:"grass",gen:4,mid:"毒蔷薇",top:"罗丝雷朵"},
+  "roserade":{name:"罗丝雷朵",attr:"grass",gen:4},
+  "cranidos":{name:"头盖龙",attr:"neutral",gen:4,mid:"战槌龙"},
+  "rampardos":{name:"战槌龙",attr:"neutral",gen:4},
+  "shieldon":{name:"盾甲龙",attr:"neutral",gen:4,mid:"护城龙"},
+  "bastiodon":{name:"护城龙",attr:"neutral",gen:4},
+  "burmy":{name:"结草儿",attr:"neutral",gen:4,mid:"结草贵妇"},
+  "wormadam-plant":{name:"结草贵妇",attr:"neutral",gen:4},
+  "mothim":{name:"绅士蛾",attr:"neutral",gen:4},
+  "combee":{name:"三蜜蜂",attr:"neutral",gen:4,mid:"蜂女王"},
+  "vespiquen":{name:"蜂女王",attr:"neutral",gen:4},
+  "pachirisu":{name:"帕奇利兹",attr:"elec",gen:4},
+  "buizel":{name:"泳圈鼬",attr:"water",gen:4,mid:"浮潜鼬"},
+  "floatzel":{name:"浮潜鼬",attr:"water",gen:4},
+  "cherubi":{name:"樱花宝",attr:"grass",gen:4,mid:"樱花儿"},
+  "cherrim":{name:"樱花儿",attr:"grass",gen:4},
+  "shellos":{name:"无壳海兔",attr:"water",gen:4,mid:"海兔兽"},
+  "gastrodon":{name:"海兔兽",attr:"water",gen:4},
+  "ambipom":{name:"双尾怪手",attr:"neutral",gen:4},
+  "drifloon":{name:"飘飘球",attr:"neutral",gen:4,mid:"随风球"},
+  "drifblim":{name:"随风球",attr:"neutral",gen:4},
+  "buneary":{name:"卷卷耳",attr:"neutral",gen:4,mid:"长耳兔"},
+  "lopunny":{name:"长耳兔",attr:"neutral",gen:4},
+  "mismagius":{name:"梦妖魔",attr:"neutral",gen:4},
+  "honchkrow":{name:"乌鸦头头",attr:"neutral",gen:4},
+  "glameow":{name:"魅力喵",attr:"neutral",gen:4,mid:"东施喵"},
+  "purugly":{name:"东施喵",attr:"neutral",gen:4},
+  "chingling":{name:"铃铛响",attr:"neutral",gen:4,mid:"风铃铃"},
+  "stunky":{name:"臭鼬噗",attr:"neutral",gen:4,mid:"坦克臭鼬"},
+  "skuntank":{name:"坦克臭鼬",attr:"neutral",gen:4},
+  "bronzor":{name:"铜镜怪",attr:"neutral",gen:4,mid:"青铜钟"},
+  "bronzong":{name:"青铜钟",attr:"neutral",gen:4},
+  "bonsly":{name:"盆才怪",attr:"neutral",gen:4,mid:"树才怪"},
+  "mime-jr":{name:"魔尼尼",attr:"neutral",gen:4,mid:"魔墙人偶",top:"踏冰人偶"},
+  "happiny":{name:"小福蛋",attr:"neutral",gen:4,mid:"吉利蛋",top:"幸福蛋"},
+  "chatot":{name:"聒噪鸟",attr:"neutral",gen:4},
+  "spiritomb":{name:"花岩怪",attr:"neutral",gen:4},
+  "gible":{name:"圆陆鲨",attr:"neutral",gen:4,mid:"尖牙陆鲨",top:"烈咬陆鲨"},
+  "gabite":{name:"尖牙陆鲨",attr:"neutral",gen:4,mid:"烈咬陆鲨"},
+  "garchomp":{name:"烈咬陆鲨",attr:"neutral",gen:4},
+  "munchlax":{name:"小卡比兽",attr:"neutral",gen:4,mid:"卡比兽"},
+  "riolu":{name:"利欧路",attr:"neutral",gen:4,mid:"路卡利欧"},
+  "lucario":{name:"路卡利欧",attr:"neutral",gen:4},
+  "hippopotas":{name:"沙河马",attr:"neutral",gen:4,mid:"河马兽"},
+  "hippowdon":{name:"河马兽",attr:"neutral",gen:4},
+  "skorupi":{name:"钳尾蝎",attr:"neutral",gen:4,mid:"龙王蝎"},
+  "drapion":{name:"龙王蝎",attr:"neutral",gen:4},
+  "croagunk":{name:"不良蛙",attr:"neutral",gen:4,mid:"毒骷蛙"},
+  "toxicroak":{name:"毒骷蛙",attr:"neutral",gen:4},
+  "carnivine":{name:"尖牙笼",attr:"grass",gen:4},
+  "finneon":{name:"荧光鱼",attr:"water",gen:4,mid:"霓虹鱼"},
+  "lumineon":{name:"霓虹鱼",attr:"water",gen:4},
+  "mantyke":{name:"小球飞鱼",attr:"water",gen:4,mid:"巨翅飞鱼"},
+  "snover":{name:"雪笠怪",attr:"grass",gen:4,mid:"暴雪王"},
+  "abomasnow":{name:"暴雪王",attr:"grass",gen:4},
+  "weavile":{name:"玛狃拉",attr:"neutral",gen:4},
+  "magnezone":{name:"自爆磁怪",attr:"elec",gen:4},
+  "lickilicky":{name:"大舌舔",attr:"neutral",gen:4},
+  "rhyperior":{name:"超甲狂犀",attr:"neutral",gen:4},
+  "tangrowth":{name:"巨蔓藤",attr:"grass",gen:4},
+  "electivire":{name:"电击魔兽",attr:"elec",gen:4},
+  "magmortar":{name:"鸭嘴炎兽",attr:"fire",gen:4},
+  "togekiss":{name:"波克基斯",attr:"neutral",gen:4},
+  "yanmega":{name:"远古巨蜓",attr:"neutral",gen:4},
+  "leafeon":{name:"叶伊布",attr:"grass",gen:4},
+  "glaceon":{name:"冰伊布",attr:"ice",gen:4},
+  "gliscor":{name:"天蝎王",attr:"neutral",gen:4},
+  "mamoswine":{name:"象牙猪",attr:"ice",gen:4},
+  "porygon-z":{name:"多边兽乙型",attr:"neutral",gen:4},
+  "gallade":{name:"艾路雷朵",attr:"neutral",gen:4},
+  "probopass":{name:"大朝北鼻",attr:"neutral",gen:4},
+  "dusknoir":{name:"黑夜魔灵",attr:"neutral",gen:4},
+  "froslass":{name:"雪妖女",attr:"ice",gen:4},
+  "rotom":{name:"洛托姆",attr:"elec",gen:4},
+  "uxie":{name:"由克希",attr:"neutral",gen:4},
+  "mesprit":{name:"艾姆利多",attr:"neutral",gen:4},
+  "azelf":{name:"亚克诺姆",attr:"neutral",gen:4},
+  "dialga":{name:"帝牙卢卡",attr:"neutral",gen:4},
+  "palkia":{name:"帕路奇亚",attr:"water",gen:4},
+  "heatran":{name:"席多蓝恩",attr:"fire",gen:4},
+  "regigigas":{name:"雷吉奇卡斯",attr:"neutral",gen:4},
+  "giratina-altered":{name:"骑拉帝纳",attr:"neutral",gen:4},
+  "cresselia":{name:"克雷色利亚",attr:"neutral",gen:4},
+  "phione":{name:"霏欧纳",attr:"water",gen:4},
+  "manaphy":{name:"玛纳霏",attr:"water",gen:4},
+  "darkrai":{name:"达克莱伊",attr:"neutral",gen:4},
+  "shaymin-land":{name:"谢米",attr:"grass",gen:4},
+  "arceus":{name:"阿尔宙斯",attr:"neutral",gen:4},
+  "victini":{name:"比克提尼",attr:"neutral",gen:5},
+  "snivy":{name:"藤藤蛇",attr:"grass",gen:5,mid:"青藤蛇",top:"君主蛇"},
+  "servine":{name:"青藤蛇",attr:"grass",gen:5,mid:"君主蛇"},
+  "serperior":{name:"君主蛇",attr:"grass",gen:5},
+  "tepig":{name:"暖暖猪",attr:"fire",gen:5,mid:"炒炒猪",top:"炎武王"},
+  "pignite":{name:"炒炒猪",attr:"fire",gen:5,mid:"炎武王"},
+  "emboar":{name:"炎武王",attr:"fire",gen:5},
+  "oshawott":{name:"水水獭",attr:"water",gen:5,mid:"双刃丸",top:"大剑鬼"},
+  "dewott":{name:"双刃丸",attr:"water",gen:5,mid:"大剑鬼"},
+  "samurott":{name:"大剑鬼",attr:"water",gen:5},
+  "patrat":{name:"探探鼠",attr:"neutral",gen:5,mid:"步哨鼠"},
+  "watchog":{name:"步哨鼠",attr:"neutral",gen:5},
+  "lillipup":{name:"小约克",attr:"neutral",gen:5,mid:"哈约克",top:"长毛狗"},
+  "herdier":{name:"哈约克",attr:"neutral",gen:5,mid:"长毛狗"},
+  "stoutland":{name:"长毛狗",attr:"neutral",gen:5},
+  "purrloin":{name:"扒手猫",attr:"neutral",gen:5,mid:"酷豹"},
+  "liepard":{name:"酷豹",attr:"neutral",gen:5},
+  "pansage":{name:"花椰猴",attr:"grass",gen:5,mid:"花椰猿"},
+  "simisage":{name:"花椰猿",attr:"grass",gen:5},
+  "pansear":{name:"爆香猴",attr:"fire",gen:5,mid:"爆香猿"},
+  "simisear":{name:"爆香猿",attr:"fire",gen:5},
+  "panpour":{name:"冷水猴",attr:"water",gen:5,mid:"冷水猿"},
+  "simipour":{name:"冷水猿",attr:"water",gen:5},
+  "munna":{name:"食梦梦",attr:"neutral",gen:5,mid:"梦梦蚀"},
+  "musharna":{name:"梦梦蚀",attr:"neutral",gen:5},
+  "pidove":{name:"豆豆鸽",attr:"neutral",gen:5,mid:"咕咕鸽",top:"高傲雉鸡"},
+  "tranquill":{name:"咕咕鸽",attr:"neutral",gen:5,mid:"高傲雉鸡"},
+  "unfezant":{name:"高傲雉鸡",attr:"neutral",gen:5},
+  "blitzle":{name:"斑斑马",attr:"elec",gen:5,mid:"雷电斑马"},
+  "zebstrika":{name:"雷电斑马",attr:"elec",gen:5},
+  "roggenrola":{name:"石丸子",attr:"neutral",gen:5,mid:"地幔岩",top:"庞岩怪"},
+  "boldore":{name:"地幔岩",attr:"neutral",gen:5,mid:"庞岩怪"},
+  "gigalith":{name:"庞岩怪",attr:"neutral",gen:5},
+  "woobat":{name:"滚滚蝙蝠",attr:"neutral",gen:5,mid:"心蝙蝠"},
+  "swoobat":{name:"心蝙蝠",attr:"neutral",gen:5},
+  "drilbur":{name:"螺钉地鼠",attr:"neutral",gen:5,mid:"龙头地鼠"},
+  "excadrill":{name:"龙头地鼠",attr:"neutral",gen:5},
+  "audino":{name:"差不多娃娃",attr:"neutral",gen:5},
+  "timburr":{name:"搬运小匠",attr:"neutral",gen:5,mid:"铁骨土人",top:"修建老匠"},
+  "gurdurr":{name:"铁骨土人",attr:"neutral",gen:5,mid:"修建老匠"},
+  "conkeldurr":{name:"修建老匠",attr:"neutral",gen:5},
+  "tympole":{name:"圆蝌蚪",attr:"water",gen:5,mid:"蓝蟾蜍",top:"蟾蜍王"},
+  "palpitoad":{name:"蓝蟾蜍",attr:"water",gen:5,mid:"蟾蜍王"},
+  "seismitoad":{name:"蟾蜍王",attr:"water",gen:5},
+  "throh":{name:"投摔鬼",attr:"neutral",gen:5},
+  "sawk":{name:"打击鬼",attr:"neutral",gen:5},
+  "sewaddle":{name:"虫宝包",attr:"neutral",gen:5,mid:"宝包茧",top:"保姆虫"},
+  "swadloon":{name:"宝包茧",attr:"neutral",gen:5,mid:"保姆虫"},
+  "leavanny":{name:"保姆虫",attr:"neutral",gen:5},
+  "venipede":{name:"百足蜈蚣",attr:"neutral",gen:5,mid:"车轮球",top:"蜈蚣王"},
+  "whirlipede":{name:"车轮球",attr:"neutral",gen:5,mid:"蜈蚣王"},
+  "scolipede":{name:"蜈蚣王",attr:"neutral",gen:5},
+  "cottonee":{name:"木棉球",attr:"grass",gen:5,mid:"风妖精"},
+  "whimsicott":{name:"风妖精",attr:"grass",gen:5},
+  "petilil":{name:"百合根娃娃",attr:"grass",gen:5,mid:"裙儿小姐"},
+  "lilligant":{name:"裙儿小姐",attr:"grass",gen:5},
+  "basculin-red-striped":{name:"野蛮鲈鱼",attr:"water",gen:5,mid:"幽尾玄鱼"},
+  "sandile":{name:"黑眼鳄",attr:"neutral",gen:5,mid:"混混鳄",top:"流氓鳄"},
+  "krokorok":{name:"混混鳄",attr:"neutral",gen:5,mid:"流氓鳄"},
+  "krookodile":{name:"流氓鳄",attr:"neutral",gen:5},
+  "darumaka":{name:"火红不倒翁",attr:"fire",gen:5,mid:"达摩狒狒"},
+  "darmanitan-standard":{name:"达摩狒狒",attr:"fire",gen:5},
+  "maractus":{name:"沙铃仙人掌",attr:"grass",gen:5},
+  "dwebble":{name:"石居蟹",attr:"neutral",gen:5,mid:"岩殿居蟹"},
+  "crustle":{name:"岩殿居蟹",attr:"neutral",gen:5},
+  "scraggy":{name:"滑滑小子",attr:"neutral",gen:5,mid:"头巾混混"},
+  "scrafty":{name:"头巾混混",attr:"neutral",gen:5},
+  "sigilyph":{name:"象征鸟",attr:"neutral",gen:5},
+  "yamask":{name:"哭哭面具",attr:"neutral",gen:5,mid:"迭失棺"},
+  "cofagrigus":{name:"迭失棺",attr:"neutral",gen:5},
+  "tirtouga":{name:"原盖海龟",attr:"water",gen:5,mid:"肋骨海龟"},
+  "carracosta":{name:"肋骨海龟",attr:"water",gen:5},
+  "archen":{name:"始祖小鸟",attr:"neutral",gen:5,mid:"始祖大鸟"},
+  "archeops":{name:"始祖大鸟",attr:"neutral",gen:5},
+  "trubbish":{name:"破破袋",attr:"neutral",gen:5,mid:"灰尘山"},
+  "garbodor":{name:"灰尘山",attr:"neutral",gen:5},
+  "zorua":{name:"索罗亚",attr:"neutral",gen:5,mid:"索罗亚克"},
+  "zoroark":{name:"索罗亚克",attr:"neutral",gen:5},
+  "minccino":{name:"泡沫栗鼠",attr:"neutral",gen:5,mid:"奇诺栗鼠"},
+  "cinccino":{name:"奇诺栗鼠",attr:"neutral",gen:5},
+  "gothita":{name:"哥德宝宝",attr:"neutral",gen:5,mid:"哥德小童",top:"哥德小姐"},
+  "gothorita":{name:"哥德小童",attr:"neutral",gen:5,mid:"哥德小姐"},
+  "gothitelle":{name:"哥德小姐",attr:"neutral",gen:5},
+  "solosis":{name:"单卵细胞球",attr:"neutral",gen:5,mid:"双卵细胞球",top:"人造细胞卵"},
+  "duosion":{name:"双卵细胞球",attr:"neutral",gen:5,mid:"人造细胞卵"},
+  "reuniclus":{name:"人造细胞卵",attr:"neutral",gen:5},
+  "ducklett":{name:"鸭宝宝",attr:"water",gen:5,mid:"舞天鹅"},
+  "swanna":{name:"舞天鹅",attr:"water",gen:5},
+  "vanillite":{name:"迷你冰",attr:"ice",gen:5,mid:"多多冰",top:"双倍多多冰"},
+  "vanillish":{name:"多多冰",attr:"ice",gen:5,mid:"双倍多多冰"},
+  "vanilluxe":{name:"双倍多多冰",attr:"ice",gen:5},
+  "deerling":{name:"四季鹿",attr:"neutral",gen:5,mid:"萌芽鹿"},
+  "sawsbuck":{name:"萌芽鹿",attr:"neutral",gen:5},
+  "emolga":{name:"电飞鼠",attr:"elec",gen:5},
+  "karrablast":{name:"盖盖虫",attr:"neutral",gen:5,mid:"骑士蜗牛"},
+  "escavalier":{name:"骑士蜗牛",attr:"neutral",gen:5},
+  "foongus":{name:"哎呀球菇",attr:"grass",gen:5,mid:"败露球菇"},
+  "amoonguss":{name:"败露球菇",attr:"grass",gen:5},
+  "frillish-male":{name:"轻飘飘",attr:"water",gen:5,mid:"胖嘟嘟"},
+  "jellicent-male":{name:"胖嘟嘟",attr:"water",gen:5},
+  "alomomola":{name:"保姆曼波",attr:"water",gen:5},
+  "joltik":{name:"电电虫",attr:"neutral",gen:5,mid:"电蜘蛛"},
+  "galvantula":{name:"电蜘蛛",attr:"neutral",gen:5},
+  "ferroseed":{name:"种子铁球",attr:"grass",gen:5,mid:"坚果哑铃"},
+  "ferrothorn":{name:"坚果哑铃",attr:"grass",gen:5},
+  "klink":{name:"齿轮儿",attr:"neutral",gen:5,mid:"齿轮组",top:"齿轮怪"},
+  "klang":{name:"齿轮组",attr:"neutral",gen:5,mid:"齿轮怪"},
+  "klinklang":{name:"齿轮怪",attr:"neutral",gen:5},
+  "tynamo":{name:"麻麻小鱼",attr:"elec",gen:5,mid:"麻麻鳗",top:"麻麻鳗鱼王"},
+  "eelektrik":{name:"麻麻鳗",attr:"elec",gen:5,mid:"麻麻鳗鱼王"},
+  "eelektross":{name:"麻麻鳗鱼王",attr:"elec",gen:5},
+  "elgyem":{name:"小灰怪",attr:"neutral",gen:5,mid:"大宇怪"},
+  "beheeyem":{name:"大宇怪",attr:"neutral",gen:5},
+  "litwick":{name:"烛光灵",attr:"neutral",gen:5,mid:"灯火幽灵",top:"水晶灯火灵"},
+  "lampent":{name:"灯火幽灵",attr:"neutral",gen:5,mid:"水晶灯火灵"},
+  "chandelure":{name:"水晶灯火灵",attr:"neutral",gen:5},
+  "axew":{name:"牙牙",attr:"neutral",gen:5,mid:"斧牙龙",top:"双斧战龙"},
+  "fraxure":{name:"斧牙龙",attr:"neutral",gen:5,mid:"双斧战龙"},
+  "haxorus":{name:"双斧战龙",attr:"neutral",gen:5},
+  "cubchoo":{name:"喷嚏熊",attr:"ice",gen:5,mid:"冻原熊"},
+  "beartic":{name:"冻原熊",attr:"ice",gen:5},
+  "cryogonal":{name:"几何雪花",attr:"ice",gen:5},
+  "shelmet":{name:"小嘴蜗",attr:"neutral",gen:5,mid:"敏捷虫"},
+  "accelgor":{name:"敏捷虫",attr:"neutral",gen:5},
+  "stunfisk":{name:"泥巴鱼",attr:"neutral",gen:5},
+  "mienfoo":{name:"功夫鼬",attr:"neutral",gen:5,mid:"师父鼬"},
+  "mienshao":{name:"师父鼬",attr:"neutral",gen:5},
+  "druddigon":{name:"赤面龙",attr:"neutral",gen:5},
+  "golett":{name:"泥偶小人",attr:"neutral",gen:5,mid:"泥偶巨人"},
+  "golurk":{name:"泥偶巨人",attr:"neutral",gen:5},
+  "pawniard":{name:"驹刀小兵",attr:"neutral",gen:5,mid:"劈斩司令",top:"仆刀将军"},
+  "bisharp":{name:"劈斩司令",attr:"neutral",gen:5,mid:"仆刀将军"},
+  "bouffalant":{name:"爆炸头水牛",attr:"neutral",gen:5},
+  "rufflet":{name:"毛头小鹰",attr:"neutral",gen:5,mid:"勇士雄鹰"},
+  "braviary":{name:"勇士雄鹰",attr:"neutral",gen:5},
+  "vullaby":{name:"秃鹰丫头",attr:"neutral",gen:5,mid:"秃鹰娜"},
+  "mandibuzz":{name:"秃鹰娜",attr:"neutral",gen:5},
+  "heatmor":{name:"熔蚁兽",attr:"fire",gen:5},
+  "durant":{name:"铁蚁",attr:"neutral",gen:5},
+  "deino":{name:"单首龙",attr:"neutral",gen:5,mid:"双首暴龙",top:"三首恶龙"},
+  "zweilous":{name:"双首暴龙",attr:"neutral",gen:5,mid:"三首恶龙"},
+  "hydreigon":{name:"三首恶龙",attr:"neutral",gen:5},
+  "larvesta":{name:"燃烧虫",attr:"neutral",gen:5,mid:"火神蛾"},
+  "volcarona":{name:"火神蛾",attr:"neutral",gen:5},
+  "cobalion":{name:"勾帕路翁",attr:"neutral",gen:5},
+  "terrakion":{name:"代拉基翁",attr:"neutral",gen:5},
+  "virizion":{name:"毕力吉翁",attr:"grass",gen:5},
+  "tornadus-incarnate":{name:"龙卷云",attr:"neutral",gen:5},
+  "thundurus-incarnate":{name:"雷电云",attr:"elec",gen:5},
+  "reshiram":{name:"莱希拉姆",attr:"neutral",gen:5},
+  "zekrom":{name:"捷克罗姆",attr:"neutral",gen:5},
+  "landorus-incarnate":{name:"土地云",attr:"neutral",gen:5},
+  "kyurem":{name:"酋雷姆",attr:"neutral",gen:5},
+  "keldeo-ordinary":{name:"凯路迪欧",attr:"water",gen:5},
+  "meloetta-aria":{name:"美洛耶塔",attr:"neutral",gen:5},
+  "genesect":{name:"盖诺赛克特",attr:"neutral",gen:5},
+  "chespin":{name:"哈力栗",attr:"grass",gen:6,mid:"胖胖哈力",top:"布里卡隆"},
+  "quilladin":{name:"胖胖哈力",attr:"grass",gen:6,mid:"布里卡隆"},
+  "chesnaught":{name:"布里卡隆",attr:"grass",gen:6},
+  "fennekin":{name:"火狐狸",attr:"fire",gen:6,mid:"长尾火狐",top:"妖火红狐"},
+  "braixen":{name:"长尾火狐",attr:"fire",gen:6,mid:"妖火红狐"},
+  "delphox":{name:"妖火红狐",attr:"fire",gen:6},
+  "froakie":{name:"呱呱泡蛙",attr:"water",gen:6,mid:"呱头蛙",top:"甲贺忍蛙"},
+  "frogadier":{name:"呱头蛙",attr:"water",gen:6,mid:"甲贺忍蛙"},
+  "greninja":{name:"甲贺忍蛙",attr:"water",gen:6},
+  "bunnelby":{name:"掘掘兔",attr:"neutral",gen:6,mid:"掘地兔"},
+  "diggersby":{name:"掘地兔",attr:"neutral",gen:6},
+  "fletchling":{name:"小箭雀",attr:"neutral",gen:6,mid:"火箭雀",top:"烈箭鹰"},
+  "fletchinder":{name:"火箭雀",attr:"fire",gen:6,mid:"烈箭鹰"},
+  "talonflame":{name:"烈箭鹰",attr:"fire",gen:6},
+  "scatterbug":{name:"粉蝶虫",attr:"neutral",gen:6,mid:"粉蝶蛹",top:"彩粉蝶"},
+  "spewpa":{name:"粉蝶蛹",attr:"neutral",gen:6,mid:"彩粉蝶"},
+  "vivillon":{name:"彩粉蝶",attr:"neutral",gen:6},
+  "litleo":{name:"小狮狮",attr:"fire",gen:6,mid:"火炎狮"},
+  "pyroar-male":{name:"火炎狮",attr:"fire",gen:6},
+  "flabebe":{name:"花蓓蓓",attr:"neutral",gen:6,mid:"花叶蒂",top:"花洁夫人"},
+  "floette":{name:"花叶蒂",attr:"neutral",gen:6,mid:"花洁夫人"},
+  "florges":{name:"花洁夫人",attr:"neutral",gen:6},
+  "skiddo":{name:"坐骑小羊",attr:"grass",gen:6,mid:"坐骑山羊"},
+  "gogoat":{name:"坐骑山羊",attr:"grass",gen:6},
+  "pancham":{name:"顽皮熊猫",attr:"neutral",gen:6,mid:"霸道熊猫"},
+  "pangoro":{name:"霸道熊猫",attr:"neutral",gen:6},
+  "furfrou":{name:"多丽米亚",attr:"neutral",gen:6},
+  "espurr":{name:"妙喵",attr:"neutral",gen:6,mid:"超能妙喵"},
+  "meowstic-male":{name:"超能妙喵",attr:"neutral",gen:6},
+  "honedge":{name:"独剑鞘",attr:"neutral",gen:6,mid:"双剑鞘",top:"坚盾剑怪"},
+  "doublade":{name:"双剑鞘",attr:"neutral",gen:6,mid:"坚盾剑怪"},
+  "aegislash-shield":{name:"坚盾剑怪",attr:"neutral",gen:6},
+  "spritzee":{name:"粉香香",attr:"neutral",gen:6,mid:"芳香精"},
+  "aromatisse":{name:"芳香精",attr:"neutral",gen:6},
+  "swirlix":{name:"绵绵泡芙",attr:"neutral",gen:6,mid:"胖甜妮"},
+  "slurpuff":{name:"胖甜妮",attr:"neutral",gen:6},
+  "inkay":{name:"好啦鱿",attr:"neutral",gen:6,mid:"乌贼王"},
+  "malamar":{name:"乌贼王",attr:"neutral",gen:6},
+  "binacle":{name:"龟脚脚",attr:"neutral",gen:6,mid:"龟足巨铠"},
+  "barbaracle":{name:"龟足巨铠",attr:"neutral",gen:6},
+  "skrelp":{name:"垃垃藻",attr:"neutral",gen:6,mid:"毒藻龙"},
+  "dragalge":{name:"毒藻龙",attr:"neutral",gen:6},
+  "clauncher":{name:"铁臂枪虾",attr:"water",gen:6,mid:"钢炮臂虾"},
+  "clawitzer":{name:"钢炮臂虾",attr:"water",gen:6},
+  "helioptile":{name:"伞电蜥",attr:"elec",gen:6,mid:"光电伞蜥"},
+  "heliolisk":{name:"光电伞蜥",attr:"elec",gen:6},
+  "tyrunt":{name:"宝宝暴龙",attr:"neutral",gen:6,mid:"怪颚龙"},
+  "tyrantrum":{name:"怪颚龙",attr:"neutral",gen:6},
+  "amaura":{name:"冰雪龙",attr:"neutral",gen:6,mid:"冰雪巨龙"},
+  "aurorus":{name:"冰雪巨龙",attr:"neutral",gen:6},
+  "sylveon":{name:"仙子伊布",attr:"neutral",gen:6},
+  "hawlucha":{name:"摔角鹰人",attr:"neutral",gen:6},
+  "dedenne":{name:"咚咚鼠",attr:"elec",gen:6},
+  "carbink":{name:"小碎钻",attr:"neutral",gen:6},
+  "goomy":{name:"黏黏宝",attr:"neutral",gen:6,mid:"黏美儿",top:"黏美龙"},
+  "sliggoo":{name:"黏美儿",attr:"neutral",gen:6,mid:"黏美龙"},
+  "goodra":{name:"黏美龙",attr:"neutral",gen:6},
+  "klefki":{name:"钥圈儿",attr:"neutral",gen:6},
+  "phantump":{name:"小木灵",attr:"neutral",gen:6,mid:"朽木妖"},
+  "trevenant":{name:"朽木妖",attr:"neutral",gen:6},
+  "pumpkaboo-average":{name:"南瓜精",attr:"neutral",gen:6,mid:"南瓜怪人"},
+  "gourgeist-average":{name:"南瓜怪人",attr:"neutral",gen:6},
+  "bergmite":{name:"冰宝",attr:"ice",gen:6,mid:"冰岩怪"},
+  "avalugg":{name:"冰岩怪",attr:"ice",gen:6},
+  "noibat":{name:"嗡蝠",attr:"neutral",gen:6,mid:"音波龙"},
+  "noivern":{name:"音波龙",attr:"neutral",gen:6},
+  "xerneas":{name:"哲尔尼亚斯",attr:"neutral",gen:6},
+  "yveltal":{name:"伊裴尔塔尔",attr:"neutral",gen:6},
+  "zygarde-50":{name:"基格尔德",attr:"neutral",gen:6},
+  "diancie":{name:"蒂安希",attr:"neutral",gen:6},
+  "hoopa":{name:"胡帕",attr:"neutral",gen:6},
+  "volcanion":{name:"波尔凯尼恩",attr:"fire",gen:6},
+  "rowlet":{name:"木木枭",attr:"grass",gen:7,mid:"投羽枭",top:"狙射树枭"},
+  "dartrix":{name:"投羽枭",attr:"grass",gen:7,mid:"狙射树枭"},
+  "decidueye":{name:"狙射树枭",attr:"grass",gen:7},
+  "litten":{name:"火斑喵",attr:"fire",gen:7,mid:"炎热喵",top:"炽焰咆哮虎"},
+  "torracat":{name:"炎热喵",attr:"fire",gen:7,mid:"炽焰咆哮虎"},
+  "incineroar":{name:"炽焰咆哮虎",attr:"fire",gen:7},
+  "popplio":{name:"球球海狮",attr:"water",gen:7,mid:"花漾海狮",top:"西狮海壬"},
+  "brionne":{name:"花漾海狮",attr:"water",gen:7,mid:"西狮海壬"},
+  "primarina":{name:"西狮海壬",attr:"water",gen:7},
+  "pikipek":{name:"小笃儿",attr:"neutral",gen:7,mid:"喇叭啄鸟",top:"铳嘴大鸟"},
+  "trumbeak":{name:"喇叭啄鸟",attr:"neutral",gen:7,mid:"铳嘴大鸟"},
+  "toucannon":{name:"铳嘴大鸟",attr:"neutral",gen:7},
+  "yungoos":{name:"猫鼬少",attr:"neutral",gen:7,mid:"猫鼬探长"},
+  "gumshoos":{name:"猫鼬探长",attr:"neutral",gen:7},
+  "grubbin":{name:"强颚鸡母虫",attr:"neutral",gen:7,mid:"虫电宝",top:"锹农炮虫"},
+  "charjabug":{name:"虫电宝",attr:"neutral",gen:7,mid:"锹农炮虫"},
+  "vikavolt":{name:"锹农炮虫",attr:"neutral",gen:7},
+  "crabrawler":{name:"好胜蟹",attr:"neutral",gen:7,mid:"好胜毛蟹"},
+  "crabominable":{name:"好胜毛蟹",attr:"neutral",gen:7},
+  "oricorio-baile":{name:"花舞鸟",attr:"fire",gen:7},
+  "cutiefly":{name:"萌虻",attr:"neutral",gen:7,mid:"蝶结萌虻"},
+  "ribombee":{name:"蝶结萌虻",attr:"neutral",gen:7},
+  "rockruff":{name:"岩狗狗",attr:"neutral",gen:7,mid:"鬃岩狼人"},
+  "lycanroc-midday":{name:"鬃岩狼人",attr:"neutral",gen:7},
+  "wishiwashi-solo":{name:"弱丁鱼",attr:"water",gen:7},
+  "mareanie":{name:"好坏星",attr:"neutral",gen:7,mid:"超坏星"},
+  "toxapex":{name:"超坏星",attr:"neutral",gen:7},
+  "mudbray":{name:"泥驴仔",attr:"neutral",gen:7,mid:"重泥挽马"},
+  "mudsdale":{name:"重泥挽马",attr:"neutral",gen:7},
+  "dewpider":{name:"滴蛛",attr:"water",gen:7,mid:"滴蛛霸"},
+  "araquanid":{name:"滴蛛霸",attr:"water",gen:7},
+  "fomantis":{name:"伪螳草",attr:"grass",gen:7,mid:"兰螳花"},
+  "lurantis":{name:"兰螳花",attr:"grass",gen:7},
+  "morelull":{name:"睡睡菇",attr:"grass",gen:7,mid:"灯罩夜菇"},
+  "shiinotic":{name:"灯罩夜菇",attr:"grass",gen:7},
+  "salandit":{name:"夜盗火蜥",attr:"neutral",gen:7,mid:"焰后蜥"},
+  "salazzle":{name:"焰后蜥",attr:"neutral",gen:7},
+  "stufful":{name:"童偶熊",attr:"neutral",gen:7,mid:"穿着熊"},
+  "bewear":{name:"穿着熊",attr:"neutral",gen:7},
+  "bounsweet":{name:"甜竹竹",attr:"grass",gen:7,mid:"甜舞妮",top:"甜冷美后"},
+  "steenee":{name:"甜舞妮",attr:"grass",gen:7,mid:"甜冷美后"},
+  "tsareena":{name:"甜冷美后",attr:"grass",gen:7},
+  "comfey":{name:"花疗环环",attr:"neutral",gen:7},
+  "oranguru":{name:"智挥猩",attr:"neutral",gen:7},
+  "passimian":{name:"投掷猴",attr:"neutral",gen:7},
+  "wimpod":{name:"胆小虫",attr:"neutral",gen:7,mid:"具甲武者"},
+  "golisopod":{name:"具甲武者",attr:"neutral",gen:7},
+  "sandygast":{name:"沙丘娃",attr:"neutral",gen:7,mid:"噬沙堡爷"},
+  "palossand":{name:"噬沙堡爷",attr:"neutral",gen:7},
+  "pyukumuku":{name:"拳海参",attr:"water",gen:7},
+  "type-null":{name:"属性：空",attr:"neutral",gen:7,mid:"银伴战兽"},
+  "silvally":{name:"银伴战兽",attr:"neutral",gen:7},
+  "minior-red-meteor":{name:"小陨星",attr:"neutral",gen:7},
+  "komala":{name:"树枕尾熊",attr:"neutral",gen:7},
+  "turtonator":{name:"爆焰龟兽",attr:"fire",gen:7},
+  "togedemaru":{name:"托戈德玛尔",attr:"elec",gen:7},
+  "mimikyu-disguised":{name:"谜拟丘",attr:"neutral",gen:7},
+  "bruxish":{name:"磨牙彩皮鱼",attr:"water",gen:7},
+  "drampa":{name:"老翁龙",attr:"neutral",gen:7},
+  "dhelmise":{name:"破破舵轮",attr:"neutral",gen:7},
+  "jangmo-o":{name:"心鳞宝",attr:"neutral",gen:7,mid:"鳞甲龙",top:"杖尾鳞甲龙"},
+  "hakamo-o":{name:"鳞甲龙",attr:"neutral",gen:7,mid:"杖尾鳞甲龙"},
+  "kommo-o":{name:"杖尾鳞甲龙",attr:"neutral",gen:7},
+  "tapu-koko":{name:"卡璞・鸣鸣",attr:"elec",gen:7},
+  "tapu-lele":{name:"卡璞・蝶蝶",attr:"neutral",gen:7},
+  "tapu-bulu":{name:"卡璞・哞哞",attr:"grass",gen:7},
+  "tapu-fini":{name:"卡璞・鳍鳍",attr:"water",gen:7},
+  "cosmog":{name:"科斯莫古",attr:"neutral",gen:7,mid:"科斯莫姆",top:"索尔迦雷欧"},
+  "cosmoem":{name:"科斯莫姆",attr:"neutral",gen:7,mid:"索尔迦雷欧"},
+  "solgaleo":{name:"索尔迦雷欧",attr:"neutral",gen:7},
+  "lunala":{name:"露奈雅拉",attr:"neutral",gen:7},
+  "nihilego":{name:"虚吾伊德",attr:"neutral",gen:7},
+  "buzzwole":{name:"爆肌蚊",attr:"neutral",gen:7},
+  "pheromosa":{name:"费洛美螂",attr:"neutral",gen:7},
+  "xurkitree":{name:"电束木",attr:"elec",gen:7},
+  "celesteela":{name:"铁火辉夜",attr:"neutral",gen:7},
+  "kartana":{name:"纸御剑",attr:"grass",gen:7},
+  "guzzlord":{name:"恶食大王",attr:"neutral",gen:7},
+  "necrozma":{name:"奈克洛兹玛",attr:"neutral",gen:7},
+  "magearna":{name:"玛机雅娜",attr:"neutral",gen:7},
+  "marshadow":{name:"玛夏多",attr:"neutral",gen:7},
+  "poipole":{name:"毒贝比",attr:"neutral",gen:7,mid:"四颚针龙"},
+  "naganadel":{name:"四颚针龙",attr:"neutral",gen:7},
+  "stakataka":{name:"垒磊石",attr:"neutral",gen:7},
+  "blacephalon":{name:"砰头小丑",attr:"fire",gen:7},
+  "zeraora":{name:"捷拉奥拉",attr:"elec",gen:7},
+  "meltan":{name:"美录坦",attr:"neutral",gen:7,mid:"美录梅塔"},
+  "melmetal":{name:"美录梅塔",attr:"neutral",gen:7},
+  "grookey":{name:"敲音猴",attr:"grass",gen:8,mid:"啪咚猴",top:"轰擂金刚猩"},
+  "thwackey":{name:"啪咚猴",attr:"grass",gen:8,mid:"轰擂金刚猩"},
+  "rillaboom":{name:"轰擂金刚猩",attr:"grass",gen:8},
+  "scorbunny":{name:"炎兔儿",attr:"fire",gen:8,mid:"腾蹴小将",top:"闪焰王牌"},
+  "raboot":{name:"腾蹴小将",attr:"fire",gen:8,mid:"闪焰王牌"},
+  "cinderace":{name:"闪焰王牌",attr:"fire",gen:8},
+  "sobble":{name:"泪眼蜥",attr:"water",gen:8,mid:"变涩蜥",top:"千面避役"},
+  "drizzile":{name:"变涩蜥",attr:"water",gen:8,mid:"千面避役"},
+  "inteleon":{name:"千面避役",attr:"water",gen:8},
+  "skwovet":{name:"贪心栗鼠",attr:"neutral",gen:8,mid:"藏饱栗鼠"},
+  "greedent":{name:"藏饱栗鼠",attr:"neutral",gen:8},
+  "rookidee":{name:"稚山雀",attr:"neutral",gen:8,mid:"蓝鸦",top:"钢铠鸦"},
+  "corvisquire":{name:"蓝鸦",attr:"neutral",gen:8,mid:"钢铠鸦"},
+  "corviknight":{name:"钢铠鸦",attr:"neutral",gen:8},
+  "blipbug":{name:"索侦虫",attr:"neutral",gen:8,mid:"天罩虫",top:"以欧路普"},
+  "dottler":{name:"天罩虫",attr:"neutral",gen:8,mid:"以欧路普"},
+  "orbeetle":{name:"以欧路普",attr:"neutral",gen:8},
+  "nickit":{name:"狡小狐",attr:"neutral",gen:8,mid:"猾大狐"},
+  "thievul":{name:"猾大狐",attr:"neutral",gen:8},
+  "gossifleur":{name:"幼棉棉",attr:"grass",gen:8,mid:"白蓬蓬"},
+  "eldegoss":{name:"白蓬蓬",attr:"grass",gen:8},
+  "wooloo":{name:"毛辫羊",attr:"neutral",gen:8,mid:"毛毛角羊"},
+  "dubwool":{name:"毛毛角羊",attr:"neutral",gen:8},
+  "chewtle":{name:"咬咬龟",attr:"water",gen:8,mid:"暴噬龟"},
+  "drednaw":{name:"暴噬龟",attr:"water",gen:8},
+  "yamper":{name:"来电汪",attr:"elec",gen:8,mid:"逐电犬"},
+  "boltund":{name:"逐电犬",attr:"elec",gen:8},
+  "rolycoly":{name:"小炭仔",attr:"neutral",gen:8,mid:"大炭车",top:"巨炭山"},
+  "carkol":{name:"大炭车",attr:"neutral",gen:8,mid:"巨炭山"},
+  "coalossal":{name:"巨炭山",attr:"neutral",gen:8},
+  "applin":{name:"啃果虫",attr:"grass",gen:8,mid:"苹裹龙"},
+  "flapple":{name:"苹裹龙",attr:"grass",gen:8},
+  "appletun":{name:"丰蜜龙",attr:"grass",gen:8},
+  "silicobra":{name:"沙包蛇",attr:"neutral",gen:8,mid:"沙螺蟒"},
+  "sandaconda":{name:"沙螺蟒",attr:"neutral",gen:8},
+  "cramorant":{name:"古月鸟",attr:"neutral",gen:8},
+  "arrokuda":{name:"刺梭鱼",attr:"water",gen:8,mid:"戽斗尖梭"},
+  "barraskewda":{name:"戽斗尖梭",attr:"water",gen:8},
+  "toxel":{name:"电音婴",attr:"elec",gen:8,mid:"颤弦蝾螈"},
+  "toxtricity-amped":{name:"颤弦蝾螈",attr:"elec",gen:8},
+  "sizzlipede":{name:"烧火蚣",attr:"fire",gen:8,mid:"焚焰蚣"},
+  "centiskorch":{name:"焚焰蚣",attr:"fire",gen:8},
+  "clobbopus":{name:"拳拳蛸",attr:"neutral",gen:8,mid:"八爪武师"},
+  "grapploct":{name:"八爪武师",attr:"neutral",gen:8},
+  "sinistea":{name:"来悲茶",attr:"neutral",gen:8,mid:"怖思壶"},
+  "polteageist":{name:"怖思壶",attr:"neutral",gen:8},
+  "hatenna":{name:"迷布莉姆",attr:"neutral",gen:8,mid:"提布莉姆",top:"布莉姆温"},
+  "hattrem":{name:"提布莉姆",attr:"neutral",gen:8,mid:"布莉姆温"},
+  "hatterene":{name:"布莉姆温",attr:"neutral",gen:8},
+  "impidimp":{name:"捣蛋小妖",attr:"neutral",gen:8,mid:"诈唬魔",top:"长毛巨魔"},
+  "morgrem":{name:"诈唬魔",attr:"neutral",gen:8,mid:"长毛巨魔"},
+  "grimmsnarl":{name:"长毛巨魔",attr:"neutral",gen:8},
+  "obstagoon":{name:"堵拦熊",attr:"neutral",gen:8},
+  "perrserker":{name:"喵头目",attr:"neutral",gen:8},
+  "cursola":{name:"魔灵珊瑚",attr:"neutral",gen:8},
+  "sirfetchd":{name:"葱游兵",attr:"neutral",gen:8},
+  "mr-rime":{name:"踏冰人偶",attr:"ice",gen:8},
+  "runerigus":{name:"迭失板",attr:"neutral",gen:8},
+  "milcery":{name:"小仙奶",attr:"neutral",gen:8,mid:"霜奶仙"},
+  "alcremie":{name:"霜奶仙",attr:"neutral",gen:8},
+  "falinks":{name:"列阵兵",attr:"neutral",gen:8},
+  "pincurchin":{name:"啪嚓海胆",attr:"elec",gen:8},
+  "snom":{name:"雪吞虫",attr:"ice",gen:8,mid:"雪绒蛾"},
+  "frosmoth":{name:"雪绒蛾",attr:"ice",gen:8},
+  "stonjourner":{name:"巨石丁",attr:"neutral",gen:8},
+  "eiscue-ice":{name:"冰砌鹅",attr:"ice",gen:8},
+  "indeedee-male":{name:"爱管侍",attr:"neutral",gen:8},
+  "morpeko-full-belly":{name:"莫鲁贝可",attr:"elec",gen:8},
+  "cufant":{name:"铜象",attr:"neutral",gen:8,mid:"大王铜象"},
+  "copperajah":{name:"大王铜象",attr:"neutral",gen:8},
+  "dracozolt":{name:"雷鸟龙",attr:"elec",gen:8},
+  "arctozolt":{name:"雷鸟海兽",attr:"elec",gen:8},
+  "dracovish":{name:"鳃鱼龙",attr:"water",gen:8},
+  "arctovish":{name:"鳃鱼海兽",attr:"water",gen:8},
+  "duraludon":{name:"铝钢龙",attr:"neutral",gen:8,mid:"铝钢桥龙"},
+  "dreepy":{name:"多龙梅西亚",attr:"neutral",gen:8,mid:"多龙奇",top:"多龙巴鲁托"},
+  "drakloak":{name:"多龙奇",attr:"neutral",gen:8,mid:"多龙巴鲁托"},
+  "dragapult":{name:"多龙巴鲁托",attr:"neutral",gen:8},
+  "zacian":{name:"苍响",attr:"neutral",gen:8},
+  "zamazenta":{name:"藏玛然特",attr:"neutral",gen:8},
+  "eternatus":{name:"无极汰那",attr:"neutral",gen:8},
+  "kubfu":{name:"熊徒弟",attr:"neutral",gen:8,mid:"武道熊师"},
+  "urshifu-single-strike":{name:"武道熊师",attr:"neutral",gen:8},
+  "zarude":{name:"萨戮德",attr:"neutral",gen:8},
+  "regieleki":{name:"雷吉艾勒奇",attr:"elec",gen:8},
+  "regidrago":{name:"雷吉铎拉戈",attr:"neutral",gen:8},
+  "glastrier":{name:"雪暴马",attr:"ice",gen:8},
+  "spectrier":{name:"灵幽马",attr:"neutral",gen:8},
+  "calyrex":{name:"蕾冠王",attr:"neutral",gen:8},
+  "wyrdeer":{name:"诡角鹿",attr:"neutral",gen:8},
+  "kleavor":{name:"劈斧螳螂",attr:"neutral",gen:8},
+  "ursaluna":{name:"月月熊",attr:"neutral",gen:8},
+  "basculegion-male":{name:"幽尾玄鱼",attr:"water",gen:8},
+  "sneasler":{name:"大狃拉",attr:"neutral",gen:8},
+  "overqwil":{name:"万针鱼",attr:"neutral",gen:8},
+  "enamorus-incarnate":{name:"眷恋云",attr:"neutral",gen:8},
+  "sprigatito":{name:"新叶喵",attr:"grass",gen:9,mid:"蒂蕾喵",top:"魔幻假面喵"},
+  "floragato":{name:"蒂蕾喵",attr:"grass",gen:9,mid:"魔幻假面喵"},
+  "meowscarada":{name:"魔幻假面喵",attr:"grass",gen:9},
+  "fuecoco":{name:"呆火鳄",attr:"fire",gen:9,mid:"炙烫鳄",top:"骨纹巨声鳄"},
+  "crocalor":{name:"炙烫鳄",attr:"fire",gen:9,mid:"骨纹巨声鳄"},
+  "skeledirge":{name:"骨纹巨声鳄",attr:"fire",gen:9},
+  "quaxly":{name:"润水鸭",attr:"water",gen:9,mid:"涌跃鸭",top:"狂欢浪舞鸭"},
+  "quaxwell":{name:"涌跃鸭",attr:"water",gen:9,mid:"狂欢浪舞鸭"},
+  "quaquaval":{name:"狂欢浪舞鸭",attr:"water",gen:9},
+  "lechonk":{name:"爱吃豚",attr:"neutral",gen:9,mid:"飘香豚"},
+  "oinkologne-male":{name:"飘香豚",attr:"neutral",gen:9},
+  "tarountula":{name:"团珠蛛",attr:"neutral",gen:9,mid:"操陷蛛"},
+  "spidops":{name:"操陷蛛",attr:"neutral",gen:9},
+  "nymble":{name:"豆蟋蟀",attr:"neutral",gen:9,mid:"烈腿蝗"},
+  "lokix":{name:"烈腿蝗",attr:"neutral",gen:9},
+  "pawmi":{name:"布拨",attr:"elec",gen:9,mid:"布土拨",top:"巴布土拨"},
+  "pawmo":{name:"布土拨",attr:"elec",gen:9,mid:"巴布土拨"},
+  "pawmot":{name:"巴布土拨",attr:"elec",gen:9},
+  "tandemaus":{name:"一对鼠",attr:"neutral",gen:9,mid:"一家鼠"},
+  "maushold-family-of-four":{name:"一家鼠",attr:"neutral",gen:9},
+  "fidough":{name:"狗仔包",attr:"neutral",gen:9,mid:"麻花犬"},
+  "dachsbun":{name:"麻花犬",attr:"neutral",gen:9},
+  "smoliv":{name:"迷你芙",attr:"grass",gen:9,mid:"奥利纽",top:"奥利瓦"},
+  "dolliv":{name:"奥利纽",attr:"grass",gen:9,mid:"奥利瓦"},
+  "arboliva":{name:"奥利瓦",attr:"grass",gen:9},
+  "squawkabilly-green-plumage":{name:"怒鹦哥",attr:"neutral",gen:9},
+  "nacli":{name:"盐石宝",attr:"neutral",gen:9,mid:"盐石垒",top:"盐石巨灵"},
+  "naclstack":{name:"盐石垒",attr:"neutral",gen:9,mid:"盐石巨灵"},
+  "garganacl":{name:"盐石巨灵",attr:"neutral",gen:9},
+  "charcadet":{name:"炭小侍",attr:"fire",gen:9,mid:"红莲铠骑"},
+  "armarouge":{name:"红莲铠骑",attr:"fire",gen:9},
+  "ceruledge":{name:"苍炎刃鬼",attr:"fire",gen:9},
+  "tadbulb":{name:"光蚪仔",attr:"elec",gen:9,mid:"电肚蛙"},
+  "bellibolt":{name:"电肚蛙",attr:"elec",gen:9},
+  "wattrel":{name:"电海燕",attr:"elec",gen:9,mid:"大电海燕"},
+  "kilowattrel":{name:"大电海燕",attr:"elec",gen:9},
+  "maschiff":{name:"偶叫獒",attr:"neutral",gen:9,mid:"獒教父"},
+  "mabosstiff":{name:"獒教父",attr:"neutral",gen:9},
+  "shroodle":{name:"滋汁鼹",attr:"neutral",gen:9,mid:"涂标客"},
+  "grafaiai":{name:"涂标客",attr:"neutral",gen:9},
+  "bramblin":{name:"纳噬草",attr:"grass",gen:9,mid:"怖纳噬草"},
+  "brambleghast":{name:"怖纳噬草",attr:"grass",gen:9},
+  "toedscool":{name:"原野水母",attr:"neutral",gen:9,mid:"陆地水母"},
+  "toedscruel":{name:"陆地水母",attr:"neutral",gen:9},
+  "klawf":{name:"毛崖蟹",attr:"neutral",gen:9},
+  "capsakid":{name:"热辣娃",attr:"grass",gen:9,mid:"狠辣椒"},
+  "scovillain":{name:"狠辣椒",attr:"grass",gen:9},
+  "rellor":{name:"虫滚泥",attr:"neutral",gen:9,mid:"虫甲圣"},
+  "rabsca":{name:"虫甲圣",attr:"neutral",gen:9},
+  "flittle":{name:"飘飘雏",attr:"neutral",gen:9,mid:"超能艳鸵"},
+  "espathra":{name:"超能艳鸵",attr:"neutral",gen:9},
+  "tinkatink":{name:"小锻匠",attr:"neutral",gen:9,mid:"巧锻匠",top:"巨锻匠"},
+  "tinkatuff":{name:"巧锻匠",attr:"neutral",gen:9,mid:"巨锻匠"},
+  "tinkaton":{name:"巨锻匠",attr:"neutral",gen:9},
+  "wiglett":{name:"海地鼠",attr:"water",gen:9,mid:"三海地鼠"},
+  "wugtrio":{name:"三海地鼠",attr:"water",gen:9},
+  "bombirdier":{name:"下石鸟",attr:"neutral",gen:9},
+  "finizen":{name:"波普海豚",attr:"water",gen:9,mid:"海豚侠"},
+  "palafin-zero":{name:"海豚侠",attr:"water",gen:9},
+  "varoom":{name:"噗隆隆",attr:"neutral",gen:9,mid:"普隆隆姆"},
+  "revavroom":{name:"普隆隆姆",attr:"neutral",gen:9},
+  "cyclizar":{name:"摩托蜥",attr:"neutral",gen:9},
+  "orthworm":{name:"拖拖蚓",attr:"neutral",gen:9},
+  "glimmet":{name:"晶光芽",attr:"neutral",gen:9,mid:"晶光花"},
+  "glimmora":{name:"晶光花",attr:"neutral",gen:9},
+  "greavard":{name:"墓仔狗",attr:"neutral",gen:9,mid:"墓扬犬"},
+  "houndstone":{name:"墓扬犬",attr:"neutral",gen:9},
+  "flamigo":{name:"纏红鹤",attr:"neutral",gen:9},
+  "cetoddle":{name:"走鲸",attr:"ice",gen:9,mid:"浩大鲸"},
+  "cetitan":{name:"浩大鲸",attr:"ice",gen:9},
+  "veluza":{name:"轻身鳕",attr:"water",gen:9},
+  "dondozo":{name:"吃吼霸",attr:"water",gen:9},
+  "tatsugiri-curly":{name:"米立龙",attr:"neutral",gen:9},
+  "annihilape":{name:"弃世猴",attr:"neutral",gen:9},
+  "clodsire":{name:"土王",attr:"neutral",gen:9},
+  "farigiraf":{name:"奇麒麟",attr:"neutral",gen:9},
+  "dudunsparce-two-segment":{name:"土龙节节",attr:"neutral",gen:9},
+  "kingambit":{name:"仆刀将军",attr:"neutral",gen:9},
+  "great-tusk":{name:"雄伟牙",attr:"neutral",gen:9},
+  "scream-tail":{name:"吼叫尾",attr:"neutral",gen:9},
+  "brute-bonnet":{name:"猛恶菇",attr:"grass",gen:9},
+  "flutter-mane":{name:"振翼发",attr:"neutral",gen:9},
+  "slither-wing":{name:"爬地翅",attr:"neutral",gen:9},
+  "sandy-shocks":{name:"沙铁皮",attr:"elec",gen:9},
+  "iron-treads":{name:"铁轍迹",attr:"neutral",gen:9},
+  "iron-bundle":{name:"铁包袱",attr:"ice",gen:9},
+  "iron-hands":{name:"铁臂膀",attr:"neutral",gen:9},
+  "iron-jugulis":{name:"铁脖颈",attr:"neutral",gen:9},
+  "iron-moth":{name:"铁毒蛾",attr:"fire",gen:9},
+  "iron-thorns":{name:"铁荆棘",attr:"neutral",gen:9},
+  "frigibax":{name:"凉脊龙",attr:"neutral",gen:9,mid:"冻脊龙",top:"戟脊龙"},
+  "arctibax":{name:"冻脊龙",attr:"neutral",gen:9,mid:"戟脊龙"},
+  "baxcalibur":{name:"戟脊龙",attr:"neutral",gen:9},
+  "gimmighoul":{name:"索财灵",attr:"neutral",gen:9,mid:"赛富豪"},
+  "gholdengo":{name:"赛富豪",attr:"neutral",gen:9},
+  "wo-chien":{name:"古简蜗",attr:"neutral",gen:9},
+  "chien-pao":{name:"古剑豹",attr:"neutral",gen:9},
+  "ting-lu":{name:"古鼎鹿",attr:"neutral",gen:9},
+  "chi-yu":{name:"古玉鱼",attr:"neutral",gen:9},
+  "roaring-moon":{name:"轰鸣月",attr:"neutral",gen:9},
+  "iron-valiant":{name:"铁武者",attr:"neutral",gen:9},
+  "koraidon":{name:"故勒顿",attr:"neutral",gen:9},
+  "miraidon":{name:"密勒顿",attr:"elec",gen:9},
+  "walking-wake":{name:"波荡水",attr:"water",gen:9},
+  "iron-leaves":{name:"铁斑叶",attr:"grass",gen:9},
+  "dipplin":{name:"裹蜜虫",attr:"grass",gen:9},
+  "poltchageist":{name:"斯魔茶",attr:"grass",gen:9,mid:"来悲粗茶"},
+  "sinistcha":{name:"来悲粗茶",attr:"grass",gen:9},
+  "okidogi":{name:"够赞狗",attr:"neutral",gen:9},
+  "munkidori":{name:"愿增猿",attr:"neutral",gen:9},
+  "fezandipiti":{name:"吉雉鸡",attr:"neutral",gen:9},
+  "ogerpon":{name:"厄诡椪",attr:"grass",gen:9},
+  "archaludon":{name:"铝钢桥龙",attr:"neutral",gen:9},
+  "hydrapple":{name:"蜜集大蛇",attr:"grass",gen:9},
+  "gouging-fire":{name:"破空焰",attr:"fire",gen:9},
+  "raging-bolt":{name:"猛雷鼓",attr:"elec",gen:9},
+  "iron-boulder":{name:"铁磐岩",attr:"neutral",gen:9},
+  "iron-crown":{name:"铁头壳",attr:"neutral",gen:9},
+  "terapagos":{name:"太乐巴戈斯",attr:"neutral",gen:9},
+  "pecharunt":{name:"桃歹郎",attr:"neutral",gen:9},
 };
-const ATTR_KEYS = ["fire","elec","ice","water","grass"];
+
+const ATTR_KEYS = ["fire","elec","ice","water","grass","neutral"];
 const POKEDEX_KEYS = Object.keys(POKEDEX);
 const POKEDEX_BY_ATTR = {};
 for(const a of ATTR_KEYS){ POKEDEX_BY_ATTR[a]=POKEDEX_KEYS.filter(id=>POKEDEX[id].attr===a); }
@@ -414,6 +1366,9 @@ const S = {
   kills:0, stage:1, stageTimer:CONFIG.level.duration, bossActive:false,
   level:1, exp:0, expNeed:CONFIG.exp.base,
   roster:{ pichu:2 },           // 已捕捉角色及进化阶段（初始伙伴：皮卡丘）
+  shiny:{},                     // 闪光宝可梦（1/8192 稀有）
+  party:[], partySlots:1,       // 出战队伍（最多 3 格，格 2/3 需金币永久解锁）
+  partners:[],                  // 战斗中队伍伙伴（独立血量）
   coins:0, runCoins:0, activeRole:"pichu",  // 金币 / 本局金币 / 当前出战角色
   bossId:null, playerSlowT:0, playerBurn:null, lastMult:1,
   skills:{}, skillCd:{},      // 技能等级 / 技能冷却
@@ -423,7 +1378,8 @@ const S = {
   mute:false,
   audio:null,             // 桌面端 Web Audio
   joy:{ active:false, baseX:0, baseY:0, dx:0, dy:0 },
-  input:{ x:0, y:0 }
+  input:{ x:0, y:0 },
+  colGen:"1"             // 图鉴世代筛选
 };
 // 加载进度（捕捉/金币持久化）
 (function loadProgress(){
@@ -433,16 +1389,29 @@ const S = {
   }catch(e){}
   if(!S.roster.pichu) S.roster.pichu = 2;   // 初始伙伴：皮卡丘（皮丘 Lv.2）
   try{ S.coins = parseInt(localStorage.getItem("starburst_coins")||"0",10)||0; }catch(e){}
+  try{
+    const sh = JSON.parse(localStorage.getItem("starburst_shiny")||"null");
+    if(sh && typeof sh==="object") S.shiny = sh;
+  }catch(e){}
+  try{ S.partySlots = parseInt(localStorage.getItem("starburst_slots")||"1",10)||1; }catch(e){}
+  if(S.partySlots<1) S.partySlots=1; if(S.partySlots>3) S.partySlots=3;
+  try{
+    const pa = JSON.parse(localStorage.getItem("starburst_party")||"null");
+    if(Array.isArray(pa)) S.party = pa.filter(id=>POKEDEX[id]);
+  }catch(e){}
 })();
 function saveProgress(){
   try{
     localStorage.setItem("starburst_roster", JSON.stringify(S.roster));
     localStorage.setItem("starburst_coins", String(S.coins));
+    localStorage.setItem("starburst_shiny", JSON.stringify(S.shiny));
+    localStorage.setItem("starburst_slots", String(S.partySlots));
+    localStorage.setItem("starburst_party", JSON.stringify(S.party));
   }catch(e){}
 }
 function PK(id){ return POKEDEX[id]||POKEDEX.pichu; }
 function roleForm(id){ return S.roster[id]||1; }
-function roleAtk(id){ const f=roleForm(id); return f>=3?1.22:(f>=2?1.1:1); }
+function roleAtk(id){ const f=roleForm(id); const base=f>=3?1.22:(f>=2?1.1:1); return S.shiny[id]?base*2:base; }
 function roleMul(id){ const f=roleForm(id); return f>=3?2.2:(f>=2?1.5:1); }
 function roleMaxForm(id){ const R=PK(id); return R.top?3:(R.mid?2:1); }
 function roleName(id,form){
@@ -537,8 +1506,10 @@ function captureBoss(){
   if(unowned.length){
     const id = unowned[Math.floor(Math.random()*unowned.length)];
     S.roster[id] = 1;
+    const shiny = Math.random() < 1/8192;                   // 闪光概率 1/8192
+    if(shiny) S.shiny[id] = true;
     saveProgress();
-    showBanner("捕捉到 "+PK(id).name+"！");
+    showBanner("捕捉到 "+(shiny?"★闪光 ":"")+PK(id).name+"！");
     sndLevel();
   }
 }
@@ -624,6 +1595,27 @@ function update(dt){
           attr:PK(S.activeRole).attr });
       }
       d.flash=0.08;
+      sndShot();
+    }
+  }
+
+  // 队伍伙伴：跟随主角色 + 独立炮塔（伤害 0.6× · 属性=伙伴属性）
+  for(let i=S.partners.length-1;i>=0;i--){
+    const q=S.partners[i];
+    q.angle += dt*2.2;
+    const ox=p.x+Math.cos(q.angle)*(CONFIG.drone.orbit+26);
+    const oy=p.y+Math.sin(q.angle)*(CONFIG.drone.orbit+26);
+    q.x += (ox-q.x)*Math.min(1,dt*6); q.y += (oy-q.y)*Math.min(1,dt*6);
+    q.cd = (q.cd||rand(0,1/fireRate)) - dt;
+    if(q.cd<=0){
+      q.cd = 1/fireRate;
+      const target = nearestEnemy(q.x,q.y);
+      const base = target? Math.atan2(target.y-q.y,target.x-q.x) : q.angle;
+      S.bullets.push({ x:q.x, y:q.y, vx:Math.cos(base)*CONFIG.drone.bulletSpeed,
+        vy:Math.sin(base)*CONFIG.drone.bulletSpeed, r:3.5, dmg:CONFIG.drone.damage*0.6*(1+0.3*p.dmgLvl),
+        life:CONFIG.drone.bulletLife, pierce:p.pierceLvl, hit:new Set(),
+        attr:PK(q.id).attr });
+      q.flash=0.08;
       sndShot();
     }
   }
@@ -740,6 +1732,17 @@ function update(dt){
       applyAttr(e, PK(S.activeRole).attr, S.activeRole);
       if(e.type!=="brute" && e.type!=="elite"){ killEnemy(e); }
     }
+    // 队伍伙伴碰撞（独立血量，独立判断，可被击倒退场）
+    for(let qi=S.partners.length-1;qi>=0;qi--){
+      const q=S.partners[qi];
+      if(dist(e,q) >= e.r+q.r) continue;
+      if(q.inv<=0){
+        q.hp -= e.dmg; q.inv=0.5; q.flash=0.25;
+        burst(q.x,q.y,"#f87171",8,140);
+        if(q.hp<=0){ S.partners.splice(qi,1); burst(q.x,q.y,"#94a3b8",16,200); refreshHpUI(); }
+        else refreshHpUI();
+      }
+    }
   }
 
   // 拾取
@@ -826,6 +1829,7 @@ function applyAttr(e, attr, id){
   else if(attr==="elec"){ chainStrike(e, 92, 0.45*mul); }
   else if(attr==="water"){ splashStrike(e, 84, 0.38*mul); }
   else if(attr==="grass"){ const p=S.player; p.hp=Math.min(p.maxHp,p.hp+0.015*p.maxHp); refreshHpUI(); }
+  // neutral：无克制特效
 }
 function strikeEnemy(e,dmg,color){
   if(e.dead) return;
@@ -1088,6 +2092,14 @@ function refreshHpUI(){
   const p=S.player;
   $("hp-bar").firstElementChild.style.transform="scaleX("+clamp(p.hp/p.maxHp,0,1)+")";
   $("hp-num").textContent=Math.ceil(p.hp);
+  const box=$("hp-partners");
+  if(box){
+    box.innerHTML = S.partners.map(q=>{
+      const T=ATTR_TEXT[PK(q.id).attr];
+      return '<div class="php"><span class="php-dot" style="background:'+T.color+'"></span><div class="php-bar"><div style="width:'+Math.max(0,q.hp/q.maxHp*100)+'%"></div></div></div>';
+    }).join("");
+    box.hidden = !S.partners.length;
+  }
 }
 function syncShieldUI(){
   const p=S.player;
@@ -1412,6 +2424,40 @@ function drawPlayer(){
     CTX.strokeStyle="rgba(56,189,248,0.55)"; CTX.lineWidth=2;
     CTX.beginPath(); CTX.arc(p.x,p.y,p.r+8,0,6.28); CTX.stroke();
   }
+  // 闪光光环
+  if(S.shiny[id]){
+    CTX.strokeStyle="rgba(250,204,21,0.9)"; CTX.lineWidth=2;
+    CTX.beginPath(); CTX.arc(p.x,p.y,p.r+9,0,6.28); CTX.stroke();
+    CTX.fillStyle="#fde047"; CTX.font="bold 12px sans-serif"; CTX.textAlign="center";
+    CTX.fillText("★",p.x,p.y-p.r-12);
+  }
+}
+function drawPartners(){
+  for(const q of S.partners){
+    if(q.flash>0 && Math.floor(q.flash*20)%2===0) continue;
+    const form=roleForm(q.id);
+    const a=PK(q.id).attr;
+    const fn = a==="fire"?drawFire : a==="ice"?drawIce : a==="water"?drawWater : a==="grass"?drawGrass : a==="neutral"?drawNeutral : drawElec;
+    fn(q.x,q.y,q.r*1.1,q.angle,form);
+    if(S.shiny[q.id]){
+      CTX.strokeStyle="rgba(250,204,21,0.9)"; CTX.lineWidth=2;
+      CTX.beginPath(); CTX.arc(q.x,q.y,q.r+7,0,6.28); CTX.stroke();
+      CTX.fillStyle="#fde047"; CTX.font="bold 11px sans-serif"; CTX.textAlign="center";
+      CTX.fillText("★",q.x,q.y-q.r-8);
+    }
+  }
+}
+function drawNeutral(x,y,r,rot,form){
+  CTX.save(); CTX.translate(x,y); CTX.rotate(rot);
+  glow("#94a3b8");
+  const s = 1+(form-1)*0.22;
+  CTX.fillStyle="#94a3b8";
+  CTX.beginPath(); CTX.ellipse(0,0,r*0.9*s,r*1.1*s,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#cbd5e1";
+  CTX.beginPath(); CTX.ellipse(0,-r*0.2*s,r*0.62*s,r*0.7*s,0,0,6.28); CTX.fill();
+  CTX.fillStyle="#1e293b";
+  CTX.beginPath(); CTX.arc(-r*0.24*s,r*0.12*s,r*0.12*s,0,6.28); CTX.arc(r*0.24*s,r*0.12*s,r*0.12*s,0,6.28); CTX.fill();
+  CTX.restore();
 }
 function drawDrones(){
   const p=S.player;
@@ -1579,30 +2625,71 @@ function showBanner(txt){
 }
 /* ===== 宝可梦图鉴面板 ===== */
 function refreshMenuCoins(){ $("menu-coins").textContent=S.coins; }
+const SLOT_COST = [0, 10000, 40000];   // 队伍格 2/3 永久解锁价（巨额金币）
+function renderPartyBar(){
+  const bar=$("party-bar"); bar.innerHTML="";
+  for(let i=0;i<3;i++){
+    const slot=document.createElement("div"); slot.className="pslot";
+    if(i===0){
+      const id=S.activeRole||"pichu"; const f=roleForm(id);
+      slot.innerHTML='<div class="pn">'+roleName(id)+'</div><div class="pk">主角色 · 形态 '+f+'/'+roleMaxForm(id)+(S.shiny[id]?" · ★闪光":"")+'</div>';
+    } else if(S.partySlots>i){
+      const id=S.party[i];
+      if(id){ const f=roleForm(id);
+        slot.innerHTML='<div class="pn">'+roleName(id)+'</div><div class="pk">伙伴 · 形态 '+f+'/'+roleMaxForm(id)+(S.shiny[id]?" · ★闪光":"")+'</div><button class="unlock">移出</button>';
+        slot.querySelector(".unlock").addEventListener("click",()=>{ S.party=S.party.filter(x=>x!==id); saveProgress(); renderCollection(); });
+      } else slot.innerHTML='<div class="pn">空位</div><div class="pk">在图鉴中选择入队</div>';
+    } else {
+      slot.className+=" locked";
+      slot.innerHTML='<div class="pn">格 '+(i+1)+' 锁定</div><div class="pk">永久解锁 · '+SLOT_COST[i]+' 金币</div><button class="unlock">解锁</button>';
+      const btn=slot.querySelector(".unlock");
+      btn.disabled = S.coins<SLOT_COST[i];
+      btn.addEventListener("click",()=>{
+        if(S.coins<SLOT_COST[i]) return;
+        S.coins-=SLOT_COST[i]; S.partySlots=i+1; saveProgress(); renderCollection();
+      });
+    }
+    bar.appendChild(slot);
+  }
+}
 function renderCollection(){
+  refreshMenuCoins();
   const ownedCount = POKEDEX_KEYS.filter(id=>S.roster[id]).length;
   $("col-coins").textContent=S.coins;
-  $("col-own").textContent = "已捕捉 "+ownedCount+" / "+POKEDEX_KEYS.length;
+  $("col-own").textContent = "已捕捉 "+ownedCount;
+  renderPartyBar();
+  // 世代筛选
+  const tabs=$("col-tabs"); tabs.innerHTML="";
+  const genOpts = ["all","1","2","3","4","5","6","7","8","9"];
+  for(const g of genOpts){
+    const tb=document.createElement("button"); tb.className="col-tab"+(S.colGen===g?" on":"");
+    tb.textContent = g==="all" ? "全部" : "G"+g;
+    tb.addEventListener("click",()=>{ S.colGen=g; renderCollection(); });
+    tabs.appendChild(tb);
+  }
   const grid=$("col-grid"); grid.innerHTML="";
-  for(const id of POKEDEX_KEYS){
+  const list = S.colGen==="all" ? POKEDEX_KEYS : POKEDEX_KEYS.filter(id=>PK(id).gen===+S.colGen);
+  for(const id of list){
     const R=PK(id); const T=ATTR_TEXT[R.attr];
     const form=roleForm(id);
     const owned=!!S.roster[id];
     const card=document.createElement("div");
-    card.className="col-card"+(owned?"":" locked");
+    card.className="col-card"+(owned?"":" locked")+(S.shiny[id]?" shiny":"");
+    card.title = "进化链："+(R.mid?("→ "+R.mid+(R.top?(" → "+R.top):"")):"无进化");
     card.innerHTML=
+      (S.shiny[id]?'<div class="col-tag">★</div>':'')+
       '<div class="col-dot" style="background:'+(owned?T.color:"rgba(148,163,184,.15)")+'">'+(owned?T.attr:"·")+'</div>'+
       '<div class="col-name">'+(owned?roleName(id):R.name)+'</div>'+
-      '<div class="col-attr">G'+R.gen+' · '+T.attr+'属性 · '+(owned?("形态 "+form+"/"+roleMaxForm(id)):"未捕捉")+'</div>'+
+      '<div class="col-attr">G'+R.gen+' · '+T.attr+'属性 · '+(owned?("形态 "+form+"/"+roleMaxForm(id)+(S.shiny[id]?" ★闪光":"")):"未捕捉")+'</div>'+
       '<div class="col-skill">'+(owned?(T.skills[Math.min(form,3)-1]+" · "+T.desc):"击败"+T.attr+"系 Boss 可捕捉")+'</div>';
     if(owned){
       const actions=document.createElement("div"); actions.className="col-actions";
       const ev=document.createElement("button"); ev.className="btn-evolve";
       const mf=roleMaxForm(id);
-      if(form>=mf){ ev.textContent="已进化满"; ev.disabled=true; }
+      if(form>=mf){ ev.textContent="进化满"; ev.disabled=true; }
       else{
         const cost=ROLE_EVOLVE_COST[form];
-        ev.textContent="进化 "+cost+" 金币";
+        ev.textContent="进化 "+cost;
         ev.disabled = S.coins<cost;
         ev.addEventListener("click",()=>{
           if(S.coins<cost) return;
@@ -1611,10 +2698,16 @@ function renderCollection(){
           renderCollection();
         });
       }
-      const pk=document.createElement("button"); pk.className="btn-pick"+(S.activeRole===id?" used":"");
-      pk.textContent = S.activeRole===id?"使用中":"使用";
-      pk.addEventListener("click",()=>{ S.activeRole=id; renderCollection(); });
-      actions.appendChild(ev); actions.appendChild(pk);
+      const mz=document.createElement("button"); mz.className="btn-pick";
+      mz.textContent = id===S.activeRole ? "主战" : "设主战";
+      if(id===S.activeRole){ mz.classList.add("used"); }
+      else mz.addEventListener("click",()=>{ S.activeRole=id; S.party=S.party.filter(x=>x!==id); saveProgress(); renderCollection(); });
+      const jo=document.createElement("button"); jo.className="btn-pick";
+      if(id===S.activeRole){ jo.textContent="已出战"; jo.disabled=true; }
+      else if(S.party.includes(id)){ jo.textContent="移出"; jo.addEventListener("click",()=>{ S.party=S.party.filter(x=>x!==id); saveProgress(); renderCollection(); }); }
+      else if(S.party.length < S.partySlots){ jo.textContent="入队"; jo.addEventListener("click",()=>{ S.party.push(id); saveProgress(); renderCollection(); }); }
+      else { jo.textContent="满员"; jo.disabled=true; }
+      actions.appendChild(ev); actions.appendChild(mz); actions.appendChild(jo);
       card.appendChild(actions);
     }
     grid.appendChild(card);
@@ -1622,6 +2715,7 @@ function renderCollection(){
 }
 function openCollection(){
   refreshMenuCoins();
+  S.colGen = S.colGen||"1";
   renderCollection();
   hide("menu"); show("collection");
 }
@@ -1633,6 +2727,10 @@ function show(id){ $(id).hidden=false; }
 function hide(id){ $(id).hidden=true; }
 function isTouchDevice(){ return ("ontouchstart" in window) || navigator.maxTouchPoints>0; }
 
+function newPartner(id){
+  return { x:W/2+rand(-40,40), y:H/2+rand(-40,40), r:13, hp:90, maxHp:90,
+    id, inv:0, flash:0, angle:rand(0,6.28), dead:false };
+}
 function startGame(){
   ensureAudio();
   const p = newPlayer();
@@ -1644,6 +2742,9 @@ function startGame(){
   S.expNeed=CONFIG.exp.base;
   S.spawnTimer=0.8; S.eliteTimer=CONFIG.spawn.eliteEvery; S.dmgFlash=0;
   S.player=p; S.drones=[]; S.bullets=[]; S.enemies=[]; S.pickups=[]; S.particles=[];
+  // 出战队伍：第 1 格 = 主角色；其余格 = 队伍伙伴（独立血量）
+  S.party = [S.activeRole, ...S.party.filter(x=>x!==S.activeRole && POKEDEX[x])].slice(0, S.partySlots);
+  S.partners = S.party.slice(1).map(id=>newPartner(id));
   S.input.x=0; S.input.y=0;
   syncDrones();
   hide("menu"); hide("gameover"); hide("levelup"); hide("pause"); hide("banner"); hide("collection");
@@ -1755,7 +2856,7 @@ function loop(ts){
   // 渲染（levelup/pause 时场景静止，背景仍刷新）
   drawBackground(S.player?S.player.x:0,S.player?S.player.y:0);
   if(S.player){
-    drawPickups(); drawHoles(); drawEnemies(); drawBullets(); drawDrones(); drawPlayer(); drawParticles();
+    drawPickups(); drawHoles(); drawEnemies(); drawBullets(); drawDrones(); drawPlayer(); drawPartners(); drawParticles();
   }
   if(S.mode==="playing"){
     refreshTopUI();
